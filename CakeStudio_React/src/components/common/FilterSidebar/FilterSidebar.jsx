@@ -6,11 +6,12 @@ import PriceFilter from "./PriceFilter";
 import RatingFilter from "./RatingFilter";
 
 import {
-    categories,
     ratings
 } from "../../../constants/filterData";
 
 import "./FilterSidebar.css";
+import { useEffect, useState } from "react";
+import Service from "../../../services/Service";
 
 const FilterSidebar = ({
 
@@ -26,6 +27,34 @@ const FilterSidebar = ({
     onClear
 
 }) => {
+
+    const [categories, setCategories] = useState([]);
+    useEffect(() => {
+        loadCategories();
+    }, []);
+
+    const loadCategories = async () => {
+
+        try {
+
+            const response =
+                await Service.getAllCategories();
+
+            setCategories(
+                response.data.map(x => ({
+                    id: x.id,
+                    name: x.categoryName
+                }))
+            );
+
+        }
+        catch (error) {
+
+            console.error(error);
+
+        }
+
+    };
 
     return (
 

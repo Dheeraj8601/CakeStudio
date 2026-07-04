@@ -11,44 +11,43 @@ import { useEffect, useState } from "react";
 import CakeForm from "../AddCake/CakeForm";
 
 import "./EditCake.css";
+import Service from "../../../../services/Service";
 
-export default function EditCake() {
+export default function EditCake(props) {
 
-    const { id } = useParams();
 
     const navigate = useNavigate();
 
     const [cake, setCake] = useState(null);
 
     useEffect(() => {
+        loadCake();
+    }, [props.id]);
 
-        // Later replace with API call
+    const loadCake = async () => {
+        try {
+            const response = await Service.getCakeById(props.id);
 
-        const existingCake = {
+            const item = response.data;
+            //console.log(item,"item ed")
 
-            id,
-
-            name: "Chocolate Truffle Cake",
-
-            description: "Rich chocolate cake with creamy truffle frosting.",
-
-            category: "Chocolate",
-
-            price: 899,
-
-            image: null
-
-        };
-
-        setCake(existingCake);
-
-    }, [id]);
-
-    if (!cake) {
-
-        return null;
-
-    }
+            setCake({
+                id: item.id,
+                name: item.name,
+                description: item.description,
+                category: item.category,
+                price: item.price,
+                stockQuantity: item.stockQuantity,
+                isEggless: item.isEggless,
+                image: null,
+                isAvailable: item.isAvailable,
+                imageUrl:item.imageUrl
+            });
+        }
+        catch (error) {
+            console.error(error);
+        }
+    };
 
     return (
 

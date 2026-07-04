@@ -1,8 +1,9 @@
 import {
     Box,
-    Button,
     Card,
     CardContent,
+    Checkbox,
+    FormControlLabel,
     Grid,
     MenuItem,
     TextField,
@@ -12,62 +13,66 @@ import {
 import BakeryDiningOutlinedIcon from "@mui/icons-material/BakeryDiningOutlined";
 import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import ImageUpload from "./ImageUpload";
 
 import "./CakeForm.css";
 import FormActions from "./FormActions";
+import Service from "../../../../services/Service";
+import { useNavigate } from "react-router-dom";
 
 export default function CakeForm({
-    initialValues,
+    initialValues = [],
     isEdit = false
 }) {
+    const emptyCake = {
+        name: "",
+        description: "",
+        category: "",
+        price: "",
+        stockQuantity: "",
+        isEggless: false,
+        image: null,
+        imageUrl : null
+    };
+  const navigate = useNavigate()
+    const [cake, setCake] = useState(emptyCake);
 
-    const [cake, setCake] = useState(
+    useEffect(() => {
 
-        initialValues || {
-
-            name: "",
-
-            description: "",
-
-            category: "",
-
-            price: "",
-
-            image: null
-
+        if (
+            initialValues &&
+            Object.keys(initialValues).length > 0
+        ) {
+            setCake(initialValues);
         }
 
-    );
+    }, [initialValues]);
 
-    const categories = [
+    const [categories, setCategories] = useState([]);
 
-        "Chocolate",
+    useEffect(() => {
+        loadCategories();
+    }, []);
 
-        "Red Velvet",
+    const loadCategories = async () => {
+        try {
+            const response = await Service.getAllCategories();
 
-        "Butterscotch",
-
-        "Fruit",
-
-        "Vanilla",
-
-        "Black Forest"
-
-    ];
+            setCategories(response.data);
+        }
+        catch (error) {
+            console.error(error);
+        }
+    };
 
     const handleChange = (event) => {
-
+        const { name, value, type, checked } = event.target;
         setCake({
-
             ...cake,
-
-            [event.target.name]: event.target.value
-
+            [name]: type === "checkbox" ? checked : value
         });
-
     };
 
     const handleImageChange = (file) => {
@@ -82,20 +87,51 @@ export default function CakeForm({
 
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
+        try {
 
-        if (isEdit) {
+            const formData = new FormData();
 
-            console.log("Update Cake", cake);
+            formData.append("Name", cake.name);
+            formData.append("Description", cake.description ?? "");
+            formData.append("CategoryId", cake.category);
+            formData.append("Price", Number(cake.price));
+            formData.append("StockQuantity", Number(cake.stockQuantity));
+            formData.append("IsEggless", cake.isEggless);
+
+            if (isEdit) {
+
+                formData.append("Id", initialValues.id);
+                formData.append("IsAvailable", cake.isAvailable);
+
+                if (cake.image instanceof File) {
+                    // New image uploaded
+                    formData.append("ImageFile", cake.image);
+                }
+                else {
+                    // Keep existing image
+                    formData.append("ImageUrl", cake.ImageUrl);
+                }
+
+                const res = await Service.updateCake(formData);
+
+                console.log("Cake updated successfully.",res);
+            }
+            else {
+
+                // Image is mandatory while creating
+                formData.append("ImageFile", cake.image);
+
+                const res =  await Service.createCake(formData);
+
+                console.log("Cake created successfully.",res);
+                navigate(`/admin/cakes`)
+            }
 
         }
-
-        else {
-
-            console.log("Create Cake", cake);
-
+        catch (error) {
+            console.error(error);
         }
-
     };
 
     return (
@@ -220,44 +256,72 @@ export default function CakeForm({
                     </Grid>
 
                     <Grid size={12}>
+                        <TextField
+                            select
+                            fullWidth
+                            label="Category"
+                            name="category"
+                            value={cake.category}
+                            onChange={handleChange}
+                        >
+                            {
+                                categories.map(category => (
+                                    <MenuItem
+                                        key={category.id}
+                                        value={category.id}
+                                    >
+                                        {category.categoryName}
+                                    </MenuItem>
+                                ))
+                            }
+                        </TextField>
+                    </Grid>
+
+                    <Grid size={{ xs: 12, md: 6 }}>
 
                         <TextField
 
-                            select
-
                             fullWidth
 
-                            label="Category"
+                            label="Stock Quantity"
 
-                            name="category"
+                            name="stockQuantity"
 
-                            value={cake.category}
+                            type="number"
+
+                            value={cake.stockQuantity}
 
                             onChange={handleChange}
 
-                        >
+                        />
 
-                            {
+                    </Grid>
 
-                                categories.map(category => (
+                    <Grid
+                        size={{ xs: 12, md: 6 }}
+                        display="flex"
+                        alignItems="center"
+                    >
 
-                                    <MenuItem
+                        <FormControlLabel
 
-                                        key={category}
+                            control={
 
-                                        value={category}
+                                <Checkbox
 
-                                    >
+                                    name="isEggless"
 
-                                        {category}
+                                    checked={cake.isEggless}
 
-                                    </MenuItem>
+                                    onChange={handleChange}
 
-                                ))
+                                />
 
                             }
 
-                        </TextField>
+                            label="Eggless Cake"
+
+                        />
 
                     </Grid>
 
@@ -272,6 +336,8 @@ export default function CakeForm({
                         />
 
                     </Grid>
+
+
 
                     <Grid size={12}>
 

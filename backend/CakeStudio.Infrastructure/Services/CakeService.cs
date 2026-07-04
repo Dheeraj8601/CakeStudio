@@ -1,5 +1,6 @@
 ﻿using CakeStudio.Application.Common.Exceptions;
 using CakeStudio.Application.DTOs.Cake;
+using CakeStudio.Application.Helpers;
 using CakeStudio.Application.Interfaces;
 using CakeStudio.Persistence.Entities;
 using System;
@@ -15,17 +16,19 @@ namespace CakeStudio.Infrastructure.Services
         private readonly ICakeRepository _cakeRepository;
         private readonly IAuditService _auditService;
         private readonly IUserContext _userContext;
+        private readonly IFileUpload _fileUpload;
 
-        public CakeService(ICakeRepository cakeRepository, IAuditService auditService, IUserContext userContext)
+        public CakeService(ICakeRepository cakeRepository, IAuditService auditService, IUserContext userContext, IFileUpload fileUpload)
         {
             _cakeRepository = cakeRepository;
             _auditService = auditService;
             _userContext = userContext;
+            _fileUpload = fileUpload;
         }
 
-        public async Task<CakeResponseDto> CreateAsync(
-            CreateCakeRequestDto request)
+        public async Task<CakeResponseDto> CreateAsync(CreateCakeRequestDto request)
         {
+            string url = await FileUploadHelper.UploadImageAsync(request.ImageFile, "Cakes");
             var cake = new Cake
             {
                 CategoryId = request.CategoryId,
@@ -33,7 +36,7 @@ namespace CakeStudio.Infrastructure.Services
                 Description = request.Description,
                 Price = request.Price,
                 StockQuantity = request.StockQuantity,
-                ImageUrl = request.ImageUrl,
+                ImageUrl = url,
                 IsEggless = request.IsEggless,
                 IsAvailable = true
             };
@@ -53,7 +56,7 @@ namespace CakeStudio.Infrastructure.Services
                 Name = cake.Name,
                 Price = cake.Price,
                 StockQuantity = cake.StockQuantity,
-                ImageUrl = cake.ImageUrl,
+                ImageUrl = url,
                 IsAvailable = cake.IsAvailable
             };
         }
@@ -85,15 +88,22 @@ namespace CakeStudio.Infrastructure.Services
                 Id = cake.Id,
                 Name = cake.Name,
                 Price = cake.Price,
+                IsEggless = cake.IsEggless,
+                Description = cake.Description,
+                category = cake.CategoryId,
                 StockQuantity = cake.StockQuantity,
-                ImageUrl = cake.ImageUrl,
+                ImageUrl = _fileUpload.GetImageUrl(cake.ImageUrl),
                 IsAvailable = cake.IsAvailable
             };
         }
 
-        public async Task<CakeResponseDto> UpdateAsync(
-            UpdateCakeRequestDto request)
-        {
+        public async Task<CakeResponseDto> UpdateAsync(UpdateCakeRequestDto request)
+        { 
+            string? url = request.ImageUrl ?? "";
+            if (request.ImageFile != null)
+            {
+                 url = await FileUploadHelper.UploadImageAsync(request.ImageFile, "Cakes");
+            }
             var cake = await _cakeRepository.GetByIdAsync(request.Id);
 
 
@@ -111,7 +121,7 @@ namespace CakeStudio.Infrastructure.Services
             cake.Description = request.Description;
             cake.Price = request.Price;
             cake.StockQuantity = request.StockQuantity;
-            cake.ImageUrl = request.ImageUrl;
+            cake.ImageUrl = url != "" ? url : cake.ImageUrl;
             cake.IsEggless = request.IsEggless;
             cake.IsAvailable = request.IsAvailable;
 
@@ -173,17 +183,104 @@ namespace CakeStudio.Infrastructure.Services
 
                 Data =
                     result.Data.Select(x =>
-                        new CakeListResponseDto
+                        new CakeListResponseDto //176
                         {
                             CakeId = x.Id,
                             Name = x.Name,
                             Price = x.Price,
                             Category = x.Category.Name,
-                            ImageUrl = x.ImageUrl,
+                            ImageUrl = _fileUpload.GetImageUrl(x.ImageUrl),
                             StockQuantity =
                                 x.StockQuantity
                         })
                     .ToList()
+            };
+        }
+
+        public async Task<PagedResult<CakeCatalogResponseDto>> GetCatalogAsync(CakeCatalogFilterDto request)
+        {
+            var result =
+                await _cakeRepository
+                    .GetCatalogAsync(request);
+
+            return new PagedResult<CakeCatalogResponseDto>
+            {
+                Page = result.Page,
+
+                PageSize = result.PageSize,
+
+                TotalRecords = result.TotalRecords,
+
+                TotalPages = result.TotalPages,
+
+                Data = result.Data.Select(x => new CakeCatalogResponseDto
+                {
+                    Id = x.Id,
+
+                    Name = x.Name,
+
+                    Price = x.Price,
+
+                    ImageUrl =_fileUpload.GetImageUrl(x.ImageUrl),
+
+                    Category = x.Category.Name,
+
+                    IsEggless = x.IsEggless,
+
+                    IsAvailable = x.IsAvailable,
+
+                    StockQuantity = x.StockQuantity,
+
+                    AverageRating =
+                        x.Reviews.Any()
+                            ? Math.Round(
+                                x.Reviews.Average(r => r.Rating),
+                                1)
+                            : 0,
+
+                    TotalReviews =
+                        x.Reviews.Count
+                })
+                .ToList()
+            };
+        }
+
+        public async Task<CakeCatalogResponseDto?> GetCatalogCakeByIdAsync(int id)
+        {
+            var cake = await _cakeRepository.GetByIdAsyncCatalog(id);
+
+            if (cake == null)
+            {
+                return null;
+            }
+
+            return new CakeCatalogResponseDto
+            {
+                Id = cake.Id,
+
+                Name = cake.Name,
+
+                Price = cake.Price,
+
+                ImageUrl = cake.ImageUrl,
+
+                Category = cake.Category.Name,
+
+                IsEggless = cake.IsEggless,
+
+                IsAvailable = cake.IsAvailable,
+
+                StockQuantity = cake.StockQuantity,
+
+                AverageRating =
+                    cake.Reviews.Any()
+                        ? Math.Round(
+                            cake.Reviews.Average(x => x.Rating),
+                            1)
+                        : 0,
+
+                TotalReviews =
+                    cake.Reviews.Count
             };
         }
     }

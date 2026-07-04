@@ -1,0 +1,85 @@
+.cake-filters{
+
+    display:flex;
+
+    gap:16px;
+
+    align-items:center;
+
+    flex-wrap:wrap;
+
+    padding:20px;
+
+    background:#fff;
+
+    border-radius:18px;
+
+    box-shadow:0 8px 24px rgba(0,0,0,.05);
+
+}
+
+.cake-search{
+
+    flex:1;
+
+    min-width:300px;
+
+}
+
+.cake-filter{
+
+    min-width:180px;
+
+}
+
+.cake-price{
+
+    width:150px;
+
+}
+
+.cake-reset-btn{
+
+    text-transform:none !important;
+
+    border-radius:10px !important;
+
+    border-color:#ff5b84 !important;
+
+    color:#ff5b84 !important;
+
+    font-weight:600 !important;
+
+}
+
+.cake-reset-btn:hover{
+
+    background:#fff2f6 !important;
+
+}
+
+@media(max-width:900px){
+
+    .cake-search{
+
+        min-width:100%;
+
+    }
+
+    .cake-filter,
+
+    .cake-price{
+
+        flex:1;
+
+        min-width:180px;
+
+    }
+
+    .cake-reset-btn{
+
+        width:100%;
+
+    }
+
+}

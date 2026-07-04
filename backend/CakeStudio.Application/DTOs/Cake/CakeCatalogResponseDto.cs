@@ -6,23 +6,30 @@ using System.Threading.Tasks;
 
 namespace CakeStudio.Application.DTOs.Cake
 {
-    public class CakeListResponseDto
+    public class CakeCatalogResponseDto
     {
-        public int CakeId { get; set; }
+        public int Id { get; set; }
 
         public string Name { get; set; } = string.Empty;
 
         public decimal Price { get; set; }
 
-        public string? Category { get; set; }
+        public string? ImageUrl { get; set; }
+
+        public string Category { get; set; } = string.Empty;
 
         public bool IsEggless { get; set; }
 
-        public string? ImageUrl { get; set; }
+        public bool IsAvailable { get; set; }
 
         public int StockQuantity { get; set; }
+
+        public double AverageRating { get; set; }
+
+        public int TotalReviews { get; set; }
     }
-    public class PagedResult<T>
+
+    public class PagedResultCatalog<T>
     {
         public int Page { get; set; }
 

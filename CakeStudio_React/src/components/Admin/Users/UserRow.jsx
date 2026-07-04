@@ -62,7 +62,7 @@ export default function UserRow({
 
                 <Typography className="customer-mobile">
 
-                    {user.mobile}
+                    { !user.mobile ? '-' : user.mobile}
 
                 </Typography>
 
@@ -71,20 +71,6 @@ export default function UserRow({
             <TableCell align="center">
 
                 {user.joinedOn}
-
-            </TableCell>
-
-            <TableCell align="center">
-
-                <Chip
-
-                    label={`${user.totalOrders} Orders`}
-
-                    size="small"
-
-                    className="orders-chip"
-
-                />
 
             </TableCell>
 

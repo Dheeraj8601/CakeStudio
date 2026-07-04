@@ -54,7 +54,7 @@ namespace CakeStudio.Infrastructure.Repositories
 
         public async Task<PagedResult<Cake>> GetPagedCakesAsync(CakeFilterRequestDto request)
         {
-            IQueryable<Cake> query = _context.Cakes.Where(x => !x.IsDeleted);
+            IQueryable<Cake> query = _context.Cakes.Where(x => !x.IsDeleted).Include(x => x.Category).Include(x => x.DeletedByNavigation);
 
             // Search
 
@@ -86,7 +86,7 @@ namespace CakeStudio.Infrastructure.Repositories
 
             var totalRecords = await query.CountAsync();
 
-            var cakes = await query.OrderBy(x => x.Name).Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToListAsync();
+            var cakes = await query.OrderBy(x => x.Name).Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToListAsync(); //89
 
             return new PagedResult<Cake>
             {
@@ -103,6 +103,97 @@ namespace CakeStudio.Infrastructure.Repositories
 
                 Data = cakes
             };
+        }
+
+        public async Task<PagedResult<Cake>> GetCatalogAsync(CakeCatalogFilterDto request)
+        {
+            IQueryable<Cake> query =
+                _context.Cakes
+                    .Include(x => x.Category)
+                    .Include(x => x.Reviews)
+                    .Where(x =>
+                        !x.IsDeleted &&
+                        x.IsAvailable);
+
+            if (!string.IsNullOrWhiteSpace(request.Search))
+            {
+                query = query.Where(x =>
+                    x.Name.Contains(request.Search));
+            }
+
+            if (request.CategoryIds != null && request.CategoryIds.Any())
+            {
+                query = query.Where(x =>
+                    request.CategoryIds.Contains(
+                        x.CategoryId));
+            }
+
+            if (request.MinPrice.HasValue)
+            {
+                query = query.Where(x =>
+                    x.Price >= request.MinPrice);
+            }
+
+            if (request.MaxPrice.HasValue)
+            {
+                query = query.Where(x =>
+                    x.Price <= request.MaxPrice);
+            }
+
+            if (request.Ratings != null && request.Ratings.Any())
+            {
+                query = query.Where(x => x.Reviews.Any() && request.Ratings.Contains((int)Math.Floor(x.Reviews.Average(r => r.Rating))));
+            }
+
+            query = request.SortBy switch
+            {
+                "priceLow" =>
+                    query.OrderBy(x => x.Price),
+
+                "priceHigh" =>
+                    query.OrderByDescending(x => x.Price),
+
+                "rating" =>
+                    query.OrderByDescending(x =>
+                        x.Reviews.Any()
+                            ? x.Reviews.Average(r => r.Rating)
+                            : 0),
+
+                "newest" =>
+                    query.OrderByDescending(x =>
+                        x.CreatedAt),
+
+                _ =>
+                    query.OrderBy(x => x.Name)
+            };
+
+            var totalRecords = await query.CountAsync();
+
+            var cakes = await query.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToListAsync();
+
+            return new PagedResult<Cake>
+            {
+                Page = request.Page,
+                PageSize = request.PageSize,
+                TotalRecords = totalRecords,
+                TotalPages = (int)Math.Ceiling(totalRecords /(double)request.PageSize),
+                Data = cakes
+            };
+
+
+        }
+
+        public async Task<Cake?> GetByIdAsyncCatalog(int id)
+        {
+            return await _context.Cakes
+
+                .Include(x => x.Category)
+
+                .Include(x => x.Reviews)
+
+                .FirstOrDefaultAsync(x =>
+                    x.Id == id &&
+                    !x.IsDeleted);
         }
     }
 }

@@ -81,12 +81,6 @@ export default function UsersTable({
 
                             <TableCell align="center">
 
-                                Orders
-
-                            </TableCell>
-
-                            <TableCell align="center">
-
                                 Status
 
                             </TableCell>

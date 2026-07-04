@@ -33,18 +33,9 @@ namespace CakeStudio.Infrastructure.Repositories
 
         public async Task DeleteAsync(Category category)
         {
-            var categ = await _context.Categories.FindAsync(category.Id);
+            
 
-            if (categ == null)
-            {
-                throw new BadRequestException($"Category with ID {category.Id} not found");
-            }
-            if (!string.IsNullOrWhiteSpace(categ.ImageUrl))
-            {
-                FileUploadHelper.DeleteImage(categ.ImageUrl);
-            }
-
-            _context.Categories.Remove(categ);
+            _context.Categories.Remove(category);
 
             await _context.SaveChangesAsync();
         }

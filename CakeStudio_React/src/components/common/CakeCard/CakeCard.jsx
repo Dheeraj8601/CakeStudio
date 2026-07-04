@@ -44,7 +44,7 @@ const CakeCard = ({
                     component="img"
                     image={image}
                     alt={name}
-                    className="cake-image"
+                    className="cake-image-2"
                 />
 
                 <IconButton className="favorite-btn"

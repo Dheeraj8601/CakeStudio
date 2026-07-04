@@ -7,12 +7,11 @@ import CakeGrid from "../common/CakeGrid/CakeGrid";
 import PaginationComponent from "../common/Pagination/PaginationComponent";
 
 import useCakeFilters from "../../hooks/useCakeFilters";
-
-import { cakes } from "./cakeData";
-
+import useCakeCatalog from "../../hooks/useCakeCatalog"
+import { cakes} from "./cakeData";
 export default function CakeComponent(props) {
 
-    const cake = useCakeFilters(cakes, props.categoryParams);
+    const cake = useCakeCatalog(props.categoryParams);
 
     return (
 
@@ -63,11 +62,11 @@ export default function CakeComponent(props) {
 
                         title="All Cakes"
 
-                        totalItems={cake.filteredCakes.length}
+                        totalItems={cake.totalRecords}
 
                         sortBy={cake.sortBy}
 
-                        showCount={cake.showCount}
+                        showCount={cake.pageSize}
 
                         view={cake.view}
 
@@ -76,7 +75,7 @@ export default function CakeComponent(props) {
                         }
 
                         onShowCountChange={(e) =>
-                            cake.setShowCount(Number(e.target.value))
+                            cake.setPageSize(Number(e.target.value))
                         }
 
                         onViewChange={(e, value) =>
@@ -87,7 +86,7 @@ export default function CakeComponent(props) {
 
                     <CakeGrid
 
-                        cakes={cake.currentCakes}
+                        cakes={cake.cakes}
 
                         view={cake.view}
                     />
@@ -98,9 +97,9 @@ export default function CakeComponent(props) {
 
                         totalPages={cake.totalPages}
 
-                        totalItems={cake.filteredCakes.length}
+                        totalItems={cake.totalRecords}
 
-                        currentItems={cake.currentCakes.length}
+                        currentItems={cake.cakes.length}
 
                         onPageChange={(e, value) =>
                             cake.setPage(value)

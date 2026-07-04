@@ -11,7 +11,7 @@ const CakeGrid = ({
 
         <Grid
             container
-            spacing={3}
+            spacing={10}
             className="cake-grid"
         >
 
@@ -19,16 +19,16 @@ const CakeGrid = ({
 
                 <Grid
                     key={cake.id}
-                    size={{
-                        xs: 12,
-                        sm: view === "grid" ? 6 : 12,
-                        md: view === "grid" ? 4 : 12
-                    }}
+                    // size={{
+                    //     xs: 12,
+                    //     sm: view === "grid" ? 6 : 12,
+                    //     md: view === "grid" ? 4 : 12
+                    // }}
                 >
 
                     <CakeCard
                         id={cake.id}
-                        image={cake.image}
+                        image={cake.imageUrl}
                         name={cake.name}
                         rating={cake.rating}
                         reviews={cake.reviews}

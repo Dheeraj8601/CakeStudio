@@ -73,6 +73,8 @@ public partial class CakeStudioDbContext : DbContext
             entity.HasOne(d => d.Category).WithMany(p => p.Cakes)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Cakes_Categories");
+
+            entity.HasOne(d => d.DeletedByNavigation).WithMany(p => p.Cakes).HasConstraintName("FK_Cakes_DeletedBy");
         });
 
         modelBuilder.Entity<Cart>(entity =>
@@ -192,6 +194,8 @@ public partial class CakeStudioDbContext : DbContext
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Role).HasDefaultValue("Customer");
+
+            entity.HasOne(d => d.DeletedByNavigation).WithMany(p => p.InverseDeletedByNavigation).HasConstraintName("FK_Users_DeletedBy");
         });
 
         modelBuilder.Entity<Wishlist>(entity =>

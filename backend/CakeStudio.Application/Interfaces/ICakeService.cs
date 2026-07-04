@@ -20,5 +20,11 @@ namespace CakeStudio.Application.Interfaces
         Task<CakeResponseDto?> GetByIdAsync(int id);
         Task<PagedResult<CakeListResponseDto>> GetCakesAsync(CakeFilterRequestDto request);
 
+        Task<PagedResult<CakeCatalogResponseDto>> GetCatalogAsync(
+    CakeCatalogFilterDto request);
+
+        Task<CakeCatalogResponseDto?> GetCatalogCakeByIdAsync(
+            int id);
+
     }
 }

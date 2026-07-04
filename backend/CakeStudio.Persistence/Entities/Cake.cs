@@ -45,12 +45,15 @@ namespace CakeStudio.Persistence.Entities
         [ForeignKey("CategoryId")]
         public virtual Category Category { get; set; } = null!;
 
+        [ForeignKey("DeletedBy")]
+        public virtual User? DeletedByNavigation { get; set; }
+
         public virtual ICollection<InventoryTransaction> InventoryTransactions { get; set; } = new List<InventoryTransaction>();
 
         public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
-
         public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
 
+      
         public virtual ICollection<Wishlist> Wishlists { get; set; } = new List<Wishlist>();
     }
 }

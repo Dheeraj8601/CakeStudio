@@ -36,6 +36,11 @@ public partial class User
     public DateTime CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
+    public bool IsDeleted { get; set; }
+
+    public DateTime? DeletedAt { get; set; }
+
+    public int? DeletedBy { get; set; }
 
     public virtual ICollection<Address> Addresses { get; set; } = new List<Address>();
 
@@ -57,4 +62,11 @@ public partial class User
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
 
     public virtual ICollection<Wishlist> Wishlists { get; set; } = new List<Wishlist>();
+
+    [ForeignKey("DeletedBy")]
+    //[InverseProperty("InverseDeletedByNavigation")]
+    public virtual User? DeletedByNavigation { get; set; }
+
+    //[InverseProperty("DeletedByNavigation")]
+    public virtual ICollection<User> InverseDeletedByNavigation { get; set; } = new List<User>();
 }

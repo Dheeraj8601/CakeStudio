@@ -19,7 +19,6 @@ export default function ImageUpload({
     onImageChange
 
 }) {
-
     const inputRef = useRef();
 
     const handleFile = (file) => {

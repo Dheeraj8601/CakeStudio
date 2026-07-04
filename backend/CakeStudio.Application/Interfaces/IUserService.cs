@@ -1,6 +1,5 @@
 ﻿using CakeStudio.Application.DTOs.Cake;
 using CakeStudio.Application.DTOs.User;
-using CakeStudio.Persistence.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,19 +8,13 @@ using System.Threading.Tasks;
 
 namespace CakeStudio.Application.Interfaces
 {
-    public interface IUserRepository
+    public interface IUserService
     {
-        Task<User?> GetByEmailAsync(string email);
+        Task<UserResponseDto?> GetByIdAsync(int id);
 
-        Task<User?> GetByIdAsync(int userId);
+        Task<List<UserResponseDto>> GetAllAsync();
 
-        Task AddUserAsync(User user);
-
-        Task SaveChangesAsync();
-
-        Task<List<User>> GetAllAsync();
-
-        Task<PagedResult<User>> GetPagedAsync(
+        Task<PagedResult<UserResponseDto>> GetPagedAsync(
             UserPagedRequestDto request);
 
         Task ToggleActiveStatusAsync(int id);
