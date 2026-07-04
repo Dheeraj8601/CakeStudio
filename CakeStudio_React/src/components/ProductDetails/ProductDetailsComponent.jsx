@@ -1,46 +1,55 @@
-import { Grid,Box } from "@mui/material";
+import { Grid, Box } from "@mui/material";
 import ProductGallery from "../common/ProductDetails/ProductGallery";
 import ProductInfo from "../common/ProductDetails/ProductInfo";
 import Breadcrumb from "../../components/common/Breadcrumb/Breadcrumb"
 import "./ProductDetailsComponent.css"
-const product = {
+import { useEffect, useState } from "react";
+import Service from "../../services/Service";
 
-    id: 1,
 
-    name: "Chocolate Truffle Cake",
+export default function ProductDetailsComponent(props) {
+    const [product, setProduct] = useState({
+        id: 0,
+        name: "",
+        price: 0,
+        rating: 0,
+        reviewCount: 0,
+        description: "",
+        flavour: "",
+        weight: "",
+        delivery: "",
+        images: []
+    });
 
-    price: 899,
 
-    rating: 5,
+    useEffect(() => {
+        loadProduct(props.id)
+    }, [props.id])
 
-    reviewCount: 124,
+    const loadProduct = async (id) => {
+        try {
+            const res = await Service.getCakeDetails(id);
+            console.log(res.data, "product")
+            const data = res.data;
+            setProduct(prev => {
+                return {
+                    ...prev,
+                    id: data.id,
+                    name: data.name,
+                    price: data.price,
+                    rating: data.rating,
+                    reviewCount: data.reviewCount,
+                    description: data.description,
+                    flavour: data.flavour,
+                    weight: data.weight,
+                    delivery: data.delivery,
+                    images: data.images
+                }
+            })
+        } catch (err) {
 
-    description:
-        "Indulge in the rich chocolate flavour made with premium cocoa, layered sponge, silky truffle, and smooth chocolate ganache.",
-
-    flavour: "Chocolate Truffle",
-
-    weight: "0.5 kg, 1 kg, 2 kg",
-
-    delivery: "Same Day / Next Day",
-
-    images: [
-
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRg9lDXMeBjOCReXjWZwt0lTlWXnVKMkUOjHVU39--4EQ&s=10",
-
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSXYqPfD5XWZdTZ8X0S7LlR6GYMah_99qjkVpG2w7NzCw&s=10",
-
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSLxF4FfTH0GaOIYf7rRX34GT7lRSAHch80XX8ydO5Prg&s=10",
-
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS3ZZVZHZvJTKwkC5gzWQ9ONR5DaymMXrh1e-8LxIQ90A&s=10",
-
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQduunHF0Fu2P7PLGyTwUlXPeuIddVtvVrk-_-w8ktiXw&s=10"
-
-    ]
-
-};
-
-export default function ProductDetailsComponent() {
+        }
+    }
 
     return (
 
@@ -66,7 +75,7 @@ export default function ProductDetailsComponent() {
                 <Grid
                     container
                     spacing={6}
-                    alignItems="flex-start"
+                    alignitems="flex-start"
                 >
 
                     {/* Left */}

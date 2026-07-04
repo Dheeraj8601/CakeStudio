@@ -262,7 +262,7 @@ namespace CakeStudio.Infrastructure.Services
 
                 Price = cake.Price,
 
-                ImageUrl = cake.ImageUrl,
+                ImageUrl = _fileUpload.GetImageUrl(cake.ImageUrl),
 
                 Category = cake.Category.Name,
 
@@ -271,6 +271,15 @@ namespace CakeStudio.Infrastructure.Services
                 IsAvailable = cake.IsAvailable,
 
                 StockQuantity = cake.StockQuantity,
+
+                weight = "0.5 kg, 1 kg",
+
+                delievery = "Same Day / Next Day",
+
+                rating = 4.5,
+                reviewCount = 12,
+                flavour = cake.Category.Name,
+                images = Enumerable.Repeat(_fileUpload.GetImageUrl(cake.ImageUrl), 5).ToList(),
 
                 AverageRating =
                     cake.Reviews.Any()
