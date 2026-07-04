@@ -27,6 +27,17 @@ namespace CakeStudio.Application.DTOs.Cake
         public double AverageRating { get; set; }
 
         public int TotalReviews { get; set; }
+
+        public string? weight { get; set; }
+
+        public string? delievery { get; set; }
+
+        public string? flavour { get; set; }
+
+        public double? rating { get; set; }
+        public int? reviewCount { get; set; }
+
+        public List<string>? images { get; set; }
     }
 
     public class PagedResultCatalog<T>
