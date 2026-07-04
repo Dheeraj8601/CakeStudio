@@ -5,6 +5,7 @@ import {
     TableCell,
     TableContainer,
     TableHead,
+    TablePagination,
     TableRow
 } from "@mui/material";
 
@@ -17,6 +18,16 @@ export default function CakeTable({
 
     cakes,
 
+    totalRecords,
+
+    page,
+
+    rowsPerPage,
+
+    setPage,
+
+    setRowsPerPage,
+
     onDelete
 
 }) {
@@ -27,71 +38,149 @@ export default function CakeTable({
 
     }
 
+    const handlePageChange = (
+
+        event,
+
+        newPage
+
+    ) => {
+
+        setPage(newPage);
+
+    };
+
+    const handleRowsPerPageChange = (
+
+        event
+
+    ) => {
+
+        setRowsPerPage(
+
+            parseInt(event.target.value, 10)
+
+        );
+
+        setPage(0);
+
+    };
+
     return (
 
-        <TableContainer
-
-            component={Paper}
+        <Paper
 
             className="cake-table"
 
         >
 
-            <Table>
+            <TableContainer>
 
-                <TableHead>
+                <Table>
 
-                    <TableRow>
+                    <TableHead>
 
-                        <TableCell>Image</TableCell>
+                        <TableRow>
 
-                        <TableCell>Name</TableCell>
+                            <TableCell>
 
-                        <TableCell>Price</TableCell>
+                                Image
 
-                        <TableCell>Category</TableCell>
+                            </TableCell>
 
-                        <TableCell align="center">
+                            <TableCell>
 
-                            Edit
+                                Name
 
-                        </TableCell>
+                            </TableCell>
 
-                        <TableCell align="center">
+                            <TableCell>
 
-                            Delete
+                                Price
 
-                        </TableCell>
+                            </TableCell>
 
-                    </TableRow>
+                            <TableCell>
 
-                </TableHead>
+                                Category
 
-                <TableBody>
+                            </TableCell>
 
-                    {
+                            <TableCell align="center">
 
-                        cakes.map(cake => (
+                                Edit
 
-                            <CakeRow
+                            </TableCell>
 
-                                key={cake.id}
+                            <TableCell align="center">
 
-                                cake={cake}
+                                Delete
 
-                                onDelete={onDelete}
+                            </TableCell>
 
-                            />
+                        </TableRow>
 
-                        ))
+                    </TableHead>
 
-                    }
+                    <TableBody>
 
-                </TableBody>
+                        {
 
-            </Table>
+                            cakes.map(cake => (
 
-        </TableContainer>
+                                <CakeRow
+
+                                    key={cake.id}
+
+                                    cake={cake}
+
+                                    onDelete={onDelete}
+
+                                />
+
+                            ))
+
+                        }
+
+                    </TableBody>
+
+                </Table>
+
+            </TableContainer>
+
+            <TablePagination
+
+                component="div"
+
+                count={totalRecords}
+
+                page={page}
+
+                rowsPerPage={rowsPerPage}
+
+                rowsPerPageOptions={[
+
+                    5,
+
+                    10,
+
+                    25,
+
+                    50
+
+                ]}
+
+                onPageChange={handlePageChange}
+
+                onRowsPerPageChange={
+
+                    handleRowsPerPageChange
+
+                }
+
+            />
+
+        </Paper>
 
     );
 

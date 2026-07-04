@@ -13,7 +13,7 @@ export default function Cakes(props) {
                 {...props}
                 navigate={navigate}
                 id={params.id}
-                categoryParams = {category}
+                categoryParams = {Number(category)}
             />
         </Box>
     )

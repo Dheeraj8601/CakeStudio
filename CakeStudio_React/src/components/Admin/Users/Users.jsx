@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import UserHeader from "./UserHeader";
 import UserFilters from "./UserFilters";
@@ -8,91 +8,59 @@ import EmptyUsers from "./EmptyUsers";
 import DeleteUserDialog from "./DeleteUserDialog";
 
 import "./Users.css";
+import Service from "../../../services/Service";
 
 export default function Users() {
-
-    const [users] = useState([
-
-        {
-            id: 1,
-            fullName: "Rahul Sharma",
-            email: "rahul@gmail.com",
-            mobile: "+91 9876543210",
-            joinedOn: "18 Jun 2026",
-            totalOrders: 12,
-            status: true
-        },
-
-        {
-            id: 2,
-            fullName: "Priya Verma",
-            email: "priya@gmail.com",
-            mobile: "+91 9988776655",
-            joinedOn: "15 Jun 2026",
-            totalOrders: 5,
-            status: false
-        },
-
-        {
-            id: 3,
-            fullName: "Amit Patel",
-            email: "amit@gmail.com",
-            mobile: "+91 9123456789",
-            joinedOn: "10 Jun 2026",
-            totalOrders: 8,
-            status: true
-        },
-
-        {
-            id: 4,
-            fullName: "Neha Singh",
-            email: "neha@gmail.com",
-            mobile: "+91 9765432109",
-            joinedOn: "06 Jun 2026",
-            totalOrders: 3,
-            status: true
-        }
-
-    ]);
-
+    const [users, setUsers] = useState([]);
     const [search, setSearch] = useState("");
-
     const [status, setStatus] = useState("All");
-
     const [selectedUser, setSelectedUser] = useState(null);
-
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
-    const filteredUsers = users.filter(user => {
+    useEffect(() => {
+        loadUsers();
+    }, [search, status]);
 
-        const matchesSearch =
+    const loadUsers = async () => {
+        try {
+            const params = {
+                page: 1,
+                pageSize: 10,
+                search: search,
+                isActive: status
+            };
 
-            user.fullName.toLowerCase().includes(search.toLowerCase()) ||
+            const response = await Service.getUsers(params);
 
-            user.email.toLowerCase().includes(search.toLowerCase());
+            const data = response.data.data.map(item => ({
+                id: item.id,
+                fullName: `${item.firstName} ${item.lastName}`,
+                email: item.email,
+                mobile: item.phoneNumber,
+                joinedOn: new Date(item.createdAt).toLocaleDateString("en-GB", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric"
+                }),
+                status: item.isActive
+            }));
+            console.log(data, response.data.data)
+            setUsers(data);
+        }
+        catch (error) {
+            console.error(error);
+        }
+    };
 
-        const matchesStatus =
+    const handleStatusChange = async (userId) => {
+        try {
+            await Service.toggleUserStatus(userId);
 
-            status === "All" ||
-
-            (status === "Active" && user.status) ||
-
-            (status === "Inactive" && !user.status);
-
-        return matchesSearch && matchesStatus;
-
-    });
-
-    const handleStatusChange = (userId, checked) => {
-
-        console.log({
-
-            userId,
-
-            status: checked
-
-        });
-
+            loadUsers();
+        }
+        catch (error) {
+            console.error(error);
+        }
     };
 
     const handleDelete = (user) => {
@@ -121,7 +89,7 @@ export default function Users() {
 
             {
 
-                filteredUsers.length === 0 ?
+                users.length === 0 ?
 
                     <EmptyUsers />
 
@@ -129,7 +97,7 @@ export default function Users() {
 
                     <UsersTable
 
-                        users={filteredUsers}
+                        users={users}
 
                         onDelete={handleDelete}
 
@@ -151,10 +119,17 @@ export default function Users() {
 
                 }
 
-                onConfirm={() => {
+                onConfirm={async () => {
+                    try {
+                        await Service.deleteUser(selectedUser.id);
 
-                    console.log(selectedUser);
+                        setOpenDeleteDialog(false);
 
+                        loadUsers();
+                    }
+                    catch (error) {
+                        console.error(error);
+                    }
                 }}
 
             />

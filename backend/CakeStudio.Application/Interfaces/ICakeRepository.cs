@@ -17,5 +17,9 @@ namespace CakeStudio.Application.Interfaces
 
         Task DeleteAsync(Cake cake);
         Task<PagedResult<Cake>> GetPagedCakesAsync(CakeFilterRequestDto request);
+        Task<PagedResult<Cake>> GetCatalogAsync(
+    CakeCatalogFilterDto request);
+
+        Task<Cake?> GetByIdAsyncCatalog(int id);
     }
 }

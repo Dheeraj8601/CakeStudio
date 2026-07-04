@@ -6,6 +6,7 @@ using CakeStudio.Application.Interfaces;
 using CakeStudio.Application.Services;
 using CakeStudio.Infrastructure.Repositories;
 using CakeStudio.Persistence.Entities;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -63,6 +64,15 @@ namespace CakeStudio.Infrastructure.Services
         public async Task DeleteAsync(int id)
         {
             var category = await _categoryRepository.GetByIdAsync(id);
+
+            if (category == null)
+            {
+                throw new BadRequestException($"Category with ID {category.Id} not found");
+            }
+            if (!string.IsNullOrWhiteSpace(category.ImageUrl))
+            {
+                FileUploadHelper.DeleteImage(category.ImageUrl);
+            }
 
             _categoryRepository.DeleteAsync(category);
 

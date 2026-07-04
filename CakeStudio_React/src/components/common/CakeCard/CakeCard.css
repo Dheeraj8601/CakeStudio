@@ -2,120 +2,215 @@
 
     width: 270px;
 
-    border-radius: 12px !important;
-
-    transition: .3s;
-
-    cursor: pointer;
+    border-radius: 18px !important;
 
     overflow: hidden;
 
-    box-shadow: 0 2px 8px rgba(0,0,0,.08)!important;
+    cursor: pointer;
+
+    background: #fff;
+
+    transition: all .3s ease;
+
+    box-shadow: 0 4px 15px rgba(0, 0, 0, .08) !important;
+
+    display: flex;
+
+    flex-direction: column;
 
 }
 
-.cake-card:hover{
+.cake-card:hover {
 
-    transform: translateY(-5px);
+    transform: translateY(-6px);
 
-    box-shadow:0 10px 25px rgba(0,0,0,.15)!important;
-
-}
-
-.cake-image-container{
-
-    position:relative;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, .15) !important;
 
 }
 
-.cake-image{
 
-    height:210px;
+/* ---------- IMAGE ---------- */
 
-    object-fit:cover;
+.cake-image-container {
 
-}
+    position: relative;
 
-.favorite-btn{
+    width: 100%;
 
-    position:absolute!important;
+    height: 230px;
 
-    top:10px;
+    overflow: hidden;
 
-    right:10px;
+    background: #fafafa;
 
-    background:white!important;
+    display: flex;
 
-    width:34px;
+    align-items: center;
 
-    height:34px;
-
-}
-
-.favorite-btn:hover{
-
-    background:#fff!important;
+    justify-content: center;
 
 }
 
-.cake-name{
+.cake-image-2 {
 
-    font-size:16px!important;
+    object-fit: contain;
 
-    font-weight:600!important;
+    transition: transform .35s ease;
 
-    margin-bottom:8px!important;
-
-    color:#333;
+    display: block;
 
 }
 
-.rating-container{
+.cake-card:hover .cake-image {
 
-    display:flex;
-
-    align-items:center;
-
-    gap:8px;
-
-    margin-bottom:12px;
+    transform: scale(1.06);
 
 }
 
-.review-count{
 
-    color:#777;
+/* ---------- WISHLIST ---------- */
 
-    font-size:13px!important;
+.favorite-btn {
 
-}
+    position: absolute !important;
 
-.cake-price{
+    top: 14px;
 
-    font-size:20px!important;
+    right: 14px;
 
-    font-weight:700!important;
+    width: 40px;
 
-    color:#111;
+    height: 40px;
 
-    margin-bottom:18px!important;
+    background: white !important;
 
-}
+    border-radius: 50% !important;
 
-.add-cart-btn{
+    box-shadow: 0 4px 12px rgba(0,0,0,.12);
 
-    border-color:#ff5b84!important;
-
-    color:#ff5b84!important;
-
-    text-transform:none!important;
-
-    font-weight:600!important;
+    z-index: 5;
 
 }
 
-.add-cart-btn:hover{
+.favorite-btn:hover {
 
-    background:#fff5f7!important;
+    background: #fff !important;
+
+}
+
+
+/* ---------- CONTENT ---------- */
+
+.MuiCardContent-root {
+
+    padding: 18px !important;
+
+    display: flex;
+
+    flex-direction: column;
+
+    flex: 1;
+
+}
+
+.cake-name {
+
+    font-size: 28px !important;
+
+    font-weight: 700 !important;
+
+    color: #222;
+
+    margin-bottom: 10px !important;
+
+    min-height: 56px;
+
+    overflow: hidden;
+
+    display: -webkit-box;
+
+    /* -webkit-line-clamp: 2; */
+
+    -webkit-box-orient: vertical;
+
+}
+
+.rating-container {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    margin-bottom: 14px;
+
+}
+
+.review-count {
+
+    font-size: 13px !important;
+
+    color: #777;
+
+}
+
+.cake-price {
+
+    font-size: 30px !important;
+
+    font-weight: 700 !important;
+
+    color: #111;
+
+    margin-bottom: 22px !important;
+
+}
+
+
+/* ---------- BUTTON ---------- */
+
+.add-cart-btn {
+
+    margin-top: auto;
+
+    border: 2px solid #ff5b84 !important;
+
+    color: #ff5b84 !important;
+
+    text-transform: none !important;
+
+    font-weight: 700 !important;
+
+    border-radius: 10px !important;
+
+    padding: 10px 0;
+
+    font-size: 16px !important;
+
+}
+
+.add-cart-btn:hover {
+
+    background: #fff4f7 !important;
+
+}
+
+
+/* ---------- MOBILE ---------- */
+
+@media (max-width:768px){
+
+    .cake-card{
+
+        width:100%;
+
+    }
+
+    .cake-image-container{
+
+        height:200px;
+
+    }
 
 }

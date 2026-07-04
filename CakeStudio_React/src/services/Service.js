@@ -1,5 +1,5 @@
 import SessionManage from "../Session/SessionManage";
-
+import qs from "qs";
 import axios from 'axios';
 
 const CS_API_BASE_URL = window.appConfig.CS_API_BASE_URL;
@@ -55,7 +55,7 @@ api.interceptors.response.use(
             try {
 
                 const refreshToken = SessionManage.getRefreshToken();
-                console.log(refreshToken,"refreshToken")
+                console.log(refreshToken, "refreshToken")
                 alert(refreshToken)
                 const response = await axios.post(
                     CS_API_BASE_URL + "Auth/refresh-token",
@@ -144,10 +144,87 @@ class Service {
     }
 
     getCategoriesWithFilters(params) {
-    return api.get("/Category/getCategories", {
-        params
+        return api.get("/Category/getCategories", {
+            params
+        });
+    }
+
+
+    //------- User ------
+
+    getUsers(params) {
+        return api.get("/users/getUsers", {
+            params
+        });
+    }
+
+    getAllUsers() {
+        return api.get("/users/all");
+    }
+
+    getUserById(id) {
+        return api.get(`/users/${id}`);
+    }
+
+    toggleUserStatus(id) {
+        return api.patch(`/users/${id}/toggle-status`);
+    }
+
+    deleteUser(id) {
+        return api.delete(`/users/${id}`);
+    }
+
+    //----- Cake---------
+    getCakes(params) {
+        return api.get("/Cake/getCakes", {
+            params
+        });
+    }
+
+    getAllCakes() {
+        return api.get("/Cake/all");
+    }
+
+    getCakeById(id) {
+        return api.get(`/Cake/${id}`);
+    }
+
+    createCake(formData) {
+        return api.post("/Cake/createCake", formData, {
+            headers: {
+                "Content-Type": "multipart/form-data"
+            }
+        });
+    }
+
+    updateCake(formData) {
+        return api.put("/Cake/updateCake", formData, {
+            headers: {
+                "Content-Type": "multipart/form-data"
+            }
+        });
+    }
+
+    deleteCake(id) {
+        return api.delete(`/Cake/${id}`);
+    }
+
+    //------ cake catalog ----
+    getCakeCatalog(params) {
+    return api.get("/cake-catalog", {
+        params,
+        paramsSerializer: {
+            serialize: (params) =>
+                qs.stringify(params, {
+                    arrayFormat: "repeat"
+                })
+        }
     });
 }
+
+    getCakeDetails(id) {
+        return api.get(`/cake-catalog/${id}`);
+    }
 }
 
 export default new Service();

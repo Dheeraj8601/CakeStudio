@@ -45,6 +45,7 @@ namespace CakeStudio.Infrastructure
             services.AddScoped<IFileUpload, FileUploadService>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<ICategoryService, CategoryService>();
+            services.AddScoped<IUserService, UserService>();
 
             return services;
         }

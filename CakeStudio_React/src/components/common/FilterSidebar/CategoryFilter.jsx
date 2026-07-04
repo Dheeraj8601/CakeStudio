@@ -1,61 +1,52 @@
 import {
     Checkbox,
-    FormControlLabel,
-    Box,
-    Typography
+    FormControlLabel
 } from "@mui/material";
 
-const CategoryFilter = ({
+export default function CategoryFilter({
+
     categories,
+
     selectedCategories,
+
     onChange
-}) => {
+
+}) {
 
     return (
 
         <>
 
-            {categories.map(category => (
+            {
 
-                <Box
-                    key={category.id}
-                    sx={{
-                        display: "flex",
-                        justifyContent: "space-between"
-                    }}
-                >
+                categories.map(category => (
 
                     <FormControlLabel
 
+                        key={category.id}
+
                         control={
+
                             <Checkbox
+
                                 checked={selectedCategories.includes(category.id)}
+
                                 onChange={() => onChange(category.id)}
-                                size="small"
+
                             />
+
                         }
 
                         label={category.name}
 
                     />
 
-                    <Typography
-                        sx={{
-                            color: "#777",
-                            mt: 1
-                        }}
-                    >
-                        ({category.count})
-                    </Typography>
+                ))
 
-                </Box>
-
-            ))}
+            }
 
         </>
 
     );
 
-};
-
-export default CategoryFilter;
+}
