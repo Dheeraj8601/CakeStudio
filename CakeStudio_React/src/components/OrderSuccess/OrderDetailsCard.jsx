@@ -7,7 +7,7 @@ import {
     Grid,
     Typography
 } from "@mui/material";
-
+import dayjs from "dayjs";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
@@ -25,6 +25,7 @@ export default function OrderDetailsCard({
 
 }) {
 
+    console.log(order,"11")
     return (
 
         <Card className="order-details-card">
@@ -33,7 +34,7 @@ export default function OrderDetailsCard({
 
                 <Box className="details-header">
 
-                    <Inventory2OutlinedIcon className="details-icon"/>
+                    <Inventory2OutlinedIcon className="details-icon" />
 
                     <Typography className="details-title">
 
@@ -48,11 +49,11 @@ export default function OrderDetailsCard({
                     spacing={3}
                 >
 
-                    <Grid size={{ xs:12, md:6 }}>
+                    <Grid size={{ xs: 12, md: 6 }}>
 
                         <Box className="detail-row">
 
-                            <ReceiptLongOutlinedIcon/>
+                            <ReceiptLongOutlinedIcon />
 
                             <Box>
 
@@ -78,11 +79,11 @@ export default function OrderDetailsCard({
 
                         order.transactionId &&
 
-                        <Grid size={{ xs:12, md:6 }}>
+                        <Grid size={{ xs: 12, md: 6 }}>
 
                             <Box className="detail-row">
 
-                                <PaymentsOutlinedIcon/>
+                                <PaymentsOutlinedIcon />
 
                                 <Box>
 
@@ -106,11 +107,11 @@ export default function OrderDetailsCard({
 
                     }
 
-                    <Grid size={{ xs:12, md:6 }}>
+                    <Grid size={{ xs: 12, md: 6 }}>
 
                         <Box className="detail-row">
 
-                            <CalendarMonthOutlinedIcon/>
+                            <CalendarMonthOutlinedIcon />
 
                             <Box>
 
@@ -122,7 +123,7 @@ export default function OrderDetailsCard({
 
                                 <Typography className="detail-value">
 
-                                    {order.orderDate}
+                                    {dayjs(order.createdAt).format("dddd, DD MMMM YYYY, hh:mm A")}
 
                                 </Typography>
 
@@ -132,11 +133,11 @@ export default function OrderDetailsCard({
 
                     </Grid>
 
-                    <Grid size={{ xs:12, md:6 }}>
+                    <Grid size={{ xs: 12, md: 6 }}>
 
                         <Box className="detail-row">
 
-                            <LocalShippingOutlinedIcon/>
+                            <LocalShippingOutlinedIcon />
 
                             <Box>
 
@@ -158,11 +159,11 @@ export default function OrderDetailsCard({
 
                     </Grid>
 
-                    <Grid size={{ xs:12, md:6 }}>
+                    <Grid size={{ xs: 12, md: 6 }}>
 
                         <Box className="detail-row">
 
-                            <PaymentsOutlinedIcon/>
+                            <PaymentsOutlinedIcon />
 
                             <Box>
 
@@ -184,11 +185,11 @@ export default function OrderDetailsCard({
 
                     </Grid>
 
-                    <Grid size={{ xs:12, md:6 }}>
+                    <Grid size={{ xs: 12, md: 6 }}>
 
                         <Box className="detail-row">
 
-                            <PaymentsOutlinedIcon/>
+                            <PaymentsOutlinedIcon />
 
                             <Box>
 
@@ -222,11 +223,11 @@ export default function OrderDetailsCard({
 
                 </Grid>
 
-                <Divider className="address-divider"/>
+                <Divider className="address-divider" />
 
                 <Box className="address-header">
 
-                    <LocationOnOutlinedIcon/>
+                    <LocationOnOutlinedIcon />
 
                     <Typography>
 
@@ -235,53 +236,47 @@ export default function OrderDetailsCard({
                     </Typography>
 
                 </Box>
-
-                <Box className="address-box">
-
-                    <Typography className="customer-name">
-
-                        {shipping.fullName}
-
-                    </Typography>
-
-                    <Typography>
-
-                        {shipping.mobile}
-
-                    </Typography>
-
-                    <Typography>
-
-                        {shipping.address}
-
-                    </Typography>
-
-                    {
-
-                        shipping.landmark &&
+                {shipping &&
+                    <Box className="address-box">
 
                         <Typography>
 
-                            {shipping.landmark}
+                            {shipping.addressLine1}
 
                         </Typography>
 
-                    }
+                        {
 
-                    <Typography>
+                            shipping.addressLine2 &&
 
-                        {shipping.city}, {shipping.state}
+                            <Typography>
 
-                    </Typography>
+                                {shipping.addressLine2}
 
-                    <Typography>
+                            </Typography>
 
-                        {shipping.pincode}
+                        }
 
-                    </Typography>
+                        <Typography>
 
-                </Box>
+                            {shipping.city}, {shipping.state}
 
+                        </Typography>
+
+                        <Typography>
+
+                            {shipping.postalCode}
+
+                        </Typography>
+
+                        <Typography>
+
+                            {shipping.country}
+
+                        </Typography>
+
+                    </Box>
+                }
             </CardContent>
 
         </Card>

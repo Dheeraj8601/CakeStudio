@@ -11,27 +11,60 @@ import OrderItem from "./OrderItem";
 import PriceDetails from "./PriceDetails";
 import useCart from "../../hooks/useCart"
 import { cakes } from "../Cakes/cakeData";
+import { useEffect, useState } from "react";
+import Service from "../../services/Service";
 
 const OrderSummary = ({ paymentMethod, onCheckout }) => {
 
     const { cart } = useCart();
+    const [cartItems, setCartItems] = useState([]);
+    useEffect(() => {
+        loadCartItems();
+    }, [cart]);
 
-    const cartItems = cart
-        .map(item => {
+    const loadCartItems = async () => {
 
-            const product = cakes.find(
-                cake => cake.id === item.productId
+        try {
+
+            // Guest user
+
+            if (cart.length === 0) {
+
+                setCartItems([]);
+
+                return;
+
+            }
+
+            const response = await Service.getCartItems(
+                cart.map(item => item.productId)
             );
 
-            return product
-                ? {
-                    ...product,
-                    quantity: item.quantity
-                }
-                : null;
+            const items = response.data.map(product => {
 
-        })
-        .filter(Boolean);
+                const cartItem = cart.find(
+                    x => x.productId === product.id
+                );
+
+                return {
+
+                    ...product,
+
+                    quantity: cartItem.quantity,
+                    cartItemId: cartItem.cartItemId
+                };
+
+            });
+            setCartItems(items);
+
+        }
+        catch (error) {
+
+            console.error(error);
+
+        }
+
+    };
 
     return (
 

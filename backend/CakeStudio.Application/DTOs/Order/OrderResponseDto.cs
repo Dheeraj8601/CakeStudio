@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CakeStudio.Application.DTOs.Address;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,7 +16,10 @@ namespace CakeStudio.Application.DTOs.Order
         public string OrderStatus { get; set; } = string.Empty;
 
         public string PaymentStatus { get; set; } = string.Empty;
+        public string PaymentMethod { get; set; } = string.Empty;
 
+        public string? EstimatedDelivery { get; set; }
+        public AddressResponseDto? ShippingAddress { get; set; }
         public DateTime CreatedAt { get; set; }
 
         public List<OrderItemDto> Items { get; set; }

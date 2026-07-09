@@ -13,7 +13,7 @@ import "./OrderSummaryCard.css";
 export default function OrderSummaryCard({ items }) {
 
     const subtotal = items.reduce(
-        (sum, item) => sum + item.price * item.quantity,
+        (sum, item) => sum + item.unitPrice * item.quantity,
         0
     );
 
@@ -53,7 +53,7 @@ export default function OrderSummaryCard({ items }) {
                             >
 
                                 <img
-                                    src={item.image}
+                                    src={item.imageUrl}
                                     alt={item.name}
                                     className="summary-image"
                                 />
@@ -62,7 +62,7 @@ export default function OrderSummaryCard({ items }) {
 
                                     <Typography className="cake-name">
 
-                                        {item.name}
+                                        {item.cakeName}
 
                                     </Typography>
 
@@ -76,7 +76,7 @@ export default function OrderSummaryCard({ items }) {
 
                                 <Typography className="cake-price">
 
-                                    ₹{item.price * item.quantity}
+                                    ₹{item.unitPrice}
 
                                 </Typography>
 

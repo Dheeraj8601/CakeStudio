@@ -16,8 +16,8 @@ import "./PaymentDetailsCard.css";
 
 export default function PaymentDetailsCard({ order }) {
 
-    const isOnlinePayment =
-        order.paymentMethod !== "Cash On Delivery";
+    const isCod =
+        order.paymentMethod?.toLowerCase() === "cod";
 
     return (
 
@@ -53,7 +53,7 @@ export default function PaymentDetailsCard({ order }) {
 
                         <Typography className="payment-value">
 
-                            {order.paymentMethod}
+                            {order.paymentMethod?.toUpperCase()}
 
                         </Typography>
 
@@ -63,29 +63,31 @@ export default function PaymentDetailsCard({ order }) {
 
                 {
 
-                    isOnlinePayment &&
+                    !isCod && order.transactionId && (
 
-                    <Box className="payment-item">
+                        <Box className="payment-item">
 
-                        <ReceiptLongOutlinedIcon />
+                            <ReceiptLongOutlinedIcon />
 
-                        <Box>
+                            <Box>
 
-                            <Typography className="payment-label">
+                                <Typography className="payment-label">
 
-                                Transaction ID
+                                    Transaction ID
 
-                            </Typography>
+                                </Typography>
 
-                            <Typography className="payment-value">
+                                <Typography className="payment-value">
 
-                                {order.transactionId}
+                                    {order.transactionId}
 
-                            </Typography>
+                                </Typography>
+
+                            </Box>
 
                         </Box>
 
-                    </Box>
+                    )
 
                 }
 
@@ -103,7 +105,12 @@ export default function PaymentDetailsCard({ order }) {
 
                         <Typography className="payment-value">
 
-                            {order.orderDate}
+                            {
+
+                                new Date(order.createdAt)
+                                    .toLocaleString()
+
+                            }
 
                         </Typography>
 
@@ -125,7 +132,7 @@ export default function PaymentDetailsCard({ order }) {
 
                         <Typography className="payment-value amount">
 
-                            ₹{order.amount}
+                            ₹{order.totalAmount}
 
                         </Typography>
 
@@ -158,7 +165,9 @@ export default function PaymentDetailsCard({ order }) {
                         color={
                             order.paymentStatus === "Paid"
                                 ? "success"
-                                : "warning"
+                                : order.paymentStatus === "Failed"
+                                    ? "error"
+                                    : "warning"
                         }
 
                     />

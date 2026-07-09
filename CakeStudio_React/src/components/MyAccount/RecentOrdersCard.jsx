@@ -8,7 +8,6 @@ import {
     Typography
 } from "@mui/material";
 
-import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
 import ArrowForwardOutlinedIcon from "@mui/icons-material/ArrowForwardOutlined";
 
 import { useNavigate } from "react-router-dom";
@@ -26,6 +25,7 @@ export default function RecentOrdersCard({ orders }) {
             case "Delivered":
                 return "success";
 
+            case "Placed":
             case "Processing":
                 return "warning";
 
@@ -38,6 +38,28 @@ export default function RecentOrdersCard({ orders }) {
         }
 
     };
+
+    if (!orders || orders.length === 0) {
+
+        return (
+
+            <Card className="recent-orders-card">
+
+                <CardContent>
+
+                    <Typography>
+
+                        No recent orders found.
+
+                    </Typography>
+
+                </CardContent>
+
+            </Card>
+
+        );
+
+    }
 
     return (
 
@@ -71,93 +93,122 @@ export default function RecentOrdersCard({ orders }) {
 
                 {
 
-                    orders.map((order, index) => (
+                    orders.map((order, index) => {
 
-                        <Box key={order.id}>
+                        const firstItem = order.items[0];
 
-                            <Box className="order-item">
+                        return (
 
-                                <img
+                            <Box key={order.orderId}>
 
-                                    src={order.image}
+                                <Box className="order-item">
 
-                                    alt={order.cakeName}
+                                    <img
 
-                                    className="order-image"
+                                        src={firstItem.imageUrl}
 
-                                />
+                                        alt={firstItem.cakeName}
 
-                                <Box className="order-content">
-
-                                    <Typography className="cake-name">
-
-                                        {order.cakeName}
-
-                                    </Typography>
-
-                                    <Typography className="order-id">
-
-                                        #{order.id}
-
-                                    </Typography>
-
-                                    <Typography className="order-date">
-
-                                        {order.date}
-
-                                    </Typography>
-
-                                </Box>
-
-                                <Box className="order-right">
-
-                                    <Typography className="order-price">
-
-                                        ₹{order.amount}
-
-                                    </Typography>
-
-                                    <Chip
-
-                                        label={order.status}
-
-                                        color={getStatusColor(order.status)}
-
-                                        size="small"
+                                        className="order-image"
 
                                     />
 
-                                    <Button
+                                    <Box className="order-content">
 
-                                        size="small"
+                                        <Typography className="cake-name">
 
-                                        sx={{ mt: 1 }}
+                                            {firstItem.cakeName}
 
-                                        onClick={() =>
-                                            navigate(`/my-account/orders/${order.id}`)
+                                        </Typography>
+
+                                        {
+
+                                            order.items.length > 1 &&
+
+                                            <Typography
+                                                sx={{
+                                                    fontSize: 13,
+                                                    color: "#777"
+                                                }}
+                                            >
+
+                                                +{order.items.length - 1} more item
+                                                {order.items.length > 2 ? "s" : ""}
+
+                                            </Typography>
+
                                         }
 
-                                    >
+                                        <Typography className="order-id">
 
-                                        View Details
+                                            #{order.orderId}
 
-                                    </Button>
+                                        </Typography>
+
+                                        <Typography className="order-date">
+
+                                            {
+
+                                                new Date(order.createdAt)
+                                                    .toLocaleDateString()
+
+                                            }
+
+                                        </Typography>
+
+                                    </Box>
+
+                                    <Box className="order-right">
+
+                                        <Typography className="order-price">
+
+                                            ₹{order.totalAmount}
+
+                                        </Typography>
+
+                                        <Chip
+
+                                            label={order.orderStatus}
+
+                                            color={getStatusColor(order.orderStatus)}
+
+                                            size="small"
+
+                                        />
+
+                                        <Button
+
+                                            size="small"
+
+                                            sx={{ mt: 1 }}
+
+                                            onClick={() =>
+                                                navigate(`/my-account/orders/${order.orderId}`)
+                                            }
+
+                                        >
+
+                                            View Details
+
+                                        </Button>
+
+                                    </Box>
 
                                 </Box>
 
+                                {
+
+                                    index !== orders.length - 1 &&
+
+                                    <Divider sx={{ my: 2 }} />
+
+                                }
+
                             </Box>
 
-                            {
+                        );
 
-                                index !== orders.length - 1 &&
-
-                                <Divider sx={{ my: 2 }} />
-
-                            }
-
-                        </Box>
-
-                    ))
+                    })
 
                 }
 

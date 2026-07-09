@@ -56,7 +56,7 @@ api.interceptors.response.use(
 
                 const refreshToken = SessionManage.getRefreshToken();
                 console.log(refreshToken, "refreshToken")
-                alert(refreshToken)
+                //alert(refreshToken)
                 const response = await axios.post(
                     CS_API_BASE_URL + "Auth/refresh-token",
                     {
@@ -305,6 +305,42 @@ class Service {
     //------ contact ----
     sendContactMessage(data) {
         return api.post("/contact", data);
+    }
+
+    //------- order -----
+    checkout(order) {
+        return api.post("/orders/checkout", order);
+    }
+
+    getMyOrders() {
+        return api.get("/orders");
+    }
+
+    getOrderDetails(id) {
+        return api.get(`/orders/${id}`);
+    }
+
+    cancelOrder(orderId) {
+        return api.patch(`/orders/${orderId}/cancel`);
+    }
+
+    getRecentOrders() {
+        return api.get("/orders/recent");
+    }
+
+    updateOrderStatus(orderId, status) {
+        return api.patch(
+            `/orders/${orderId}/status`,
+            {
+                orderStatus: status
+            }
+        );
+    }
+
+    getOrders(params) {
+        return api.get("/orders/admin", {
+            params
+        });
     }
 }
 

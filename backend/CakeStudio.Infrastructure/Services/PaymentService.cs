@@ -216,7 +216,7 @@ namespace CakeStudio.Infrastructure.Services
                                     $"Order #{order.Id}",
 
                                 CreatedBy =
-                                    order.UserId,
+                                    order.UserId ?? 0,
 
                                 CreatedAt =
                                     DateTime.UtcNow

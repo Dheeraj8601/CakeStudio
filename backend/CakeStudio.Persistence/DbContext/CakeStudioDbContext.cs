@@ -51,6 +51,8 @@ public partial class CakeStudioDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__Addresse__3214EC07490E2B93");
 
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+
             entity.HasOne(d => d.User).WithMany(p => p.Addresses)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Addresses_Users");
@@ -135,6 +137,8 @@ public partial class CakeStudioDbContext : DbContext
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
             entity.Property(e => e.OrderStatus).HasDefaultValue("Pending");
             entity.Property(e => e.PaymentStatus).HasDefaultValue("Pending");
+
+            entity.HasOne(d => d.Address).WithMany(p => p.Orders).HasConstraintName("FK_Orders_Addresses");
 
             entity.HasOne(d => d.User).WithMany(p => p.Orders)
                 .OnDelete(DeleteBehavior.ClientSetNull)

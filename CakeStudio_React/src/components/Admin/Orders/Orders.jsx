@@ -1,5 +1,5 @@
 import { Box, useMediaQuery } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import OrderHeader from "./OrderHeader";
 import OrderFilters from "./OrderFilters";
@@ -7,64 +7,13 @@ import OrdersTable from "./OrdersTable";
 import EmptyOrders from "./EmptyOrders";
 
 import "./Orders.css";
+import Service from "../../../services/Service";
 
 export default function Orders() {
 
-    const [orders] = useState([
+    const [orders, setOrders] = useState([]);
 
-        {
-            id: 1,
-            orderId: "ORD-1001",
-            orderDate: "30 Jun 2026",
-            customer: "Rahul Sharma",
-            mobile: "9876543210",
-            amount: 899,
-            paymentMethod: "Card",
-            paymentStatus: "Paid",
-            orderStatus: "Delivered",
-            transactionId: "txn_93JD82KSD"
-        },
-
-        {
-            id: 2,
-            orderId: "ORD-1002",
-            orderDate: "30 Jun 2026",
-            customer: "Priya Sharma",
-            mobile: "9988776655",
-            amount: 1499,
-            paymentMethod: "UPI",
-            paymentStatus: "Pending",
-            orderStatus: "Processing",
-            transactionId: "txn_83JSK392"
-        },
-
-        {
-            id: 3,
-            orderId: "ORD-1003",
-            orderDate: "29 Jun 2026",
-            customer: "Amit Patel",
-            mobile: "9123456789",
-            amount: 699,
-            paymentMethod: "Cash on Delivery",
-            paymentStatus: "Pending",
-            orderStatus: "Confirmed",
-            transactionId: "-"
-        },
-
-        {
-            id: 4,
-            orderId: "ORD-1004",
-            orderDate: "29 Jun 2026",
-            customer: "Neha Singh",
-            mobile: "9871234567",
-            amount: 2199,
-            paymentMethod: "Card",
-            paymentStatus: "Paid",
-            orderStatus: "Out for Delivery",
-            transactionId: "txn_82JDK882"
-        }
-
-    ]);
+    const [totalCount, setTotalCount] = useState(0);
 
     const [search, setSearch] = useState("");
 
@@ -76,29 +25,43 @@ export default function Orders() {
 
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
-    const filteredOrders = orders.filter(order => {
+    useEffect(() => {
 
-        const searchMatch =
+        loadOrders();
 
-            order.orderId.toLowerCase().includes(search.toLowerCase()) ||
+    }, [page, rowsPerPage, search, paymentStatus, orderStatus]);
 
-            order.customer.toLowerCase().includes(search.toLowerCase());
+    const loadOrders = async () => {
 
-        const paymentMatch =
+        try {
 
-            paymentStatus === "All" ||
+            const response =
+                await Service.getOrders({
 
-            order.paymentStatus === paymentStatus;
+                    search,
 
-        const statusMatch =
+                    paymentStatus,
 
-            orderStatus === "All" ||
+                    orderStatus,
 
-            order.orderStatus === orderStatus;
+                    pageNumber: page + 1,
 
-        return searchMatch && paymentMatch && statusMatch;
+                    pageSize: rowsPerPage
 
-    });
+                });
+
+            setOrders(response.data.data);
+
+            setTotalCount(response.data.totalRecords);
+
+        }
+        catch (error) {
+
+            console.error(error);
+
+        }
+
+    };
 
     return (
 
@@ -119,29 +82,22 @@ export default function Orders() {
 
             />
 
+
+
             {
-
-                filteredOrders.length === 0 ?
-
-                    <EmptyOrders />
-
-                    :
-
-                    <OrdersTable
-
-                        orders={filteredOrders}
-
+                orders.length === 0
+                    ? <EmptyOrders />
+                    : <OrdersTable
+                        orders={orders}
                         page={page}
-
                         rowsPerPage={rowsPerPage}
-
+                        totalCount={totalCount}
                         setPage={setPage}
-
                         setRowsPerPage={setRowsPerPage}
-
                     />
-
             }
+
+
 
         </Box>
 

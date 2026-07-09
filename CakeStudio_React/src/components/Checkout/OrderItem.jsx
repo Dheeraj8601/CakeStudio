@@ -10,7 +10,7 @@ const OrderItem = ({ item }) => {
         <Box className="order-item">
 
             <img
-                src={item.image}
+                src={item.imageUrl}
                 alt={item.name}
                 className="order-image"
             />
