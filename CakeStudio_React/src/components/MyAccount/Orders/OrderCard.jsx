@@ -18,10 +18,24 @@ import { useNavigate } from "react-router-dom";
 
 import "./OrderCard.css";
 
-export default function OrderCard({ order }) {
+import Service from "../../../services/Service";
+import { toast } from "react-toastify";
+import useCart from "../../../hooks/useCart";
+import dayjs from "dayjs";
+
+export default function OrderCard({
+
+    order,
+
+    onReload
+
+}) {
 
     const navigate = useNavigate();
 
+    const { addToCart } = useCart();
+
+    const firstItem = order.items[0];
     const getStatusColor = (status) => {
 
         switch (status) {
@@ -29,6 +43,7 @@ export default function OrderCard({ order }) {
             case "Delivered":
                 return "success";
 
+            case "Placed":
             case "Processing":
                 return "warning";
 
@@ -39,6 +54,49 @@ export default function OrderCard({ order }) {
                 return "default";
 
         }
+
+    };
+
+    const handleCancel = async () => {
+
+        try {
+
+            await Service.cancelOrder(
+                order.orderId
+            );
+
+            toast.success(
+                "Order cancelled successfully."
+            );
+
+            onReload?.();
+
+        }
+        catch (error) {
+
+            toast.error(
+                error.response?.data?.message ??
+                "Unable to cancel order."
+            );
+
+        }
+
+    };
+
+    const handleReorder = () => {
+
+        order.items.forEach(item => {
+
+            addToCart(
+                item.cakeId,
+                item.quantity
+            );
+
+        });
+
+        toast.success(
+            "Items added to cart."
+        );
 
     };
 
@@ -53,8 +111,8 @@ export default function OrderCard({ order }) {
                     <Box className="order-product">
 
                         <img
-                            src={order.image}
-                            alt={order.cakeName}
+                            src={firstItem.imageUrl}
+                            alt={firstItem.cakeName}
                             className="order-image"
                         />
 
@@ -62,15 +120,48 @@ export default function OrderCard({ order }) {
 
                             <Typography className="cake-title">
 
-                                {order.cakeName}
+                                {firstItem.cakeName}
 
                             </Typography>
 
-                            <Typography className="cake-qty">
+                            {
 
-                                Qty : {order.quantity}
+                                order.items.length === 1 ? (
 
-                            </Typography>
+                                    <Typography className="cake-qty">
+
+                                        Qty : {firstItem.quantity}
+
+                                    </Typography>
+
+                                ) : (
+
+                                    <>
+
+                                        <Typography className="cake-qty">
+
+                                            {order.items.length} Items
+
+                                        </Typography>
+
+                                        <Typography
+                                            sx={{
+                                                fontSize: 13,
+                                                color: "#777",
+                                                mt: 0.5
+                                            }}
+                                        >
+
+                                            + {order.items.length - 1} more item
+                                            {order.items.length > 2 ? "s" : ""}
+
+                                        </Typography>
+
+                                    </>
+
+                                )
+
+                            }
 
                         </Box>
 
@@ -78,9 +169,13 @@ export default function OrderCard({ order }) {
 
                     <Chip
 
-                        label={order.status}
+                        label={order.orderStatus}
 
-                        color={getStatusColor(order.status)}
+                        color={
+                            getStatusColor(
+                                order.orderStatus
+                            )
+                        }
 
                     />
 
@@ -102,7 +197,7 @@ export default function OrderCard({ order }) {
 
                             <Typography>
 
-                                {order.id}
+                                #{order.orderId}
 
                             </Typography>
 
@@ -124,7 +219,7 @@ export default function OrderCard({ order }) {
 
                             <Typography>
 
-                                {order.orderDate}
+                                {dayjs(order.createdAt).format("dddd, DD MMMM YYYY, hh:mm A")}
 
                             </Typography>
 
@@ -146,7 +241,7 @@ export default function OrderCard({ order }) {
 
                             <Typography>
 
-                                {order.deliveryDate}
+                                {order.estimatedDelivery ?? "-"}
 
                             </Typography>
 
@@ -182,7 +277,7 @@ export default function OrderCard({ order }) {
 
                     <Typography className="amount">
 
-                        ₹{order.amount}
+                        ₹{order.totalAmount}
 
                     </Typography>
 
@@ -192,10 +287,14 @@ export default function OrderCard({ order }) {
 
                             variant="outlined"
 
-                            startIcon={<VisibilityOutlinedIcon />}
+                            startIcon={
+                                <VisibilityOutlinedIcon />
+                            }
 
                             onClick={() =>
-                                navigate(`/my-account/orders/${order.id}`)
+                                navigate(
+                                    `/my-account/orders/${order.orderId}`
+                                )
                             }
 
                         >
@@ -204,11 +303,36 @@ export default function OrderCard({ order }) {
 
                         </Button>
 
+                        {
+
+                            order.orderStatus !== "Cancelled" &&
+                            order.orderStatus !== "Delivered" &&
+
+                            <Button
+
+                                color="error"
+
+                                variant="outlined"
+
+                                onClick={handleCancel}
+
+                            >
+
+                                Cancel
+
+                            </Button>
+
+                        }
+
                         <Button
 
                             variant="contained"
 
-                            startIcon={<ShoppingCartOutlinedIcon />}
+                            startIcon={
+                                <ShoppingCartOutlinedIcon />
+                            }
+
+                            onClick={handleReorder}
 
                         >
 

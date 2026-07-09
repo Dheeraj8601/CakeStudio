@@ -14,18 +14,25 @@ import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import CurrencyRupeeOutlinedIcon from "@mui/icons-material/CurrencyRupeeOutlined";
 
 import "./OrderHeaderCard.css";
+import dayjs from "dayjs";
 
 export default function OrderHeaderCard({ order }) {
 
-    const getStatusColor = (status) => {
+    const getStatusColor = status => {
 
         switch (status) {
 
-            case "Delivered":
-                return "success";
+            case "Placed":
+                return "info";
 
             case "Processing":
                 return "warning";
+
+            case "Shipped":
+                return "primary";
+
+            case "Delivered":
+                return "success";
 
             case "Cancelled":
                 return "error";
@@ -49,23 +56,23 @@ export default function OrderHeaderCard({ order }) {
 
                         <Typography className="order-id">
 
-                            {order.orderId}
+                            #{order.orderId}
 
                         </Typography>
 
-                        <Typography className="placed-on">
+                        {/* <Typography className="placed-on">
 
-                            Placed on {order.orderDate}
+                            {dayjs(order.createdAt).format("dddd, DD MMMM YYYY, hh:mm A")}
 
-                        </Typography>
+                        </Typography> */}
 
                     </Box>
 
                     <Chip
 
-                        label={order.status}
+                        label={order.orderStatus}
 
-                        color={getStatusColor(order.status)}
+                        color={getStatusColor(order.orderStatus)}
 
                     />
 
@@ -93,7 +100,7 @@ export default function OrderHeaderCard({ order }) {
 
                                 <Typography className="value">
 
-                                    {order.orderDate}
+                                    {dayjs(order.createdAt).format("dddd, DD MMMM YYYY, hh:mm A")}
 
                                 </Typography>
 
@@ -119,7 +126,7 @@ export default function OrderHeaderCard({ order }) {
 
                                 <Typography className="value">
 
-                                    {order.estimatedDelivery}
+                                    {order.estimatedDelivery ?? "-"}
 
                                 </Typography>
 
@@ -145,7 +152,7 @@ export default function OrderHeaderCard({ order }) {
 
                                 <Typography className="value">
 
-                                    {order.paymentMethod}
+                                    {order.paymentMethod.toUpperCase()}
 
                                 </Typography>
 
@@ -171,7 +178,7 @@ export default function OrderHeaderCard({ order }) {
 
                                 <Typography className="value amount">
 
-                                    ₹{order.amount}
+                                    ₹{order.totalAmount}
 
                                 </Typography>
 

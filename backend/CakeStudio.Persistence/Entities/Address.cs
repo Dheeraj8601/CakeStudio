@@ -12,7 +12,7 @@ namespace CakeStudio.Persistence.Entities
         [Key]
         public int Id { get; set; }
 
-        public int UserId { get; set; }
+        public int? UserId { get; set; }
 
         [StringLength(250)]
         public string AddressLine1 { get; set; } = null!;
@@ -38,5 +38,8 @@ namespace CakeStudio.Persistence.Entities
 
         [ForeignKey("UserId")]
         public virtual User User { get; set; } = null!;
+
+        [InverseProperty("Address")]
+        public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
     }
 }

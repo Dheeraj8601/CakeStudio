@@ -6,18 +6,10 @@ using System.Threading.Tasks;
 
 namespace CakeStudio.Application.DTOs.Order
 {
-    public class OrderItemDto
+    public class GuestOrderItemDto
     {
         public int CakeId { get; set; }
 
-        public string CakeName { get; set; } = string.Empty;
-
-        public decimal UnitPrice { get; set; }
-
         public int Quantity { get; set; }
-
-        public decimal TotalPrice { get; set; }
-
-        public string? ImageUrl { get; set; }
     }
 }

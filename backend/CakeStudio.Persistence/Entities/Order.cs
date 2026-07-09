@@ -11,7 +11,7 @@ public partial class Order
     [Key]
     public int Id { get; set; }
 
-    public int UserId { get; set; }
+    public int? UserId { get; set; }
 
     [Column(TypeName = "decimal(18, 2)")]
     public decimal TotalAmount { get; set; }
@@ -29,6 +29,12 @@ public partial class Order
 
     [StringLength(255)]
     public string? StripePaymentIntentId { get; set; }
+    public string PaymentMethod { get; set; } = string.Empty;
+    public int? AddressId { get; set; }
+
+    [ForeignKey("AddressId")]
+    [InverseProperty("Orders")]
+    public virtual Address? Address { get; set; }
 
     public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
 

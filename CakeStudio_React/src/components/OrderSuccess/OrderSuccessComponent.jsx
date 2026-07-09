@@ -7,90 +7,51 @@ import OrderSummaryCard from "./OrderSummaryCard";
 import { Box } from "@mui/material"
 import Breadcrumb from "../common/Breadcrumb/Breadcrumb"
 import SuccessActions from "./SuccessActions";
-const order = {
 
-    orderId: "ORD-1001",
+import { useEffect, useState } from "react";
 
-    transactionId: "txn_3PH82JSH928",
+import Service from "../../services/Service";
+import { useParams } from "react-router-dom";
+//const order = {orderId: "ORD-1001",transactionId: "txn_3PH82JSH928",orderDate: "29 Jun 2026, 10:30 AM",estimatedDelivery: "30 Jun 2026, 4 PM - 6 PM",paymentMethod: "Credit Card",paymentStatus: "Paid"};
 
-    orderDate: "29 Jun 2026, 10:30 AM",
-
-    estimatedDelivery: "30 Jun 2026, 4 PM - 6 PM",
-
-    paymentMethod: "Credit Card",
-
-    paymentStatus: "Paid"
-
-};
-
-const shipping = {
-
-    fullName: "Dr Raj",
-
-    mobile: "9876543210",
-
-    email: "raj@gmail.com",
-
-    address: "123 Sweet Street",
-
-    landmark: "Near City Mall",
-
-    city: "Bengaluru",
-
-    state: "Karnataka",
-
-    pincode: "560001"
-
-};
+//const shipping = {fullName: "Dr Raj",mobile: "9876543210", email: "raj@gmail.com",address: "123 Sweet Street",landmark: "Near City Mall",city: "Bengaluru",state: "Karnataka",pincode: "560001"};
 
 
-export default function OrderSuccessComponent(props) {
-    
-    const order = {
+export default function OrderSuccessComponent() {
 
-        orderId: props.orderId,
+    const { orderId } = useParams();
 
-        transactionId: "txn_83HDJ82KSJ",
+    const [order, setOrder] = useState(null);
 
-        paymentMethod: "Credit Card",
+    useEffect(() => {
 
-        paymentStatus: "Paid",
+        loadOrder();
 
-        orderDate: "29 Jun 2026",
+    }, []);
 
-        estimatedDelivery: "30 Jun 2026"
+    const loadOrder = async () => {
 
-    };
+        try {
 
-    const shipping = {
+            const response =
+                await Service.getOrderDetails(orderId);
 
-        fullName: "Dr Raj",
+            setOrder(response.data);
 
-        mobile: "9876543210",
+        }
+        catch (error) {
 
-        address: "123 Sweet Street",
+            console.error(error);
 
-        landmark: "Near City Mall",
-
-        city: "Bangalore",
-
-        state: "Karnataka",
-
-        pincode: "560001"
-
-    };
-
-    const items = [
-
-        {
-            id: 1,
-            name: "Chocolate Truffle",
-            image: "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcSX3U6ZS-w7oeuOSgCbBGC3eAoyqjIKTjFrBn8zx7MdHXTJyuh75vVg5fkjq60dc5XEolbs6aAD66Bj772_g0q5wIt4GtmQkZt6PMuBJm1Wu79F4pexnBAV1BlM&usqp=CAc",
-            quantity: 2,
-            price: 899
         }
 
-    ];
+    };
+
+    if (!order) {
+
+        return null;
+
+    }
 
     return (
 
@@ -98,8 +59,13 @@ export default function OrderSuccessComponent(props) {
 
             <Breadcrumb
                 items={[
-                    { label: "Home", path: "/" },
-                    { label: "Order Success" }
+                    {
+                        label: "Home",
+                        path: "/"
+                    },
+                    {
+                        label: "Order Success"
+                    }
                 ]}
             />
 
@@ -107,11 +73,11 @@ export default function OrderSuccessComponent(props) {
 
             <OrderDetailsCard
                 order={order}
-                shipping={shipping}
+                shipping={order.shippingAddress}
             />
 
             <OrderSummaryCard
-                items={items}
+                items={order.items}
             />
 
             <SuccessActions
@@ -121,6 +87,5 @@ export default function OrderSuccessComponent(props) {
         </Box>
 
     );
-
 
 }

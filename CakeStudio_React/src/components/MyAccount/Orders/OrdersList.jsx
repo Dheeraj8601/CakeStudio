@@ -3,7 +3,13 @@ import { Box } from "@mui/material";
 import OrderCard from "./OrderCard";
 import EmptyOrders from "./EmptyOrders";
 
-export default function OrdersList({ orders }) {
+export default function OrdersList({
+
+    orders,
+
+    onReload
+
+}) {
 
     if (!orders || orders.length === 0) {
 
@@ -21,9 +27,11 @@ export default function OrdersList({ orders }) {
 
                     <OrderCard
 
-                        key={order.id}
+                        key={order.orderId}
 
                         order={order}
+
+                        onReload={onReload}
 
                     />
 

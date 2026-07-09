@@ -47,6 +47,10 @@ namespace CakeStudio.Infrastructure
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IContactService, ContactService>();
+            services.AddScoped<IPaymentProcessor,CodPaymentProcessor>();
+            services.AddScoped<IPaymentProcessor,StripePaymentProcessor>();
+            services.AddScoped<IPaymentProcessor,UpiPaymentProcessor>();
+            services.AddScoped<IPaymentProcessorFactory,PaymentProcessorFactory>();
 
             return services;
         }

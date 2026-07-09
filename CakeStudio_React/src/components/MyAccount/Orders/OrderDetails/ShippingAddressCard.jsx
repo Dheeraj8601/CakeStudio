@@ -7,12 +7,32 @@ import {
 } from "@mui/material";
 
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
-import CallOutlinedIcon from "@mui/icons-material/CallOutlined";
-import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 
 import "./ShippingAddressCard.css";
 
 export default function ShippingAddressCard({ shipping }) {
+
+    if (!shipping) {
+
+        return (
+
+            <Card className="shipping-card">
+
+                <CardContent>
+
+                    <Typography>
+
+                        Address not available.
+
+                    </Typography>
+
+                </CardContent>
+
+            </Card>
+
+        );
+
+    }
 
     return (
 
@@ -32,73 +52,23 @@ export default function ShippingAddressCard({ shipping }) {
 
                 </Box>
 
-                <Divider sx={{ mb:3 }} />
-
-                <Box className="address-item">
-
-                    <PersonOutlineOutlinedIcon />
-
-                    <Box>
-
-                        <Typography className="address-label">
-
-                            Recipient
-
-                        </Typography>
-
-                        <Typography className="address-value">
-
-                            {shipping.fullName}
-
-                        </Typography>
-
-                    </Box>
-
-                </Box>
-
-                <Box className="address-item">
-
-                    <CallOutlinedIcon />
-
-                    <Box>
-
-                        <Typography className="address-label">
-
-                            Mobile
-
-                        </Typography>
-
-                        <Typography className="address-value">
-
-                            {shipping.mobile}
-
-                        </Typography>
-
-                    </Box>
-
-                </Box>
+                <Divider sx={{ mb: 3 }} />
 
                 <Box className="address-box">
 
-                    <Typography className="address-label">
-
-                        Delivery Address
-
-                    </Typography>
-
                     <Typography className="address-text">
 
-                        {shipping.address}
+                        {shipping.addressLine1}
 
                     </Typography>
 
                     {
 
-                        shipping.landmark &&
+                        shipping.addressLine2 &&
 
                         <Typography className="address-text">
 
-                            {shipping.landmark}
+                            {shipping.addressLine2}
 
                         </Typography>
 
@@ -112,7 +82,13 @@ export default function ShippingAddressCard({ shipping }) {
 
                     <Typography className="address-text">
 
-                        {shipping.pincode}
+                        {shipping.postalCode}
+
+                    </Typography>
+
+                    <Typography className="address-text">
+
+                        {shipping.country}
 
                     </Typography>
 

@@ -8,6 +8,7 @@ import {
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 
 import { useNavigate } from "react-router-dom";
+import dayjs from "dayjs";
 
 import PaymentStatusChip from "./PaymentStatusChip";
 import OrderStatusChip from "./OrderStatusChip";
@@ -19,7 +20,7 @@ export default function OrderRow({
     order
 
 }) {
-
+    console.log(order, "order 55")
     const navigate = useNavigate();
 
     return (
@@ -30,7 +31,7 @@ export default function OrderRow({
 
                 <Typography className="order-id">
 
-                    {order.orderId}
+                    #{order.orderId}
 
                 </Typography>
 
@@ -38,7 +39,10 @@ export default function OrderRow({
 
             <TableCell>
 
-                {order.orderDate}
+                {
+                    dayjs(order.orderDate)
+                        .format("DD MMM YYYY")
+                }
 
             </TableCell>
 
@@ -46,13 +50,13 @@ export default function OrderRow({
 
                 <Typography className="customer-name">
 
-                    {order.customer}
+                    <Typography className="customer-name">
+                        {order.customerName}
+                    </Typography>
 
-                </Typography>
-
-                <Typography className="customer-mobile">
-
-                    {order.mobile}
+                    <Typography className="payment-method">
+                        {order.paymentMethod}
+                    </Typography>
 
                 </Typography>
 
@@ -62,11 +66,13 @@ export default function OrderRow({
 
                 <Typography className="order-amount">
 
-                    ₹{order.amount}
+                    ₹{order.totalAmount}
 
                 </Typography>
 
             </TableCell>
+
+
 
             <TableCell>
 
@@ -109,9 +115,7 @@ export default function OrderRow({
                     className="view-order-btn"
 
                     onClick={() =>
-
                         navigate(`/admin/orders/${order.orderId}`)
-
                     }
 
                 >
