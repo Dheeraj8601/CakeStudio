@@ -21,5 +21,7 @@ namespace CakeStudio.Application.Interfaces
     CakeCatalogFilterDto request);
 
         Task<Cake?> GetByIdAsyncCatalog(int id);
+
+        Task<List<Cake>> GetCartItems(List<int> ids);
     }
 }

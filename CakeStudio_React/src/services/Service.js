@@ -174,6 +174,14 @@ class Service {
         return api.delete(`/users/${id}`);
     }
 
+    updateUser(data) {
+        return api.put("/users", data);
+    }
+
+    changePassword(data) {
+        return api.put("/users/change-password", data);
+    }
+
     //----- Cake---------
     getCakes(params) {
         return api.get("/Cake/getCakes", {
@@ -211,19 +219,92 @@ class Service {
 
     //------ cake catalog ----
     getCakeCatalog(params) {
-    return api.get("/cake-catalog", {
-        params,
-        paramsSerializer: {
-            serialize: (params) =>
-                qs.stringify(params, {
-                    arrayFormat: "repeat"
-                })
-        }
-    });
-}
+        return api.get("/cake-catalog", {
+            params,
+            paramsSerializer: {
+                serialize: (params) =>
+                    qs.stringify(params, {
+                        arrayFormat: "repeat"
+                    })
+            }
+        });
+    }
 
     getCakeDetails(id) {
         return api.get(`/cake-catalog/${id}`);
+    }
+
+    getCartItems(productIds) {
+        return api.post("/cake-catalog/cart-items", {
+            productIds
+        });
+    }
+
+    //------ Cart ----
+    addToCart(data) {
+        return api.post("/cart/add", data);
+    }
+
+    updateCartQuantity(data) {
+        return api.put("/cart/quantity", data);
+    }
+
+    removeCartItem(cartItemId) {
+        return api.delete(`/cart/${cartItemId}`);
+    }
+
+    getMyCart() {
+        return api.get("/cart");
+    }
+
+    //------ Addresses ------
+
+    createAddress(data) {
+        return api.post("/address", data);
+    }
+
+    updateAddress(data) {
+        return api.put("/address", data);
+    }
+
+    deleteAddress(id) {
+        return api.delete(`/address/${id}`);
+    }
+
+    setDefaultAddress(id) {
+        return api.put(`/address/${id}/default`);
+    }
+
+    getMyAddresses() {
+        return api.get("/address");
+    }
+
+    //------ wishlist --------------
+    addToWishlist(data) {
+        return api.post("/wishlist", data);
+    }
+
+    removeWishlistItem(wishlistId) {
+        return api.delete(`/wishlist/${wishlistId}`);
+    }
+
+    getMyWishlist() {
+        return api.get("/wishlist");
+    }
+
+    moveWishlistToCart(wishlistId) {
+        return api.post(`/wishlist/${wishlistId}/move-to-cart`);
+    }
+
+    getWishlist(params) {
+        return api.get("/wishlist/getWishlist", {
+            params
+        });
+    }
+
+    //------ contact ----
+    sendContactMessage(data) {
+        return api.post("/contact", data);
     }
 }
 

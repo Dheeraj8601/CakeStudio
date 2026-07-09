@@ -28,8 +28,7 @@ namespace CakeStudio.API.Controllers
             }
 
             [HttpPut("quantity")]
-            public async Task<IActionResult> UpdateQuantity(
-                UpdateCartItemRequestDto request)
+            public async Task<IActionResult> UpdateQuantity(UpdateCartItemRequestDto request)
             {
                 await _cartService.UpdateQuantityAsync(request);
 

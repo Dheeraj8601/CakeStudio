@@ -21,12 +21,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="DTOs\NewFolder1\" />
-    <Folder Include="DTOs\NewFolder\" />
+    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.3.11" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.3.11" />
+    <Folder Include="DTOs\NewFolder\" />
   </ItemGroup>
 
 </Project>

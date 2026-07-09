@@ -16,24 +16,18 @@ namespace CakeStudio.Infrastructure.Services
         private readonly IUserContext _userContext;
         private readonly CakeStudioDbContext _context;
 
-        public CartService(
-            ICartRepository cartRepository,
-            IUserContext userContext,
-            CakeStudioDbContext context)
+        public CartService(ICartRepository cartRepository,IUserContext userContext,CakeStudioDbContext context)
         {
             _cartRepository = cartRepository;
             _userContext = userContext;
             _context = context;
         }
 
-        public async Task AddToCartAsync(
-            AddToCartRequestDto request)
+        public async Task AddToCartAsync(AddToCartRequestDto request)
         {
-            var user =
-                _userContext.GetCurrentUser();
+            var user = _userContext.GetCurrentUser();
 
-            var cart =
-                await _cartRepository.GetByUserIdAsync(user.UserId);
+            var cart = await _cartRepository.GetByUserIdAsync(user.UserId);
 
             if (cart == null)
             {
@@ -94,43 +88,25 @@ namespace CakeStudio.Infrastructure.Services
             await _cartRepository.RemoveCartItemAsync(item);
         }
 
-        public async Task<CartResponseDto> GetMyCartAsync()
+        public async Task<List<CartResponseDto>> GetMyCartAsync()
         {
-            var user =
-                _userContext.GetCurrentUser();
+            var user = _userContext.GetCurrentUser();
 
-            var cart =
-                await _cartRepository.GetByUserIdAsync(user.UserId);
+            var cart = await _cartRepository.GetByUserIdAsync(user.UserId);
 
             if (cart == null)
             {
-                return new CartResponseDto();
+                return new List<CartResponseDto>();
             }
 
-            var response = new CartResponseDto
-            {
-                CartId = cart.Id
-            };
-
-            foreach (var item in cart.CartItems)
-            {
-                response.Items.Add(
-                    new CartItemResponseDto
-                    {
-                        CartItemId = item.Id,
-                        CakeId = item.CakeId,
-                        CakeName = item.Cake.Name,
-                        UnitPrice = item.Cake.Price,
-                        Quantity = item.Quantity,
-                        TotalPrice =
-                            item.Cake.Price * item.Quantity
-                    });
-            }
-
-            response.GrandTotal =
-                response.Items.Sum(x => x.TotalPrice);
-
-            return response;
+            return cart.CartItems
+                .Select(item => new CartResponseDto
+                {
+                    productId = item.CakeId,
+                    quantity = item.Quantity,
+                    cartItemId = item.Id
+                })
+                .ToList();
         }
     }
 }

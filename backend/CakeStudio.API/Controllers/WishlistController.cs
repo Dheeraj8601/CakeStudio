@@ -54,5 +54,13 @@ namespace CakeStudio.API.Controllers
 
             return Ok();
         }
+
+        [HttpGet("getWishlist")]
+        public async Task<IActionResult> GetWishlist(
+        [FromQuery] WishlistFilterRequestDto request)
+        {
+            return Ok(
+                await _service.GetWishlistAsync(request));
+        }
     }
 }

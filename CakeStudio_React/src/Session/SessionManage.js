@@ -7,6 +7,14 @@ class SessionManage {
         return userId;
     }
 
+    async setUserRole(value){
+        sessionStorage.setItem('role',value)
+    }
+
+    getUserRole(){
+        return sessionStorage.getItem('role')
+    }
+
     async setTokenId(value) {
         sessionStorage.setItem('token', value);
     }
@@ -25,6 +33,7 @@ class SessionManage {
         sessionStorage.removeItem("token");
         sessionStorage.removeItem("atoken");
         sessionStorage.removeItem("id");
+        sessionStorage.removeItem("role");
     }
 }
 

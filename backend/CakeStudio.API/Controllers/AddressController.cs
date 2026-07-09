@@ -19,8 +19,7 @@ namespace CakeStudio.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(
-            CreateAddressRequestDto request)
+        public async Task<IActionResult> Create(CreateAddressRequestDto request)
         {
             await _service.CreateAsync(request);
 
@@ -45,8 +44,7 @@ namespace CakeStudio.API.Controllers
         }
 
         [HttpPut("{id}/default")]
-        public async Task<IActionResult> SetDefault(
-            int id)
+        public async Task<IActionResult> SetDefault(int id)
         {
             await _service.SetDefaultAsync(id);
 

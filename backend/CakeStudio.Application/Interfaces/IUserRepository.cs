@@ -27,5 +27,8 @@ namespace CakeStudio.Application.Interfaces
         Task ToggleActiveStatusAsync(int id);
 
         Task DeleteAsync(int id);
+
+        Task UpdateAsync(User user);
+
     }
 }

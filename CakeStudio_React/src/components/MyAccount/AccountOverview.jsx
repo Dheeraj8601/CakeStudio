@@ -3,22 +3,47 @@ import { Grid } from "@mui/material";
 import UserInformationCard from "./UserInformationCard";
 import RecentOrdersCard from "./RecentOrdersCard";
 import AccountSupportCard from "./AccountSupportCard";
+import SessionManage from "../../Session/SessionManage";
+import { useEffect, useState } from "react";
+import Service from "../../services/Service";
 
 export default function AccountOverview() {
+    const UserId = SessionManage.getUserId();
+    const [user, setUser] = useState({
 
-    const user = {
+        fullName: "",
 
-        fullName: "Dr Raj",
+        email: "",
 
-        email: "drraj@gmail.com",
-
-        mobile: "+91 9876543210",
+        mobile: "",
 
         emailVerified: true,
 
         mobileVerified: true
 
-    };
+    });
+
+    useEffect(() => {
+        loadUserDetails();
+    }, [])
+
+    const loadUserDetails = async () => {
+        try {
+            const res = await Service.getUserById(UserId);
+            console.log(res, "user Info");
+            setUser(() => {
+                return {
+                    ...res.data,
+                    fullName: res.data.firstName + " " + res.data.lastName,
+                    emailVerified: true,
+                    mobileVerified: true,
+                    mobile: "+91 9876543210",
+                }
+            })
+        } catch (err) {
+
+        }
+    }
 
     const recentOrders = [
 

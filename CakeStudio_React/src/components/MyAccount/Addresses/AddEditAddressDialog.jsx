@@ -12,21 +12,17 @@ import AddressForm from "./AddressForm";
 
 const initialAddress = {
 
-    fullName: "",
+    addressLine1: "",
 
-    mobile: "",
-
-    email: "",
-
-    address: "",
-
-    landmark: "",
+    addressLine2: "",
 
     city: "",
 
     state: "",
 
-    pincode: "",
+    postalCode: "",
+
+    country: "India",
 
     isDefault: false
 
@@ -62,17 +58,13 @@ export default function AddEditAddressDialog({
 
     }, [address, open]);
 
-    const handleSave = () => {
-
-        console.log(formData);
+    const handleSave = async () => {
 
         if (onSave) {
 
-            onSave(formData);
+            await onSave(formData);
 
         }
-
-        onClose();
 
     };
 

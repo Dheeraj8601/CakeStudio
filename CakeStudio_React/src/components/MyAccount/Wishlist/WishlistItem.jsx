@@ -13,16 +13,39 @@ import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 
 import "./WishlistItem.css";
+import useCart from "../../../hooks/useCart";
+import Service from "../../../services/Service";
 
 export default function WishlistItem({
 
     item,
 
-    onRemove,
-
-    onAddToCart
+    onReload,
 
 }) {
+    const { addToCart } = useCart();
+    const onAddToCart = (item) => {
+        //console.log("ff", item)
+        addToCart(item.cakeId, 1)
+    }
+    const handleRemove = async () => {
+
+        try {
+
+            await Service.removeWishlistItem(
+                item.wishlistId
+            );
+
+            onReload?.();
+
+        }
+        catch (error) {
+
+            console.error(error);
+
+        }
+
+    };
 
     return (
 
@@ -34,7 +57,7 @@ export default function WishlistItem({
 
                     <img
 
-                        src={item.image}
+                        src={item.imageUrl}
 
                         alt={item.name}
 
@@ -130,7 +153,7 @@ export default function WishlistItem({
 
                                 className="delete-btn"
 
-                                onClick={() => onRemove?.(item.id)}
+                                onClick={handleRemove}
 
                             >
 
@@ -148,11 +171,11 @@ export default function WishlistItem({
 
                                 disabled={!item.inStock}
 
-                                onClick={() => onAddToCart?.(item)}
+                                onClick={() => onAddToCart(item)}
 
                             >
 
-                                Add To Cart
+                                Add to Cart
 
                             </Button>
 

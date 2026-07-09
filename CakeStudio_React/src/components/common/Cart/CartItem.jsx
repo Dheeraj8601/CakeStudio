@@ -32,7 +32,7 @@ const CartItem = ({
 
                 <Box
                     component="img"
-                    src={item.image}
+                    src={item.imageUrl}
                     alt={item.name}
                     className="cart-product-image"
                 />
@@ -71,12 +71,12 @@ const CartItem = ({
 
                         if (value > item.quantity) {
 
-                            onIncrease(item.id);
+                            onIncrease(item);
 
                         }
                         else {
 
-                            onDecrease(item.id);
+                            onDecrease(item);
 
                         }
 
@@ -123,7 +123,7 @@ const CartItem = ({
                     color="error"
 
                     onClick={() =>
-                        onRemove(item.id)
+                        onRemove(item)
                     }
 
                 >

@@ -7,6 +7,8 @@ import PrimaryButton from "../CustomFields/PrimaryButton/PrimaryButton";
 import SendOutlinedIcon from "@mui/icons-material/SendOutlined";
 
 import "./ContactForm.css";
+import Service from "../../../services/Service";
+import { toast } from "react-toastify";
 
 const ContactForm = () => {
 
@@ -29,11 +31,32 @@ const ContactForm = () => {
 
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
 
         e.preventDefault();
 
-        console.log(form);
+        try {
+
+            await Service.sendContactMessage(form);
+
+            toast.success("Message sent successfully.");
+
+            setForm({
+                fullName: "",
+                email: "",
+                phone: "",
+                subject: "",
+                message: ""
+            });
+
+        }
+        catch (error) {
+
+            console.error(error);
+
+            toast.error("Unable to send message.");
+
+        }
 
     };
 
@@ -134,7 +157,7 @@ const ContactForm = () => {
 
                         <CustomTextField
 
-                            multiline
+                            //multiline
 
                             rows={5}
 

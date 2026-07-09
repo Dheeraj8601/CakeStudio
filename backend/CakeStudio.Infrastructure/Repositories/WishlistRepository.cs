@@ -1,4 +1,6 @@
 ﻿using CakeStudio.API.DbContexts.models;
+using CakeStudio.Application.DTOs.Cake;
+using CakeStudio.Application.DTOs.Wishlist;
 using CakeStudio.Application.Interfaces;
 using CakeStudio.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -62,6 +64,61 @@ namespace CakeStudio.Infrastructure.Repositories
             _context.Wishlists.Remove(wishlist);
 
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<PagedResult<Wishlist>> GetPagedWishlistAsync(int userId,WishlistFilterRequestDto request)
+        {
+            IQueryable<Wishlist> query = _context.Wishlists
+                .Include(x => x.Cake)
+                .Where(x => x.UserId == userId);
+
+            switch (request.SortBy?.ToLower())
+            {
+                case "pricelow":
+
+                    query = query.OrderBy(x => x.Cake.Price);
+
+                    break;
+
+                case "pricehigh":
+
+                    query = query.OrderByDescending(x => x.Cake.Price);
+
+                    break;
+
+                case "rating":
+
+                    //query = query.OrderByDescending(x => x.Cake.AverageRating);
+
+                    break;
+
+                default:
+
+                    query = query.OrderByDescending(x => x.CreatedAt);
+
+                    break;
+            }
+
+            var totalRecords = await query.CountAsync();
+
+            var items = await query
+                .Skip((request.Page - 1) * request.PageSize)
+                .Take(request.PageSize)
+                .ToListAsync();
+
+            return new PagedResult<Wishlist>
+            {
+                Page = request.Page,
+
+                PageSize = request.PageSize,
+
+                TotalRecords = totalRecords,
+
+                TotalPages = (int)Math.Ceiling(
+                    totalRecords / (double)request.PageSize),
+
+                Data = items
+            };
         }
     }
 }

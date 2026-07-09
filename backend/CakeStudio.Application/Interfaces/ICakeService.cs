@@ -10,21 +10,13 @@ namespace CakeStudio.Application.Interfaces
     public interface ICakeService
     {
         Task<CakeResponseDto> CreateAsync(CreateCakeRequestDto request);
-
         Task<CakeResponseDto> UpdateAsync(UpdateCakeRequestDto request);
-
         Task DeleteAsync(int id);
-
         Task<List<CakeResponseDto>> GetAllAsync();
-
         Task<CakeResponseDto?> GetByIdAsync(int id);
         Task<PagedResult<CakeListResponseDto>> GetCakesAsync(CakeFilterRequestDto request);
-
-        Task<PagedResult<CakeCatalogResponseDto>> GetCatalogAsync(
-    CakeCatalogFilterDto request);
-
-        Task<CakeCatalogResponseDto?> GetCatalogCakeByIdAsync(
-            int id);
-
+        Task<PagedResult<CakeCatalogResponseDto>> GetCatalogAsync(CakeCatalogFilterDto request);
+        Task<CakeCatalogResponseDto?> GetCatalogCakeByIdAsync(int id);
+        Task<List<CartItemResponseDto>> GetCartItemsAsync(CartItemsRequestDto request);
     }
 }

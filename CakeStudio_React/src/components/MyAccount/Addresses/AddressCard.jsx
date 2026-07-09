@@ -10,8 +10,6 @@ import {
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
-import PhoneOutlinedIcon from "@mui/icons-material/PhoneOutlined";
-import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 import StarBorderRoundedIcon from "@mui/icons-material/StarBorderRounded";
 
 import "./AddressCard.css";
@@ -36,17 +34,14 @@ export default function AddressCard({
 
                 <Box className="address-top">
 
-                    <Box className="address-user">
+                    <Typography
+                        variant="h6"
+                        fontWeight={600}
+                    >
 
-                        <PersonOutlineOutlinedIcon />
+                        Delivery Address
 
-                        <Typography className="customer-name">
-
-                            {address.fullName}
-
-                        </Typography>
-
-                    </Box>
+                    </Typography>
 
                     {
 
@@ -73,43 +68,21 @@ export default function AddressCard({
 
                     <Box className="address-row">
 
-                        <PhoneOutlinedIcon />
-
-                        <Typography>
-
-                            {address.mobile}
-
-                        </Typography>
-
-                    </Box>
-
-                    <Box className="address-row">
-
                         <LocationOnOutlinedIcon />
 
                         <Typography>
 
-                            {address.address},
+                            {address.addressLine1}
 
                             {
 
-                                address.landmark &&
+                                address.addressLine2 &&
 
-                                ` ${address.landmark},`
+                                `, ${address.addressLine2}`
 
                             }
 
-                            {" "}
-
-                            {address.city},
-
-                            {" "}
-
-                            {address.state}
-
-                            {" - "}
-
-                            {address.pincode}
+                            {`, ${address.city}, ${address.state} - ${address.postalCode}, ${address.country}`}
 
                         </Typography>
 
@@ -159,7 +132,8 @@ export default function AddressCard({
 
                             startIcon={<StarBorderRoundedIcon />}
 
-                            onClick={() => onSetDefault(address.id)}
+                            onClick={() => onSetDefault(address.addressId)}
+
                             sx={{
                                 background: "#ff5b84",
                                 "&:hover": {

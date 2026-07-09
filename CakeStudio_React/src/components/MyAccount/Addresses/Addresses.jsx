@@ -6,47 +6,49 @@ import {
 
 import AddLocationAltOutlinedIcon from "@mui/icons-material/AddLocationAltOutlined";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-import MyAccountLayout from "../MyAccountLayout";
 import AddressList from "./AddressList";
 import AddEditAddressDialog from "./AddEditAddressDialog";
+import DeleteAddressDialog from "./DeleteAddressDialog";
 
 import "./Addresses.css";
-import DeleteAddressDialog from "./DeleteAddressDialog";
+
+import Service from "../../../services/Service";
 
 export default function Addresses() {
 
+    const [addresses, setAddresses] = useState([]);
+
     const [openDialog, setOpenDialog] = useState(false);
+
     const [selectedAddress, setSelectedAddress] = useState(null);
+
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [addresses] = useState([
 
-        {
-            id: 1,
-            fullName: "Dr Raj",
-            mobile: "9876543210",
-            address: "123 Sweet Street",
-            landmark: "Near City Mall",
-            city: "Bangalore",
-            state: "Karnataka",
-            pincode: "560001",
-            isDefault: true
-        },
+    useEffect(() => {
 
-        {
-            id: 2,
-            fullName: "Dr Raj",
-            mobile: "9876543210",
-            address: "45 MG Road",
-            landmark: "",
-            city: "Bangalore",
-            state: "Karnataka",
-            pincode: "560025",
-            isDefault: false
+        loadAddresses();
+
+    }, []);
+
+    const loadAddresses = async () => {
+
+        try {
+
+            const response = await Service.getMyAddresses();
+
+            setAddresses(response.data);
+
+        }
+        catch (error) {
+
+            console.error(error);
+
         }
 
-    ]);
+    };
+
     const handleEdit = (address) => {
 
         setSelectedAddress(address);
@@ -54,11 +56,79 @@ export default function Addresses() {
         setOpenDialog(true);
 
     };
+
     const handleDeleteClick = (address) => {
 
         setSelectedAddress(address);
 
         setDeleteDialogOpen(true);
+
+    };
+
+    const handleSave = async (address) => {
+        console.log(address, "address")
+        try {
+
+            if (address.addressId) {
+
+                await Service.updateAddress(address);
+
+            }
+            else {
+
+                await Service.createAddress(address);
+
+            }
+
+            setOpenDialog(false);
+
+            setSelectedAddress(null);
+
+            loadAddresses();
+
+        }
+        catch (error) {
+
+            console.error(error);
+
+        }
+
+    };
+
+    const handleDelete = async (id) => {
+
+        try {
+
+            await Service.deleteAddress(id);
+
+            setDeleteDialogOpen(false);
+
+            setSelectedAddress(null);
+
+            loadAddresses();
+
+        }
+        catch (error) {
+
+            console.error(error);
+
+        }
+
+    };
+
+    const handleSetDefault = async (id) => {
+        try {
+
+            await Service.setDefaultAddress(id);
+
+            loadAddresses();
+
+        }
+        catch (error) {
+
+            console.error(error);
+
+        }
 
     };
 
@@ -88,13 +158,16 @@ export default function Addresses() {
 
                     variant="contained"
 
-                    startIcon={<AddLocationAltOutlinedIcon/>}
+                    startIcon={<AddLocationAltOutlinedIcon />}
 
                     className="add-address-btn"
 
                     onClick={() => {
+
                         setSelectedAddress(null);
-                        setOpenDialog(true)
+
+                        setOpenDialog(true);
+
                     }}
 
                 >
@@ -106,36 +179,62 @@ export default function Addresses() {
             </Box>
 
             <AddressList
+
                 addresses={addresses}
-                onAddAddress={() => setOpenDialog(true)}
+
+                onAddAddress={() => {
+
+                    setSelectedAddress(null);
+
+                    setOpenDialog(true);
+
+                }}
+
                 onEdit={handleEdit}
+
                 onDelete={handleDeleteClick}
+
+                onSetDefault={handleSetDefault}
+
             />
 
             <AddEditAddressDialog
-                open={openDialog}
-                onClose={() => setOpenDialog(false)}
-                address={selectedAddress}
-                onSave={(address) => {
 
-                    console.log(address);
+                open={openDialog}
+
+                address={selectedAddress}
+
+                onClose={() => {
+
+                    setOpenDialog(false);
+
+                    setSelectedAddress(null);
 
                 }}
+
+                onSave={handleSave}
+
             />
 
             <DeleteAddressDialog
 
                 open={deleteDialogOpen}
 
-                onClose={() => setDeleteDialogOpen(false)}
-
                 address={selectedAddress}
 
-                onDelete={(id) => {
+                onClose={() => {
 
-                    console.log("Delete Address :", id);
+                    setDeleteDialogOpen(false);
+
+                    setSelectedAddress(null);
 
                 }}
+
+                onDelete={() =>
+
+                    handleDelete(selectedAddress.addressId)
+
+                }
 
             />
 

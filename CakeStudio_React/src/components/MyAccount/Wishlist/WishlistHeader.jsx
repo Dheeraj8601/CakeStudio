@@ -10,13 +10,17 @@ import {
 import FavoriteBorderOutlinedIcon from "@mui/icons-material/FavoriteBorderOutlined";
 import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
 
-import { useState } from "react";
-
 import "./WishlistHeader.css";
 
-export default function WishlistHeader({ totalItems }) {
+export default function WishlistHeader({
 
-    const [sortBy, setSortBy] = useState("recent");
+    totalItems,
+
+    sortBy,
+
+    onSortChange
+
+}) {
 
     return (
 
@@ -28,7 +32,9 @@ export default function WishlistHeader({ totalItems }) {
 
                     My Wishlist
 
-                    <FavoriteBorderOutlinedIcon className="wishlist-heart" />
+                    <FavoriteBorderOutlinedIcon
+                        className="wishlist-heart"
+                    />
 
                 </Typography>
 
@@ -40,7 +46,7 @@ export default function WishlistHeader({ totalItems }) {
 
             </Box>
 
-            <Button
+            {/* <Button
 
                 variant="outlined"
 
@@ -52,7 +58,7 @@ export default function WishlistHeader({ totalItems }) {
 
                 Share Wishlist
 
-            </Button>
+            </Button> */}
 
             <Box className="wishlist-toolbar">
 
@@ -70,15 +76,15 @@ export default function WishlistHeader({ totalItems }) {
 
                     </Typography>
 
-                    <FormControl
-                        size="small"
-                    >
+                    <FormControl size="small">
 
                         <Select
 
                             value={sortBy}
 
-                            onChange={(e) => setSortBy(e.target.value)}
+                            onChange={(e) =>
+                                onSortChange(e.target.value)
+                            }
 
                         >
 

@@ -37,61 +37,7 @@ export default function AddressForm({
             spacing={3}
         >
 
-            <Grid size={{ xs:12 }}>
-
-                <TextField
-
-                    fullWidth
-
-                    label="Full Name"
-
-                    name="fullName"
-
-                    value={address.fullName}
-
-                    onChange={handleChange}
-
-                />
-
-            </Grid>
-
-            <Grid size={{ xs:12, md:6 }}>
-
-                <TextField
-
-                    fullWidth
-
-                    label="Mobile Number"
-
-                    name="mobile"
-
-                    value={address.mobile}
-
-                    onChange={handleChange}
-
-                />
-
-            </Grid>
-
-            <Grid size={{ xs:12, md:6 }}>
-
-                <TextField
-
-                    fullWidth
-
-                    label="Email"
-
-                    name="email"
-
-                    value={address.email}
-
-                    onChange={handleChange}
-
-                />
-
-            </Grid>
-
-            <Grid size={{ xs:12 }}>
+            <Grid size={{ xs: 12 }}>
 
                 <TextField
 
@@ -101,11 +47,11 @@ export default function AddressForm({
 
                     rows={3}
 
-                    label="Address"
+                    label="Address Line 1"
 
-                    name="address"
+                    name="addressLine1"
 
-                    value={address.address}
+                    value={address.addressLine1}
 
                     onChange={handleChange}
 
@@ -113,17 +59,17 @@ export default function AddressForm({
 
             </Grid>
 
-            <Grid size={{ xs:12 }}>
+            <Grid size={{ xs: 12 }}>
 
                 <TextField
 
                     fullWidth
 
-                    label="Landmark"
+                    label="Address Line 2"
 
-                    name="landmark"
+                    name="addressLine2"
 
-                    value={address.landmark}
+                    value={address.addressLine2}
 
                     onChange={handleChange}
 
@@ -131,7 +77,7 @@ export default function AddressForm({
 
             </Grid>
 
-            <Grid size={{ xs:12, md:4 }}>
+            <Grid size={{ xs: 12, md: 4 }}>
 
                 <TextField
 
@@ -149,7 +95,7 @@ export default function AddressForm({
 
             </Grid>
 
-            <Grid size={{ xs:12, md:4 }}>
+            <Grid size={{ xs: 12, md: 4 }}>
 
                 <TextField
 
@@ -168,44 +114,36 @@ export default function AddressForm({
                 >
 
                     <MenuItem value="Karnataka">
-
                         Karnataka
-
                     </MenuItem>
 
                     <MenuItem value="Tamil Nadu">
-
                         Tamil Nadu
-
                     </MenuItem>
 
                     <MenuItem value="Andhra Pradesh">
-
                         Andhra Pradesh
-
                     </MenuItem>
 
                     <MenuItem value="Telangana">
-
                         Telangana
-
                     </MenuItem>
 
                 </TextField>
 
             </Grid>
 
-            <Grid size={{ xs:12, md:4 }}>
+            <Grid size={{ xs: 12, md: 4 }}>
 
                 <TextField
 
                     fullWidth
 
-                    label="Pincode"
+                    label="Postal Code"
 
-                    name="pincode"
+                    name="postalCode"
 
-                    value={address.pincode}
+                    value={address.postalCode}
 
                     onChange={handleChange}
 
@@ -213,7 +151,25 @@ export default function AddressForm({
 
             </Grid>
 
-            <Grid size={{ xs:12 }}>
+            <Grid size={{ xs: 12 }}>
+
+                <TextField
+
+                    fullWidth
+
+                    label="Country"
+
+                    name="country"
+
+                    value={address.country}
+
+                    onChange={handleChange}
+
+                />
+
+            </Grid>
+
+            <Grid size={{ xs: 12 }}>
 
                 <FormControlLabel
 

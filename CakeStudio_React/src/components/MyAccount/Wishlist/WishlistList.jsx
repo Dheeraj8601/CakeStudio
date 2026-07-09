@@ -7,19 +7,13 @@ export default function WishlistList({
 
     wishlist,
 
-    onRemove,
-
-    onAddToCart
+    onReload
 
 }) {
 
     if (!wishlist || wishlist.length === 0) {
 
-        return (
-
-            <EmptyWishlist />
-
-        );
+        return <EmptyWishlist />;
 
     }
 
@@ -33,13 +27,11 @@ export default function WishlistList({
 
                     <WishlistItem
 
-                        key={item.id}
+                        key={item.wishlistId}
 
                         item={item}
 
-                        onRemove={onRemove}
-
-                        onAddToCart={onAddToCart}
+                        onReload={onReload}
 
                     />
 

@@ -3,9 +3,7 @@ import {
     Typography
 } from "@mui/material";
 
-import { useState } from "react";
-
-import MyAccountLayout from "../MyAccountLayout";
+import { useEffect, useState } from "react";
 
 import ProfileInformationCard from "./ProfileInformationCard";
 import PasswordSecurityCard from "./PasswordSecurityCard";
@@ -13,27 +11,18 @@ import EmailPreferencesCard from "./EmailPreferencesCard";
 import DeleteAccountCard from "./DeleteAccountCard";
 
 import "./AccountSettings.css";
+
 import EditProfileDialog from "./EditProfileDialog";
 import ChangePasswordDialog from "./ChangePasswordDialog";
 import DeleteAccountDialog from "./DeleteAccountDialog";
 
+import Service from "../../../services/Service";
+import SessionManage from "../../../Session/SessionManage";
+import { useNavigate } from "react-router-dom";
+
 export default function AccountSettings() {
-
-    const [profile, setProfile] = useState({
-
-        fullName: "Rahul Sharma",
-
-        email: "rahul.sharma@email.com",
-
-        mobile: "+91 9876543210",
-
-        dob: "15 March 1995",
-
-        emailVerified: true,
-
-        mobileVerified: true
-
-    });
+    const navigate = useNavigate();
+    const [profile, setProfile] = useState(null);
 
     const [preferences, setPreferences] = useState({
 
@@ -46,10 +35,143 @@ export default function AccountSettings() {
         newsletter: false
 
     });
+
     const [openEditDialog, setOpenEditDialog] = useState(false);
+
     const [openPasswordDialog, setOpenPasswordDialog] = useState(false);
 
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+
+    useEffect(() => {
+
+        loadProfile();
+
+    }, []);
+
+    const loadProfile = async () => {
+
+        try {
+
+            const response = await Service.getUserById(
+                SessionManage.getUserId()
+            );
+
+            const user = response.data;
+            console.log("user", user)
+            setProfile({
+
+                id: user.id,
+
+                firstName: user.firstName,
+
+                lastName: user.lastName,
+
+                email: user.email,
+
+                phoneNumber: user.phoneNumber,
+
+                fullName: `${user.firstName} ${user.lastName}`
+
+            });
+
+        }
+        catch (error) {
+
+            console.error(error);
+
+        }
+
+    };
+
+    const handleProfileUpdate = async (updatedProfile) => {
+
+        try {
+
+            await Service.updateUser({
+
+                id: updatedProfile.id,
+
+                firstName: updatedProfile.firstName,
+
+                lastName: updatedProfile.lastName,
+
+                email: updatedProfile.email,
+
+                phoneNumber: updatedProfile.phoneNumber
+
+            });
+
+            await loadProfile();
+
+            setOpenEditDialog(false);
+
+        }
+        catch (error) {
+
+            console.error(error);
+
+        }
+
+    };
+
+    const handlePasswordChange = async (data) => {
+
+        try {
+
+            const res = await Service.changePassword(data);
+
+            if (res.status === 200) {
+
+                SessionManage.clearSession();
+
+                setOpenPasswordDialog(false);
+
+                navigate("/login", {
+                    replace: true
+                });
+
+            }
+
+        }
+        catch (error) {
+
+            console.error(error);
+
+        }
+
+    };
+
+    const handleDeleteAccount = async () => {
+
+        try {
+
+            await Service.deleteUser(
+                SessionManage.getUserId()
+            );
+
+            SessionManage.clearSession();
+
+            setOpenDeleteDialog(false);
+
+            navigate("/login", {
+                replace: true
+            });
+
+        }
+        catch (error) {
+
+            console.error(error);
+
+        }
+
+    };
+
+    if (!profile) {
+
+        return null;
+
+    }
+
     return (
 
         <Box>
@@ -70,7 +192,11 @@ export default function AccountSettings() {
 
                 profile={profile}
 
-                onEdit={() => setOpenEditDialog(true)}
+                onEdit={() =>
+
+                    setOpenEditDialog(true)
+
+                }
 
             />
 
@@ -78,27 +204,37 @@ export default function AccountSettings() {
 
                 open={openEditDialog}
 
-                onClose={() => setOpenEditDialog(false)}
+                onClose={() =>
+
+                    setOpenEditDialog(false)
+
+                }
 
                 profile={profile}
 
-                onSave={(updatedProfile) => {
-
-                    setProfile(updatedProfile);
-
-                    console.log(updatedProfile);
-
-                }}
+                onSave={handleProfileUpdate}
 
             />
 
             <PasswordSecurityCard
 
-                onChangePassword={() => setOpenPasswordDialog(true)}
+                onChangePassword={() =>
 
-                onEnable2FA={() => console.log("Enable 2FA")}
+                    setOpenPasswordDialog(true)
 
-                onViewLoginActivity={() => console.log("Login Activity")}
+                }
+
+                onEnable2FA={() =>
+
+                    console.log("Enable 2FA")
+
+                }
+
+                onViewLoginActivity={() =>
+
+                    console.log("Login Activity")
+
+                }
 
             />
 
@@ -106,13 +242,13 @@ export default function AccountSettings() {
 
                 open={openPasswordDialog}
 
-                onClose={() => setOpenPasswordDialog(false)}
+                onClose={() =>
 
-                onSave={(data) => {
+                    setOpenPasswordDialog(false)
 
-                    console.log(data);
+                }
 
-                }}
+                onSave={handlePasswordChange}
 
             />
 
@@ -126,20 +262,25 @@ export default function AccountSettings() {
 
             <DeleteAccountCard
 
-                onDelete={() => setOpenDeleteDialog(true)}
+                onDelete={() =>
+
+                    setOpenDeleteDialog(true)
+
+                }
 
             />
+
             <DeleteAccountDialog
 
                 open={openDeleteDialog}
 
-                onClose={() => setOpenDeleteDialog(false)}
+                onClose={() =>
 
-                onDelete={() => {
+                    setOpenDeleteDialog(false)
 
-                    console.log("Account Deleted");
+                }
 
-                }}
+                onDelete={handleDeleteAccount}
 
             />
 

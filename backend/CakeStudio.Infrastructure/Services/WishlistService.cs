@@ -15,12 +15,14 @@ namespace CakeStudio.Infrastructure.Services
         private readonly IUserContext _userContext;
         private readonly IWishlistRepository _wishlistRepository;
         private readonly ICartService _cartService;
+        private readonly IFileUpload _fileUpload;
 
-        public WishlistService(IUserContext userContext, IWishlistRepository wishlistRepository, ICartService cartService)
+        public WishlistService(IUserContext userContext, IWishlistRepository wishlistRepository, ICartService cartService, IFileUpload fileUpload)
         {
             _userContext = userContext;
             _wishlistRepository = wishlistRepository;
             _cartService = cartService;
+            _fileUpload = fileUpload;
         }
 
         public async Task AddAsync(AddWishlistRequestDto request)
@@ -118,6 +120,46 @@ namespace CakeStudio.Infrastructure.Services
 
             await _wishlistRepository
                 .DeleteAsync(wishlist);
+        }
+
+        public async Task<WishlistPagedResponseDto> GetWishlistAsync(WishlistFilterRequestDto request)
+        {
+            var currentUser = _userContext.GetCurrentUser();
+
+            var result = await _wishlistRepository.GetPagedWishlistAsync(currentUser.UserId,request);
+
+            return new WishlistPagedResponseDto
+            {
+                Page = result.Page,
+
+                PageSize = result.PageSize,
+
+                TotalRecords = result.TotalRecords,
+
+                TotalPages = result.TotalPages,
+
+                Data = result.Data.Select(x => new WishlistItemDto
+                {
+                    WishlistId = x.Id,
+
+                    CakeId = x.CakeId,
+
+                    Name = x.Cake.Name,
+
+                    ImageUrl = _fileUpload.GetImageUrl(x.Cake.ImageUrl),
+
+                    Price = x.Cake.Price,
+
+                    Description = x.Cake.Description,
+
+                    InStock = x.Cake.StockQuantity > 0,
+                    Weight = "1.0 Kg",
+
+                    //Rating = x.Cake.AverageRating,
+
+                    Reviews = x.Cake.Reviews.Count
+                }).ToList()
+            };
         }
     }
 }

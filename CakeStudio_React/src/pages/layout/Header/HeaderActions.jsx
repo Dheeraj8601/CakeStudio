@@ -11,6 +11,12 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import useCart from "../../../hooks/useCart"
 import "./HeaderActions.css";
+import SessionManage from "../../../Session/SessionManage";
+import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
+
+const isLoggedIn = () => {
+    return !!SessionManage.getTokenId();
+};
 
 const HeaderActions = () => {
 
@@ -21,15 +27,25 @@ const HeaderActions = () => {
     return (
 
         <Box className="header-actions">
-
-            <Button
-                variant="outlined"
-                startIcon={<PersonOutlineOutlinedIcon />}
-                className="login-btn"
-                onClick={() => navigate("/login")}
-            >
-                Login
-            </Button>
+            {isLoggedIn() ?
+                <Button
+                    variant="outlined"
+                    startIcon={<AccountCircleOutlinedIcon />}
+                    className="login-btn"
+                    onClick={() => navigate("/my-account")}
+                >
+                    My Account
+                </Button>
+                :
+                <Button
+                    variant="outlined"
+                    startIcon={<PersonOutlineOutlinedIcon />}
+                    className="login-btn"
+                    onClick={() => navigate("/login")}
+                >
+                    Login
+                </Button>
+            }
 
             <Button
                 variant="contained"

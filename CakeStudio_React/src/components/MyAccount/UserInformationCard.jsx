@@ -17,9 +17,10 @@ import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import CallOutlinedIcon from "@mui/icons-material/CallOutlined";
 
 import "./UserInformationCard.css";
+import { useNavigate } from "react-router-dom";
 
 export default function UserInformationCard({ user }) {
-
+const navigate = useNavigate()
     return (
 
         <Card className="user-info-card">
@@ -58,6 +59,7 @@ export default function UserInformationCard({ user }) {
                         variant="outlined"
                         startIcon={<EditOutlinedIcon />}
                         className="edit-profile-btn"
+                        onClick={() => navigate("/my-account/settings")}
                     >
 
                         Edit Profile
