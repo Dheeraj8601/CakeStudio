@@ -25,7 +25,7 @@ export default function DeleteAddressDialog({
 
         if (onDelete) {
 
-            onDelete(address.id);
+            onDelete(address.addressId);
 
         }
 

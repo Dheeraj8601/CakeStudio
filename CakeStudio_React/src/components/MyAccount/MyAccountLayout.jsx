@@ -15,6 +15,7 @@ import AccountOverview from "./AccountOverview";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import LogoutDialog from "./LogOut/LogoutDialog";
+import SessionManage from "../../Session/SessionManage";
 
 export default function MyAccountLayout({ children }) {
     const [logoutOpen, setLogoutOpen] = useState(false);
@@ -74,7 +75,7 @@ export default function MyAccountLayout({ children }) {
                 onLogout={() => {
 
                     localStorage.clear();
-
+                    SessionManage.clearSession();
                     setLogoutOpen(false);
 
                     navigate("/login");

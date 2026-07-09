@@ -3,7 +3,7 @@ import { Box } from "@mui/material";
 import AddressCard from "./AddressCard";
 import EmptyAddresses from "./EmptyAddresses";
 
-export default function AddressList({ addresses, onAddAddress, onEdit, onDelete }) {
+export default function AddressList({ addresses, onAddAddress, onEdit, onDelete, onSetDefault }) {
 
     if (!addresses || addresses.length === 0) {
 
@@ -21,11 +21,11 @@ export default function AddressList({ addresses, onAddAddress, onEdit, onDelete 
 
                     <AddressCard
 
-                        key={address.id}
+                        key={address.addressId}
                         onDelete={onDelete}
                         address={address}
                         onEdit={onEdit}
-
+                        onSetDefault={onSetDefault}
                     />
 
                 ))

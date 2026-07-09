@@ -14,11 +14,14 @@ namespace CakeStudio.Application.Interfaces
 
         Task<List<UserResponseDto>> GetAllAsync();
 
-        Task<PagedResult<UserResponseDto>> GetPagedAsync(
-            UserPagedRequestDto request);
+        Task<PagedResult<UserResponseDto>> GetPagedAsync(UserPagedRequestDto request);
 
         Task ToggleActiveStatusAsync(int id);
 
         Task DeleteAsync(int id);
+
+        Task UpdateAsync(UpdateUserRequestDto request);
+
+        Task ChangePasswordAsync(ChangePasswordRequestDto request);
     }
 }

@@ -15,6 +15,6 @@ namespace CakeStudio.Application.Interfaces
 
         Task RemoveItemAsync(int cartItemId);
 
-        Task<CartResponseDto> GetMyCartAsync();
+        Task<List<CartResponseDto>> GetMyCartAsync();
     }
 }

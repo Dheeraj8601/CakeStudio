@@ -292,5 +292,23 @@ namespace CakeStudio.Infrastructure.Services
                     cake.Reviews.Count
             };
         }
+
+        public async Task<List<CartItemResponseDto>> GetCartItemsAsync(CartItemsRequestDto request)
+        {
+            var cake = await _cakeRepository.GetCartItems(request.ProductIds);
+
+            var data = cake.Select(x => new CartItemResponseDto
+            {
+                Id = x.Id,
+                productId = x.Id,
+                Name = x.Name,
+                Price = x.Price,
+                ImageUrl = _fileUpload.GetImageUrl(x.ImageUrl),
+                IsAvailable = true
+
+            }).ToList();
+
+            return data;
+        }
     }
 }

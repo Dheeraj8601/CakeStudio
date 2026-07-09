@@ -20,5 +20,8 @@ namespace CakeStudio.Application.Interfaces
 
         Task MoveToCartAsync(
             int wishlistId);
+
+        Task<WishlistPagedResponseDto> GetWishlistAsync(
+    WishlistFilterRequestDto request);
     }
 }

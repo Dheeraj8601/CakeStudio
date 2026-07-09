@@ -195,5 +195,12 @@ namespace CakeStudio.Infrastructure.Repositories
                     x.Id == id &&
                     !x.IsDeleted);
         }
+
+        public Task<List<Cake>> GetCartItems(List<int> ids)
+        {
+            return _context.Cakes
+                .Where(x => ids.Contains(x.Id))
+                .ToListAsync();
+        }
     }
 }

@@ -123,7 +123,9 @@ namespace CakeStudio.Infrastructure.Services
                 Success = true,
                 Message = "Login successful",
                 AccessToken = accessToken,
-                RefreshToken = refreshToken
+                RefreshToken = refreshToken,
+                UserId = user.Id,
+                Role = user.Role
             };
         }
         public async Task<RefreshTokenResponseDto> RefreshTokenAsync(RefreshTokenRequestDto request)

@@ -5,7 +5,6 @@ import {
     DialogContent,
     DialogTitle,
     Grid,
-    MenuItem,
     TextField
 } from "@mui/material";
 
@@ -13,15 +12,15 @@ import { useEffect, useState } from "react";
 
 const initialProfile = {
 
-    fullName: "",
+    id: 0,
+
+    firstName: "",
+
+    lastName: "",
 
     email: "",
 
-    mobile: "",
-
-    dob: "",
-
-    gender: ""
+    phoneNumber: ""
 
 };
 
@@ -46,7 +45,6 @@ export default function EditProfileDialog({
             setFormData(profile);
 
         }
-
         else {
 
             setFormData(initialProfile);
@@ -69,13 +67,9 @@ export default function EditProfileDialog({
 
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
 
-        console.log(formData);
-
-        onSave?.(formData);
-
-        onClose();
+        await onSave?.(formData);
 
     };
 
@@ -106,17 +100,35 @@ export default function EditProfileDialog({
                     spacing={3}
                 >
 
-                    <Grid size={{ xs: 12 }}>
+                    <Grid size={{ xs: 12, md: 6 }}>
 
                         <TextField
 
                             fullWidth
 
-                            label="Full Name"
+                            label="First Name"
 
-                            name="fullName"
+                            name="firstName"
 
-                            value={formData.fullName}
+                            value={formData.firstName}
+
+                            onChange={handleChange}
+
+                        />
+
+                    </Grid>
+
+                    <Grid size={{ xs: 12, md: 6 }}>
+
+                        <TextField
+
+                            fullWidth
+
+                            label="Last Name"
+
+                            name="lastName"
+
+                            value={formData.lastName}
 
                             onChange={handleChange}
 
@@ -148,79 +160,15 @@ export default function EditProfileDialog({
 
                             fullWidth
 
-                            label="Mobile Number"
+                            label="Phone Number"
 
-                            name="mobile"
+                            name="phoneNumber"
 
-                            value={formData.mobile}
+                            value={formData.phoneNumber}
 
                             onChange={handleChange}
 
                         />
-
-                    </Grid>
-
-                    <Grid size={{ xs: 12, md: 6 }}>
-
-                        <TextField
-
-                            fullWidth
-
-                            type="date"
-
-                            name="dob"
-
-                            label="Date of Birth"
-
-                            value={formData.dob}
-
-                            onChange={handleChange}
-
-                            InputLabelProps={{
-                                shrink: true
-                            }}
-
-                        />
-
-                    </Grid>
-
-                    <Grid size={{ xs: 12, md: 6 }}>
-
-                        <TextField
-
-                            fullWidth
-
-                            select
-
-                            label="Gender"
-
-                            name="gender"
-
-                            value={formData.gender}
-
-                            onChange={handleChange}
-
-                        >
-
-                            <MenuItem value="Male">
-
-                                Male
-
-                            </MenuItem>
-
-                            <MenuItem value="Female">
-
-                                Female
-
-                            </MenuItem>
-
-                            <MenuItem value="Other">
-
-                                Other
-
-                            </MenuItem>
-
-                        </TextField>
 
                     </Grid>
 

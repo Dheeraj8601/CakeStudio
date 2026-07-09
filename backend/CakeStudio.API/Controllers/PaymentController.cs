@@ -19,13 +19,9 @@ namespace CakeStudio.API.Controllers
         }
 
         [HttpPost("create-session")]
-        public async Task<IActionResult> CreateSession(
-            CreatePaymentRequestDto request)
+        public async Task<IActionResult> CreateSession(CreatePaymentRequestDto request)
         {
-            var result =
-                await _paymentService
-                    .CreateSessionAsync(
-                        request.OrderId);
+            var result = await _paymentService.CreateSessionAsync(request.OrderId);
 
             return Ok(result);
         }

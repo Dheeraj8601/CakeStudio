@@ -11,10 +11,14 @@ import {
 
 import FavoriteBorderOutlinedIcon from "@mui/icons-material/FavoriteBorderOutlined";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
+import FavoriteOutlinedIcon from "@mui/icons-material/FavoriteOutlined";
 
 import "./CakeCard.css";
 import { useNavigate } from "react-router-dom";
 import useCart from "../../../hooks/useCart";
+import SessionManage from "../../../Session/SessionManage";
+import { toast } from "react-toastify";
+import Service from "../../../services/Service";
 
 const CakeCard = ({
     id,
@@ -34,6 +38,36 @@ const CakeCard = ({
     const handleCart = () => {
         addToCart(id, 1)
     }
+
+    const handleWishlist = async (e) => {
+
+        e.stopPropagation();
+
+        if (!SessionManage.getTokenId()) {
+
+            toast.warning("Please login to add items to your wishlist.");
+
+            return;
+
+        }
+
+        try {
+
+            await Service.addToWishlist({ cakeId: id });
+
+            toast.success("Added to wishlist.");
+
+        }
+        catch (error) {
+
+            console.error(error);
+
+            toast.error("Unable to add item to wishlist.");
+
+        }
+
+    };
+
     return (
 
         <Card className="cake-card" onClick={handleNavigate}>
@@ -47,13 +81,14 @@ const CakeCard = ({
                     className="cake-image-2"
                 />
 
-                <IconButton className="favorite-btn"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        console.log("Wishlist");
-                    }}>
-
-                    <FavoriteBorderOutlinedIcon />
+                <IconButton className="favorite-btn" onClick={handleWishlist}>
+                    {
+                        favourite
+                            ?
+                            <FavoriteOutlinedIcon color="error" />
+                            :
+                            <FavoriteBorderOutlinedIcon />
+                    }
 
                 </IconButton>
 

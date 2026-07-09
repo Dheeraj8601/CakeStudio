@@ -50,5 +50,11 @@ namespace CakeStudio.API.Controllers
 
             return Ok(cake);
         }
+
+        [HttpPost("cart-items")]
+        public async Task<IActionResult> GetCartItems([FromBody] CartItemsRequestDto request)
+        {
+            return Ok(await _cakeService.GetCartItemsAsync(request));
+        }
     }
 }

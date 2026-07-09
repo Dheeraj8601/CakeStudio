@@ -139,7 +139,7 @@ export default function ProfileInformationCard({
 
                         <Typography className="profile-value">
 
-                            {profile.mobile}
+                            {profile.phoneNumber}
 
                         </Typography>
 
@@ -160,24 +160,6 @@ export default function ProfileInformationCard({
                         }
 
                     </Box>
-
-                </Box>
-
-                <Divider />
-
-                <Box className="profile-row">
-
-                    <Typography className="profile-label">
-
-                        Date of Birth
-
-                    </Typography>
-
-                    <Typography className="profile-value">
-
-                        {profile.dob}
-
-                    </Typography>
 
                 </Box>
 

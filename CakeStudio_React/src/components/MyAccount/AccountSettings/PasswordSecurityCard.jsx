@@ -92,7 +92,7 @@ export default function PasswordSecurityCard({
 
                         <Typography className="security-note">
 
-                            Last changed on 12 May 2024
+                            Click "Change Password" to update your password.
 
                         </Typography>
 

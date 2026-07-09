@@ -9,7 +9,7 @@ namespace CakeStudio.Infrastructure.Services
 {
     public static class EmailTemplateService
     {
-        public static string PaymentSuccessTemplate(string customerName,int orderId,decimal amount,string paymentId,string paymentMethod,string paymentDate)
+        public static string PaymentSuccessTemplate(string customerName, int orderId, decimal amount, string paymentId, string paymentMethod, string paymentDate)
         {
             return $@"
 <!DOCTYPE html>
@@ -323,7 +323,7 @@ body {{
         }
 
 
-        public static string WelcomeTemplate(string customerName,string email,string phoneNumber)
+        public static string WelcomeTemplate(string customerName, string email, string phoneNumber)
         {
             return $@"
 <!DOCTYPE html>
@@ -678,6 +678,132 @@ body {{
 </div>
 
 </body>
+</html>";
+        }
+
+        public static string ContactUsTemplate(
+    string fullName,
+    string email,
+    string phone,
+    string subject,
+    string message)
+        {
+            return $@"
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta charset='UTF-8'>
+
+<style>
+
+body{{
+    background:#f5f5f5;
+    padding:20px;
+    font-family:Arial;
+}}
+
+.container{{
+    max-width:700px;
+    margin:auto;
+    background:#fff;
+    border-radius:12px;
+    overflow:hidden;
+    border:1px solid #eee;
+}}
+
+.header{{
+    background:#ff5b84;
+    color:white;
+    text-align:center;
+    padding:25px;
+}}
+
+.header h1{{
+    margin:0;
+}}
+
+.content{{
+    padding:30px;
+}}
+
+.card{{
+    background:#fafafa;
+    border:1px solid #eee;
+    border-radius:10px;
+    padding:20px;
+    margin-top:20px;
+}}
+
+.label{{
+    font-weight:bold;
+    color:#ff5b84;
+}}
+
+.message{{
+    margin-top:15px;
+    white-space:pre-wrap;
+    line-height:1.7;
+}}
+
+.footer{{
+    text-align:center;
+    color:#888;
+    padding:20px;
+    font-size:13px;
+}}
+
+</style>
+
+</head>
+
+<body>
+
+<div class='container'>
+
+<div class='header'>
+
+<h1>📩 New Contact Message</h1>
+
+</div>
+
+<div class='content'>
+
+<p>
+A customer has submitted the Contact Us form.
+</p>
+
+<div class='card'>
+
+<p><span class='label'>Name :</span> {fullName}</p>
+
+<p><span class='label'>Email :</span> {email}</p>
+
+<p><span class='label'>Phone :</span> {phone}</p>
+
+<p><span class='label'>Subject :</span> {subject}</p>
+
+<p class='label'>Message</p>
+
+<div class='message'>
+{message}
+</div>
+
+</div>
+
+</div>
+
+<div class='footer'>
+
+CakeStudio Contact Form
+
+</div>
+
+</div>
+
+</body>
+
 </html>";
         }
     }

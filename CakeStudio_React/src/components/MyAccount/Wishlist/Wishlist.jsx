@@ -1,45 +1,60 @@
 import {
-    Box,
-    Typography
+    Box
 } from "@mui/material";
 
-import { useState } from "react";
-
-import MyAccountLayout from "../MyAccountLayout";
+import { useEffect, useState } from "react";
 
 import WishlistHeader from "./WishlistHeader";
 import WishlistList from "./WishlistList";
 
 import "./Wishlist.css";
 
+import Service from "../../../services/Service";
+
 export default function Wishlist() {
 
-    const [wishlist] = useState([
+    const [wishlist, setWishlist] = useState([]);
 
-        {
-            id: 1,
-            name: "Chocolate Truffle Cake",
-            image: "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcSX3U6ZS-w7oeuOSgCbBGC3eAoyqjIKTjFrBn8zx7MdHXTJyuh75vVg5fkjq60dc5XEolbs6aAD66Bj772_g0q5wIt4GtmQkZt6PMuBJm1Wu79F4pexnBAV1BlM&usqp=CAc",
-            description: "Rich chocolate sponge layered with silky chocolate truffle.",
-            weight: "500 g",
-            price: 1699,
-            rating: 4.5,
-            reviews: 128,
-            inStock: true
-        },
-        {
-            id: 2,
-            name: "Red Velvet Cake",
-            image: "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcSX3U6ZS-w7oeuOSgCbBGC3eAoyqjIKTjFrBn8zx7MdHXTJyuh75vVg5fkjq60dc5XEolbs6aAD66Bj772_g0q5wIt4GtmQkZt6PMuBJm1Wu79F4pexnBAV1BlM&usqp=CAc",
-            description: "Classic red velvet with cream cheese frosting.",
-            weight: "1 Kg",
-            price: 1499,
-            rating: 4.5,
-            reviews: 96,
-            inStock: true
+    const [page] = useState(1);
+
+    const [pageSize] = useState(20);
+
+    const [sortBy, setSortBy] = useState("recent");
+
+    const [totalItems, setTotalItems] = useState(0);
+
+    useEffect(() => {
+
+        loadWishlist();
+
+    }, [sortBy]);
+
+    const loadWishlist = async () => {
+
+        try {
+
+            const response = await Service.getWishlist({
+
+                page,
+
+                pageSize,
+
+                sortBy
+
+            });
+
+            setWishlist(response.data.data);
+
+            setTotalItems(response.data.totalRecords);
+
+        }
+        catch (error) {
+
+            console.error(error);
+
         }
 
-    ]);
+    };
 
     return (
 
@@ -47,13 +62,19 @@ export default function Wishlist() {
 
             <WishlistHeader
 
-                totalItems={wishlist.length}
+                totalItems={totalItems}
+
+                sortBy={sortBy}
+
+                onSortChange={setSortBy}
 
             />
 
             <WishlistList
 
                 wishlist={wishlist}
+
+                onReload={loadWishlist}
 
             />
 

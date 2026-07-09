@@ -43,13 +43,14 @@ const LoginForm = () => {
     try {
       const res = Service.login('Auth/login', request)
         .then(res => {
-          console.log(res,res.data.refreshToken)
-          //SessionManage.setUserId()
+          const data = res.data
+          console.log(data,"data")
           debugger
-          SessionManage.setTokenId(res.data.accessToken);
-          SessionManage.setRefreshToken(res.data.refreshToken);
-
-          navigate('/admin')
+          SessionManage.setTokenId(data.accessToken);
+          SessionManage.setRefreshToken(data.refreshToken);
+          SessionManage.setUserId(data.userId)
+          SessionManage.setUserRole(data.role)
+          navigate('/')
         })
     } catch (err) {
       console.error(err, ' : Error')

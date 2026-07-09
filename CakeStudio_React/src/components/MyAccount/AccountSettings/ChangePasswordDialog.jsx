@@ -16,7 +16,17 @@ import {
     VisibilityOff
 } from "@mui/icons-material";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+const initialPasswords = {
+
+    currentPassword: "",
+
+    newPassword: "",
+
+    confirmPassword: ""
+
+};
 
 export default function ChangePasswordDialog({
 
@@ -28,15 +38,7 @@ export default function ChangePasswordDialog({
 
 }) {
 
-    const [passwords, setPasswords] = useState({
-
-        currentPassword: "",
-
-        newPassword: "",
-
-        confirmPassword: ""
-
-    });
+    const [passwords, setPasswords] = useState(initialPasswords);
 
     const [show, setShow] = useState({
 
@@ -47,6 +49,26 @@ export default function ChangePasswordDialog({
         confirm: false
 
     });
+
+    useEffect(() => {
+
+        if (open) {
+
+            setPasswords(initialPasswords);
+
+            setShow({
+
+                current: false,
+
+                new: false,
+
+                confirm: false
+
+            });
+
+        }
+
+    }, [open]);
 
     const handleChange = (e) => {
 
@@ -62,13 +84,9 @@ export default function ChangePasswordDialog({
 
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
 
-        console.log(passwords);
-
-        onSave?.(passwords);
-
-        onClose();
+        await onSave?.(passwords);
 
     };
 
