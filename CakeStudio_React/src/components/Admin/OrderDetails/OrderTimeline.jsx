@@ -14,7 +14,7 @@ export default function OrderTimeline({ order }) {
 
     const steps = [
 
-        "Pending",
+        "Placed",
 
         "Confirmed",
 

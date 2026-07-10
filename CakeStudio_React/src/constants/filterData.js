@@ -8,10 +8,3 @@ export const categories = [
     { id: 7, name: "Party", count: 12 }
 ];
 
-export const ratings = [
-    { value: 5, count: 45 },
-    { value: 4, count: 28 },
-    { value: 3, count: 32 },
-    { value: 2, count: 10 },
-    { value: 1, count: 5 }
-];

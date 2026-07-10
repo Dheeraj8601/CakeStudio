@@ -1,4 +1,6 @@
-﻿using CakeStudio.Persistence.Entities;
+﻿using CakeStudio.Application.DTOs.Cake;
+using CakeStudio.Application.DTOs.Review;
+using CakeStudio.Persistence.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +11,7 @@ namespace CakeStudio.Application.Interfaces
 {
     public interface IReviewRepository
     {
-        Task<Review?> GetByUserAndCakeAsync(int userId,int cakeId);
+        Task<Review?> GetByUserOrderItemAsync(int userId,int orderItemId);
 
         Task AddAsync(Review review);
 
@@ -20,5 +22,8 @@ namespace CakeStudio.Application.Interfaces
         Task DeleteAsync(Review review);
 
         Task SaveChangesAsync();
+
+        Task<Review?> GetByOrderItemAsync(int orderItemId);
+        Task<PagedResult<AdminReviewResponseDto>> GetPagedReviewsAsync(ReviewPagedRequestDto request);
     }
 }

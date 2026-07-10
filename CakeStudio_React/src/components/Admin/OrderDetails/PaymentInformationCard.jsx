@@ -21,19 +21,19 @@ export default function PaymentInformationCard({ order }) {
 
         {
             label: "Payment Method",
-            value: order.paymentMethod,
+            value: order.paymentMethod.toUpperCase(),
             icon: <CreditCardOutlinedIcon />
         },
 
         {
             label: "Transaction ID",
-            value: order.transactionId,
+            value: '-',
             icon: <ReceiptOutlinedIcon />
         },
 
         {
             label: "Payment Date",
-            value: order.paymentDate,
+            value: '-',
             icon: <CalendarTodayOutlinedIcon />
         },
 

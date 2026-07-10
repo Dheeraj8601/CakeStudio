@@ -54,6 +54,18 @@
 
 }
 
+.reply-message-card2{
+
+    background:#5bac6b;
+
+    border-left:4px solid #068315;
+
+    border-radius:12px;
+
+    padding:16px;
+
+}
+
 .reply-label{
 
     font-weight:700 !important;

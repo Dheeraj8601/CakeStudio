@@ -2,10 +2,13 @@ import { useState } from "react";
 
 import {
     Box,
+    Button,
     Divider,
     Rating,
     Typography
 } from "@mui/material";
+
+import ReviewsDialog from "./ReviewsDialog";
 
 import ProductSpecifications from "./ProductSpecifications";
 import QuantitySelector from "./QuantitySelector";
@@ -13,9 +16,11 @@ import ProductActions from "./ProductActions";
 
 import "./ProductInfo.css";
 
-const ProductInfo = ({ product }) => {
+export default function ProductInfo({ product }) {
 
     const [quantity, setQuantity] = useState(1);
+
+    const [openReviews, setOpenReviews] = useState(false);
 
     return (
 
@@ -37,9 +42,16 @@ const ProductInfo = ({ product }) => {
                     readOnly
                 />
 
-                <Typography className="review-count">
+                <Button
+                    size="small"
+                    onClick={() => setOpenReviews(true)}
+                    sx={{
+                        textTransform: "none",
+                        ml: 1
+                    }}
+                >
                     ({product.reviewCount} Reviews)
-                </Typography>
+                </Button>
 
             </Box>
 
@@ -69,10 +81,14 @@ const ProductInfo = ({ product }) => {
                 quantity={quantity}
             />
 
+            <ReviewsDialog
+                open={openReviews}
+                onClose={() => setOpenReviews(false)}
+                cakeId={product.id}
+            />
+
         </Box>
 
     );
 
-};
-
-export default ProductInfo;
+}

@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import Service from "../../../../services/Service";
-import { Box,Typography,Grid } from "@mui/material";
+import { Box, Typography, Grid } from "@mui/material";
 import OrderHeaderCard from "./OrderHeaderCard";
 import OrderedItemsCard from "./OrderedItemsCard";
 import ShippingAddressCard from "./ShippingAddressCard"
-import  PaymentDetailsCard from "./PaymentDetailsCard"
+import PaymentDetailsCard from "./PaymentDetailsCard"
 import AccountSupportCard from "../../AccountSupportCard";
 import dayjs from "dayjs";
+import OrderTimeline from "../../../Admin/OrderDetails/OrderTimeline"
+import ReviewSection from "./ReviewSection";
 export default function OrderDetails(props) {
 
     const [order, setOrder] = useState(null);
@@ -23,7 +25,7 @@ export default function OrderDetails(props) {
 
             const response =
                 await Service.getOrderDetails(props.id);
-
+console.log(response.data,"44")
             setOrder(response.data);
 
         }
@@ -47,7 +49,7 @@ export default function OrderDetails(props) {
 
             <Typography className="page-title">
 
-                 Order #{order.orderId}
+                Order #{order.orderId}
 
             </Typography>
 
@@ -73,6 +75,8 @@ export default function OrderDetails(props) {
 
             */}
 
+            <OrderTimeline order={order} />
+
             <Grid
                 container
                 spacing={3}
@@ -93,7 +97,21 @@ export default function OrderDetails(props) {
                         order={order}
                     />
 
+
+
                 </Grid>
+
+                {
+                    order.orderStatus === "Delivered" &&
+
+                    <Box mt={4}>
+
+                        <ReviewSection
+                            items={order.items}
+                        />
+
+                    </Box>
+                }
 
             </Grid>
 

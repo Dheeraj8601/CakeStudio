@@ -25,9 +25,25 @@ public partial class Review
 
     public DateTime? UpdatedAt { get; set; }
 
+    public int OrderItemId { get; set; }
+
+    [StringLength(1000)]
+    public string? AdminReply { get; set; }
+
+    public DateTime? RepliedAt { get; set; }
+
+    [StringLength(20)]
+    public string Status { get; set; } = null!;
+
     [ForeignKey("CakeId")]
+   
     public virtual Cake Cake { get; set; } = null!;
 
+    [ForeignKey("OrderItemId")]
+    
+    public virtual OrderItem OrderItem { get; set; } = null!;
+
     [ForeignKey("UserId")]
+    
     public virtual User User { get; set; } = null!;
 }

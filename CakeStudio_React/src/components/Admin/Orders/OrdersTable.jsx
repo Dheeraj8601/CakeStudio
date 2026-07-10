@@ -23,7 +23,8 @@ export default function OrdersTable({
 
     setPage,
 
-    setRowsPerPage
+    setRowsPerPage,
+    onReload
 
 }) {
 
@@ -98,6 +99,7 @@ export default function OrdersTable({
                                         key={order.id}
 
                                         order={order}
+                                        onReload={onReload}
 
                                     />
 

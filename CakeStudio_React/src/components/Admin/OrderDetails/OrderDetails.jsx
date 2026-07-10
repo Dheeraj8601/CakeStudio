@@ -17,6 +17,7 @@ import UpdateOrderStatus from "./UpdateOrderStatus";
 
 import "./OrderDetails.css";
 import OrderNotesCard from "./OrderNotesCard";
+import Service from "../../../services/Service"
 
 export default function OrderDetails(props) {
 
@@ -24,69 +25,29 @@ export default function OrderDetails(props) {
 
     const [order, setOrder] = useState(null);
 
+    const loadOrder = async () => {
+
+        try {
+
+            const response =
+                await Service.getOrderDetails(orderId);
+            console.log("19-5 orderdata", response.data)
+            setOrder(response.data);
+
+        }
+        catch (error) {
+
+            console.error(error);
+
+        }
+
+    };
+
     useEffect(() => {
 
-        // Replace with API call later
+        loadOrder();
 
-        setOrder({
-
-            orderId: props.id,
-
-            orderDate: "30 Jun 2026",
-
-            estimatedDelivery: "02 Jul 2026",
-
-            totalAmount: 2198,
-
-            paymentMethod: "Credit Card",
-
-            paymentStatus: "Paid",
-
-            transactionId: "txn_93JD83KDK",
-
-            paymentDate: "30 Jun 2026",
-
-            customerName: "Rahul Sharma",
-
-            email: "rahul@gmail.com",
-
-            mobile: "9876543210",
-
-            address: "123 Sweet Street",
-
-            landmark: "Near City Mall",
-
-            city: "Bangalore",
-
-            state: "Karnataka",
-
-            pincode: "560001",
-
-            orderStatus: "Delivered",
-
-            items: [
-
-                {
-                    id: 1,
-                    name: "Chocolate Truffle Cake",
-                    quantity: 1,
-                    price: 899,
-                    image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=200"
-                },
-
-                {
-                    id: 2,
-                    name: "Red Velvet Cake",
-                    quantity: 1,
-                    price: 1299,
-                    image: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?w=200"
-                }
-
-            ]
-
-        });
-
-    }, [props.id]);
+    }, [orderId]);
 
     if (!order) {
 
@@ -142,7 +103,7 @@ export default function OrderDetails(props) {
 
                     <ShippingAddressCard
 
-                        order={order}
+                        order={order.shippingAddress}
 
                     />
 
@@ -173,15 +134,7 @@ export default function OrderDetails(props) {
                     <UpdateOrderStatus
 
                         order={order}
-
-                    />
-
-                </Grid>
-                <Grid size={12}>
-
-                    <OrderNotesCard
-
-                        order={order}
+                        onReload={loadOrder}
 
                     />
 

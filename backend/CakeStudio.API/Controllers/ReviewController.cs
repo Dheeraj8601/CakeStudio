@@ -52,5 +52,38 @@ namespace CakeStudio.API.Controllers
                 await _service
                     .GetCakeReviewsAsync(cakeId));
         }
+
+        //[Authorize(Roles = "Customer")]
+        [HttpGet("order-item/{orderItemId}")]
+        public async Task<IActionResult> GetByOrderItem(int orderItemId)
+        {
+            var review =
+                await _service.GetByOrderItemAsync(orderItemId);
+
+            if (review == null)
+                return NoContent();
+
+            return Ok(review);
+        }
+
+        //[Authorize(Roles = "Admin")]
+        [HttpGet("admin")]
+        public async Task<IActionResult> GetAllReviews([FromQuery] ReviewPagedRequestDto request)
+        {
+            return Ok(
+                await _service.GetPagedReviewsAsync(request));
+        }
+
+        //[Authorize(Roles = "Admin")]
+        [HttpPost("reply")]
+        public async Task<IActionResult> Reply( ReplyReviewRequestDto request)
+        {
+            await _service.ReplyAsync(request);
+
+            return Ok(new
+            {
+                Message = "Reply sent successfully."
+            });
+        }
     }
 }

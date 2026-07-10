@@ -1,5 +1,6 @@
 ﻿using CakeStudio.API.DbContexts.models;
 using CakeStudio.Application.DTOs.Cake;
+using CakeStudio.Application.DTOs.Review;
 using CakeStudio.Application.Interfaces;
 using CakeStudio.Infrastructure.Services;
 using CakeStudio.Persistence.Entities;
@@ -201,6 +202,37 @@ namespace CakeStudio.Infrastructure.Repositories
             return _context.Cakes
                 .Where(x => ids.Contains(x.Id))
                 .ToListAsync();
+        }
+
+        public async Task<List<RatingFilterResponseDto>> GetRatingFiltersAsync()
+        {
+            var result = await _context.Reviews
+
+                .GroupBy(x => x.Rating)
+
+                .Select(x => new RatingFilterResponseDto
+                {
+                    Value = x.Key,
+
+                    Count = x.Count()
+                })
+
+                .ToListAsync();
+
+            var ratings = new List<RatingFilterResponseDto>();
+
+            for (int i = 5; i >= 1; i--)
+            {
+                ratings.Add(new RatingFilterResponseDto
+                {
+                    Value = i,
+
+                    Count = result
+                        .FirstOrDefault(x => x.Value == i)?.Count ?? 0
+                });
+            }
+
+            return ratings;
         }
     }
 }

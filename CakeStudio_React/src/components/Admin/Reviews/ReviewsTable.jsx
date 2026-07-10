@@ -61,11 +61,11 @@ export default function ReviewsTable({
 
                             </TableCell>
 
-                            <TableCell align="center">
+                            {/* <TableCell align="center">
 
                                 Type
 
-                            </TableCell>
+                            </TableCell> */}
 
                             <TableCell align="center">
 

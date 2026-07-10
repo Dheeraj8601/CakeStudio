@@ -12,7 +12,7 @@ import { cakes} from "./cakeData";
 export default function CakeComponent(props) {
 
     const cake = useCakeCatalog(props.categoryParams);
-
+    console.log(cake,"111")
     return (
 
         <Box sx={{ px: 4, py: 3 }}>

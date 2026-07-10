@@ -2,6 +2,7 @@
 using CakeStudio.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Stripe;
 
 namespace CakeStudio.API.Controllers
 {
@@ -55,6 +56,13 @@ namespace CakeStudio.API.Controllers
         public async Task<IActionResult> GetCartItems([FromBody] CartItemsRequestDto request)
         {
             return Ok(await _cakeService.GetCartItemsAsync(request));
+        }
+
+        [HttpGet("rating-filters")]
+        public async Task<IActionResult> GetRatingFilters()
+        {
+            return Ok(
+                await _cakeService.GetRatingFiltersAsync());
         }
     }
 }

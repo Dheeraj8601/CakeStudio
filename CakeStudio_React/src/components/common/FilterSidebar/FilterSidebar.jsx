@@ -5,9 +5,7 @@ import CategoryFilter from "./CategoryFilter";
 import PriceFilter from "./PriceFilter";
 import RatingFilter from "./RatingFilter";
 
-import {
-    ratings
-} from "../../../constants/filterData";
+
 
 import "./FilterSidebar.css";
 import { useEffect, useState } from "react";
@@ -27,12 +25,29 @@ const FilterSidebar = ({
     onClear
 
 }) => {
-
+    const [ratings, setRatings] = useState([]);
     const [categories, setCategories] = useState([]);
     useEffect(() => {
         loadCategories();
+        loadRatings();
     }, []);
+    const loadRatings = async () => {
 
+        try {
+
+            const res =
+                await Service.getRatingFilters();
+
+            setRatings(res.data);
+
+        }
+        catch (err) {
+
+            console.error(err);
+
+        }
+
+    };
     const loadCategories = async () => {
 
         try {

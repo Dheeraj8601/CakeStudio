@@ -73,44 +73,6 @@ export default function ReviewsFilters({
 
                 size="small"
 
-                value={type}
-
-                onChange={(e)=>
-
-                    setType(e.target.value)
-
-                }
-
-                className="review-filter"
-
-            >
-
-                <MenuItem value="All">
-
-                    All Types
-
-                </MenuItem>
-
-                <MenuItem value="Review">
-
-                    Review
-
-                </MenuItem>
-
-                <MenuItem value="Complaint">
-
-                    Complaint
-
-                </MenuItem>
-
-            </TextField>
-
-            <TextField
-
-                select
-
-                size="small"
-
                 value={status}
 
                 onChange={(e)=>

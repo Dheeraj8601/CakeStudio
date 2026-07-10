@@ -25,4 +25,6 @@ public partial class OrderItem
 
     [ForeignKey("OrderId")]
     public virtual Order Order { get; set; } = null!;
+    [InverseProperty("OrderItem")]
+    public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
 }
