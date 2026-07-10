@@ -1,6 +1,8 @@
-﻿using CakeStudio.Application.DTOs.Address;
+﻿using CakeStudio.Application.Common.Exceptions;
+using CakeStudio.Application.DTOs.Address;
 using CakeStudio.Application.Interfaces;
 using CakeStudio.Persistence.Entities;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,21 +41,26 @@ namespace CakeStudio.Infrastructure.Services
             }
 
             await _repository.AddAsync(
-                new Address
-                {
-                    UserId = currentUser.UserId,
-                    AddressLine1 = request.AddressLine1,
-                    AddressLine2 = request.AddressLine2,
-                    City = request.City,
-                    State = request.State,
-                    PostalCode = request.PostalCode,
-                    Country = request.Country,
-                     IsDefault = request.IsDefault
-                });
+                            new Address
+                            {
+                                UserId = currentUser.UserId,
+                                FullName = request.FullName,
+                                Mobile = request.Mobile,
+                                Email = request.Email,
+                                AddressLine1 = request.AddressLine1,
+                                AddressLine2 = request.AddressLine2,
+                                City = request.City,
+                                State = request.State,
+                                PostalCode = request.PostalCode,
+                                Country = request.Country,
+                                IsDefault = request.IsDefault
+                            });
         }
 
         public async Task DeleteAsync(int addressId)
         {
+            
+
             var currentUser =
                 _userContext.GetCurrentUser();
 
@@ -88,7 +95,10 @@ namespace CakeStudio.Infrastructure.Services
                     State = x.State,
                     PostalCode = x.PostalCode,
                     Country = x.Country,
-                    IsDefault = x.IsDefault
+                    IsDefault = x.IsDefault,
+                    FullName = x.FullName,
+                    Mobile = x.Mobile,
+                    Email = x.Email
                 }).ToList();
         }
 
@@ -145,12 +155,24 @@ namespace CakeStudio.Infrastructure.Services
                 }
             }
 
+            address.FullName = request.FullName;
+
+            address.Mobile = request.Mobile;
+
+            address.Email = request.Email;
+
             address.AddressLine1 = request.AddressLine1;
+
             address.AddressLine2 = request.AddressLine2;
+
             address.City = request.City;
+
             address.State = request.State;
+
             address.PostalCode = request.PostalCode;
+
             address.Country = request.Country;
+
             address.IsDefault = request.IsDefault;
 
             await _repository.SaveChangesAsync();

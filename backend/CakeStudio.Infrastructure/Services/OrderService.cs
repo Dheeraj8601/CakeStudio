@@ -2,10 +2,12 @@
 using CakeStudio.Application.Common.Exceptions;
 using CakeStudio.Application.DTOs.Address;
 using CakeStudio.Application.DTOs.Cake;
+using CakeStudio.Application.DTOs.Email;
 using CakeStudio.Application.DTOs.Order;
 using CakeStudio.Application.Interfaces;
 using CakeStudio.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +24,9 @@ namespace CakeStudio.Infrastructure.Services
         private readonly IOrderRepository _orderRepository;
         private readonly IPaymentProcessorFactory _paymentProcessorFactory;
         private readonly IFileUpload _fileUpload;
-        public OrderService(CakeStudioDbContext context, IUserContext userContext, ICartRepository cartRepository, IOrderRepository orderRepo, IPaymentProcessorFactory paymentFactory, IFileUpload fileUpload)
+        private readonly IEmailService _emailService;
+        private readonly IConfiguration _configuration;
+        public OrderService(CakeStudioDbContext context, IUserContext userContext, ICartRepository cartRepository, IOrderRepository orderRepo, IPaymentProcessorFactory paymentFactory, IFileUpload fileUpload, IEmailService emailService,IConfiguration config)
         {
             _context = context;
             _userContext = userContext;
@@ -30,25 +34,23 @@ namespace CakeStudio.Infrastructure.Services
             _orderRepository = orderRepo;
             _paymentProcessorFactory = paymentFactory;
             _fileUpload = fileUpload;
+            _emailService = emailService;
+            _configuration = config;
         }
 
-        public async Task<OrderResponseDto> CheckoutAsync(
-    CreateOrderRequestDto request)
+        public async Task<OrderResponseDto> CheckoutAsync(CreateOrderRequestDto request)
         {
-            var currentUser =
-                _userContext.GetCurrentUser();
+            var currentUser = _userContext.GetCurrentUser();
 
             Order order;
 
             if (currentUser.IsAuthenticated)
             {
-                order =
-                    await CreateLoggedInOrder(request, currentUser.UserId);
+                order = await CreateLoggedInOrder(request, currentUser.UserId);
             }
             else
             {
-                order =
-                    await CreateGuestOrder(request);
+                order = await CreateGuestOrder(request);
             }
 
             var paymentProcessor =
@@ -59,23 +61,22 @@ namespace CakeStudio.Infrastructure.Services
 
             await _orderRepository.AddOrderAsync(order);
 
+            await SendOrderConfirmationEmailAsync(order);
+
             return MapOrder(order);
         }
 
-        private async Task<Order> CreateLoggedInOrder(
-    CreateOrderRequestDto request,
-    int userId)
+        private async Task<Order> CreateLoggedInOrder(CreateOrderRequestDto request,int userId)
         {
-            var cart =
-                await _cartRepository.GetByUserIdAsync(userId);
+            var cart = await _cartRepository.GetByUserIdAsync(userId);
 
             if (cart == null || !cart.CartItems.Any())
                 throw new Exception("Cart is empty.");
 
-            var address =
-                await _context.Addresses.FirstOrDefaultAsync(x =>
-                    x.Id == request.AddressId &&
-                    x.UserId == userId);
+            var address = await _context.Addresses.FirstOrDefaultAsync(x =>
+                                                                             x.Id == request.AddressId &&
+                                                                             x.UserId == userId
+                                                                       );
 
             if (address == null)
                 throw new Exception("Invalid address.");
@@ -109,8 +110,7 @@ namespace CakeStudio.Infrastructure.Services
             return order;
         }
 
-        private async Task<Order> CreateGuestOrder(
-    CreateOrderRequestDto request)
+        private async Task<Order> CreateGuestOrder(CreateOrderRequestDto request)
         {
             if (request.GuestAddress == null)
                 throw new Exception("Guest address required.");
@@ -122,6 +122,12 @@ namespace CakeStudio.Infrastructure.Services
             {
                 UserId = null,
 
+                FullName = request.GuestAddress.FullName,
+
+                Mobile = request.GuestAddress.Mobile,
+
+                Email = request.GuestAddress.Email,
+
                 AddressLine1 = request.GuestAddress.AddressLine1,
 
                 AddressLine2 = request.GuestAddress.AddressLine2,
@@ -132,9 +138,7 @@ namespace CakeStudio.Infrastructure.Services
 
                 PostalCode = request.GuestAddress.PostalCode,
 
-                Country = request.GuestAddress.Country,
-
-                IsDefault = false
+                Country = request.GuestAddress.Country
             };
 
             _context.Addresses.Add(address);
@@ -409,6 +413,7 @@ namespace CakeStudio.Infrastructure.Services
                     "Order not found.");
             }
 
+
             var validStatuses = new[]
             {
                 "Placed",
@@ -437,6 +442,7 @@ namespace CakeStudio.Infrastructure.Services
             }
 
             await _orderRepository.SaveChangesAsync();
+            await SendOrderStatusUpdateEmailAsync(order);
         }
 
         public async Task<PagedResult<AdminOrderResponseDto>> GetPagedOrdersAsync(OrderPagedRequestDto request)
@@ -480,6 +486,131 @@ namespace CakeStudio.Infrastructure.Services
                     })
                     .ToList()
             };
+        }
+
+        private async Task SendOrderConfirmationEmailAsync(Order order)
+        {
+            var address =
+                await _context.Addresses
+                    .FirstAsync(x => x.Id == order.AddressId);
+
+            string? frontendBaseUrl =
+                _configuration.GetValue<string>("Frontend:BaseUrl");
+
+            if (frontendBaseUrl == null)
+            {
+                return;
+            }
+
+            var emailRequest =
+                new EmailRequestDto
+                {
+                    Subject =
+                        $"CakeStudio - Order #{order.Id} Confirmed",
+
+                    Body = EmailTemplateService.BuildOrderConfirmationEmail(
+                            order,
+                            address,
+                            frontendBaseUrl
+                            )
+                };
+
+            if (!string.IsNullOrWhiteSpace(address.Email))
+            {
+                emailRequest.To = address.Email;
+
+                if (order.UserId.HasValue)
+                {
+                    var user =
+                        await _context.Users
+                            .FirstAsync(x =>
+                                x.Id == order.UserId);
+
+                    if (!string.Equals(
+                            user.Email,
+                            address.Email,
+                            StringComparison.OrdinalIgnoreCase))
+                    {
+                        emailRequest.Cc =
+                        [
+                            user.Email
+                        ];
+                    }
+                }
+            }
+            else
+            {
+                if (order.UserId.HasValue)
+                {
+                    var user =
+                        await _context.Users
+                            .FirstAsync(x =>
+                                x.Id == order.UserId);
+
+                    emailRequest.To =
+                        user.Email;
+                }
+                else
+                {
+                    return;
+                }
+            }
+
+            await _emailService
+                .SendEmailAsync(emailRequest);
+        }
+
+        private async Task SendOrderStatusUpdateEmailAsync(Order order)
+        {
+            var address = await _context.Addresses
+                .FirstAsync(x => x.Id == order.AddressId);
+
+            var frontendBaseUrl =
+                _configuration.GetValue<string>("Frontend:BaseUrl");
+
+            var body =
+                EmailTemplateService.BuildOrderStatusUpdateEmail(
+                    order,
+                    address,
+                    frontendBaseUrl);
+
+            var emailRequest = new EmailRequestDto
+            {
+                Subject = $"CakeStudio - Order #{order.Id} Status Updated",
+
+                Body = body
+            };
+
+            if (!string.IsNullOrWhiteSpace(address.Email))
+            {
+                emailRequest.To = address.Email;
+
+                if (order.UserId.HasValue)
+                {
+                    var user = await _context.Users
+                        .FirstAsync(x => x.Id == order.UserId);
+
+                    if (!string.Equals(
+                        user.Email,
+                        address.Email,
+                        StringComparison.OrdinalIgnoreCase))
+                    {
+                        emailRequest.Cc =
+                        [
+                            user.Email
+                        ];
+                    }
+                }
+            }
+            else if (order.UserId.HasValue)
+            {
+                var user = await _context.Users
+                    .FirstAsync(x => x.Id == order.UserId);
+
+                emailRequest.To = user.Email;
+            }
+
+            await _emailService.SendEmailAsync(emailRequest);
         }
     }
 }
