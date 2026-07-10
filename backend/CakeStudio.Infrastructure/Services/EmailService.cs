@@ -39,6 +39,30 @@ namespace CakeStudio.Infrastructure.Services
             email.To.Add(
                 MailboxAddress.Parse(request.To));
 
+            if (request.Cc != null && request.Cc.Any())
+            {
+                foreach (var cc in request.Cc)
+                {
+                    if (!string.IsNullOrWhiteSpace(cc))
+                    {
+                        email.Cc.Add(
+                            MailboxAddress.Parse(cc));
+                    }
+                }
+            }
+
+            if (request.Bcc != null && request.Bcc.Any())
+            {
+                foreach (var bcc in request.Bcc)
+                {
+                    if (!string.IsNullOrWhiteSpace(bcc))
+                    {
+                        email.Bcc.Add(
+                            MailboxAddress.Parse(bcc));
+                    }
+                }
+            }
+
             email.Subject = request.Subject;
 
             email.Body =

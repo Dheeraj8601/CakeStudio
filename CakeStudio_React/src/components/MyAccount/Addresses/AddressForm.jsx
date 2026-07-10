@@ -36,6 +36,59 @@ export default function AddressForm({
             container
             spacing={3}
         >
+            <Grid size={{ xs: 12 }}>
+
+                <TextField
+
+                    fullWidth
+
+                    label="Full Name"
+
+                    name="fullName"
+
+                    value={address.fullName}
+
+                    onChange={handleChange}
+
+                />
+
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+
+                <TextField
+
+                    fullWidth
+
+                    label="Mobile Number"
+
+                    name="mobile"
+
+                    value={address.mobile}
+
+                    onChange={handleChange}
+
+                />
+
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+
+                <TextField
+
+                    fullWidth
+
+                    label="Email"
+
+                    name="email"
+
+                    value={address.email}
+
+                    onChange={handleChange}
+
+                />
+
+            </Grid>
 
             <Grid size={{ xs: 12 }}>
 

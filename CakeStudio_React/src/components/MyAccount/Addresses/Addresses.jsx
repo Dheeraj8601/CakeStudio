@@ -15,6 +15,7 @@ import DeleteAddressDialog from "./DeleteAddressDialog";
 import "./Addresses.css";
 
 import Service from "../../../services/Service";
+import { toast } from "react-toastify";
 
 export default function Addresses() {
 
@@ -101,6 +102,8 @@ export default function Addresses() {
 
             await Service.deleteAddress(id);
 
+            toast.success("Address deleted successfully.");
+
             setDeleteDialogOpen(false);
 
             setSelectedAddress(null);
@@ -110,7 +113,12 @@ export default function Addresses() {
         }
         catch (error) {
 
-            console.error(error);
+            console.log(error.response,"19-5");
+
+            toast.error(
+                error.response?.data?.Message ||
+                "Unable to delete address."
+            );
 
         }
 

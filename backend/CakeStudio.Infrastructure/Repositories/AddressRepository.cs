@@ -1,4 +1,5 @@
 ﻿using CakeStudio.API.DbContexts.models;
+using CakeStudio.Application.Common.Exceptions;
 using CakeStudio.Application.Interfaces;
 using CakeStudio.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -42,6 +43,11 @@ namespace CakeStudio.Infrastructure.Repositories
 
         public async Task DeleteAsync(Address address)
         {
+            if (await _context.Orders.AnyAsync(x => x.AddressId == address.Id))
+            {
+                throw new BadRequestException(
+                    "Address is associated with existing orders.");
+            }
             _context.Addresses.Remove(address);
 
             await _context.SaveChangesAsync();

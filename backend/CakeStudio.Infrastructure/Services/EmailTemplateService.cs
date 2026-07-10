@@ -1,4 +1,5 @@
-﻿using Stripe;
+﻿using CakeStudio.Persistence.Entities;
+//using Stripe;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -919,6 +920,536 @@ Made with ❤️ by CakeStudio
 </div>
 
 </div>
+
+</body>
+
+</html>";
+        }
+
+        public static string BuildOrderConfirmationEmail(Order order,Address address,string frontendBaseUrl)
+        {
+
+            var orderUrl =
+                $"{frontendBaseUrl}/orders/{order.Id}";
+
+            return $@"
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='UTF-8'/>
+</head>
+
+<body style='margin:0;padding:0;background:#fff7f9;font-family:Segoe UI,Arial,sans-serif;'>
+
+<table width='100%' cellpadding='0' cellspacing='0'>
+<tr>
+<td align='center'>
+
+<table width='650'
+       style='background:#ffffff;
+              border-radius:12px;
+              overflow:hidden;
+              border:1px solid #f5dce3;'>
+
+<tr>
+<td style='background:#ff5b84;
+           padding:24px;
+           color:white;
+           text-align:center;'>
+
+<h1 style='margin:0'>
+CakeStudio
+</h1>
+
+<p style='margin-top:10px;font-size:18px'>
+Your order has been placed successfully 🎉
+</p>
+
+</td>
+</tr>
+
+<tr>
+<td style='padding:30px;'>
+
+<p>Hello <b>{address.FullName}</b>,</p>
+
+<p>
+
+Thank you for ordering from
+<b>CakeStudio</b>.
+
+Your order has been received successfully.
+
+</p>
+
+<table width='100%'
+style='border-collapse:collapse;
+margin-top:25px;'>
+
+<tr>
+
+<td style='padding:10px;
+border:1px solid #eee;'>
+Order ID
+</td>
+
+<td style='padding:10px;
+border:1px solid #eee;'>
+#{order.Id}
+</td>
+
+</tr>
+
+<tr>
+
+<td style='padding:10px;
+border:1px solid #eee;'>
+Payment Method
+</td>
+
+<td style='padding:10px;
+border:1px solid #eee;'>
+{order.PaymentMethod}
+</td>
+
+</tr>
+
+<tr>
+
+<td style='padding:10px;
+border:1px solid #eee;'>
+Order Amount
+</td>
+
+<td style='padding:10px;
+border:1px solid #eee;'>
+₹{order.TotalAmount}
+</td>
+
+</tr>
+
+<tr>
+
+<td style='padding:10px;
+border:1px solid #eee;'>
+Order Status
+</td>
+
+<td style='padding:10px;
+border:1px solid #eee;'>
+{order.OrderStatus}
+</td>
+
+</tr>
+
+</table>
+
+<div style='text-align:center;
+margin-top:35px;'>
+
+<a href='{orderUrl}'
+style='background:#ff5b84;
+color:white;
+padding:14px 28px;
+text-decoration:none;
+border-radius:8px;
+font-weight:600;'>
+
+View Order Details
+
+</a>
+
+</div>
+
+<p style='margin-top:30px;'>
+
+From the above page you can
+
+<ul>
+<li>Track your order</li>
+<li>View ordered items</li>
+<li>Cancel your order (if eligible)</li>
+</ul>
+
+</p>
+
+<p>
+
+Thank you for choosing
+<b>CakeStudio ❤️</b>
+
+</p>
+
+</td>
+</tr>
+
+</table>
+
+</td>
+</tr>
+
+</table>
+
+</body>
+</html>";
+        }
+
+        public static string BuildOrderStatusUpdateEmail(Order order,Address address,string frontendBaseUrl)
+        {
+            var orderUrl =
+                $"{frontendBaseUrl}/orders/{order.Id}";
+
+            var updatedOn =
+                DateTime.Now.ToString("dd MMM yyyy hh:mm tt");
+
+            string statusColor = "#ff5b84";
+
+            string statusMessage;
+
+            switch (order.OrderStatus)
+            {
+                case "Delivered":
+
+                    statusColor = "#2e7d32";
+
+                    statusMessage = @"
+<div style='
+background:#e8f5e9;
+border-left:5px solid #2e7d32;
+padding:20px;
+border-radius:10px;
+margin:25px 0;'>
+
+<h2 style='margin:0;color:#2e7d32;'>
+
+🎉 Your Order Has Been Delivered!
+
+</h2>
+
+<p style='margin-top:12px;color:#444;line-height:1.8;'>
+
+We hope you loved your CakeStudio order!
+
+Thank you for letting us be part of your celebration.
+
+Your feedback means a lot to us, so don't forget to leave a review for your delicious cake.
+
+❤️ Thank you for choosing CakeStudio.
+
+</p>
+
+</div>";
+
+                    break;
+
+                case "Out for Delivery":
+
+                    statusColor = "#ef6c00";
+
+                    statusMessage = @"
+<div style='
+background:#fff8e1;
+border-left:5px solid #ef6c00;
+padding:20px;
+border-radius:10px;
+margin:25px 0;'>
+
+<h2 style='margin:0;color:#ef6c00;'>
+
+🚚 Your Cake Is On The Way!
+
+</h2>
+
+<p style='margin-top:12px;color:#444;line-height:1.8;'>
+
+Our delivery partner is on the way with your order.
+
+Please keep your phone nearby so the delivery executive can reach you if required.
+
+We hope you enjoy your CakeStudio experience!
+
+</p>
+
+</div>";
+
+                    break;
+
+                case "Cancelled":
+
+                    statusColor = "#d32f2f";
+
+                    statusMessage = @"
+<div style='
+background:#ffebee;
+border-left:5px solid #d32f2f;
+padding:20px;
+border-radius:10px;
+margin:25px 0;'>
+
+<h2 style='margin:0;color:#d32f2f;'>
+
+❌ Your Order Has Been Cancelled
+
+</h2>
+
+<p style='margin-top:12px;color:#444;line-height:1.8;'>
+
+Your order has been cancelled successfully.
+
+If this cancellation was not expected or you need any assistance,
+our support team will be happy to help.
+
+</p>
+
+</div>";
+
+                    break;
+
+                default:
+
+                    statusColor = "#ff5b84";
+
+                    statusMessage = @"
+<div style='
+background:#fff5f8;
+border-left:5px solid #ff5b84;
+padding:20px;
+border-radius:10px;
+margin:25px 0;'>
+
+<h2 style='margin:0;color:#ff5b84;'>
+
+📦 Order Status Updated
+
+</h2>
+
+<p style='margin-top:12px;color:#444;line-height:1.8;'>
+
+Your order status has been updated.
+
+You can view the latest status and complete order details by clicking the button below.
+
+</p>
+
+</div>";
+
+                    break;
+            }
+
+            return $@"
+<!DOCTYPE html>
+
+<html>
+
+<body style='margin:0;
+padding:0;
+background:#fff7f9;
+font-family:Segoe UI,Arial,sans-serif;'>
+
+<table width='100%' cellpadding='0' cellspacing='0'>
+
+<tr>
+
+<td align='center'>
+
+<table width='650'
+style='
+background:#ffffff;
+border-radius:12px;
+overflow:hidden;
+border:1px solid #f5dce3;
+box-shadow:0 8px 25px rgba(0,0,0,.06);'>
+
+<tr>
+
+<td style='
+background:#ff5b84;
+padding:28px;
+text-align:center;
+color:white;'>
+
+<h1 style='margin:0;'>
+
+CakeStudio
+
+</h1>
+
+<p style='margin-top:10px;
+font-size:18px;'>
+
+Order Status Update
+
+</p>
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style='padding:35px;'>
+
+<p style='font-size:16px;'>
+
+Hello <strong>{address.FullName}</strong>,
+
+</p>
+
+{statusMessage}
+
+<table width='100%'
+style='border-collapse:collapse;
+margin-top:30px;'>
+
+<tr>
+
+<td style='padding:12px;
+border:1px solid #eee;
+background:#fafafa;
+font-weight:600;'>
+
+Order ID
+
+</td>
+
+<td style='padding:12px;
+border:1px solid #eee;'>
+
+#{order.Id}
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style='padding:12px;
+border:1px solid #eee;
+background:#fafafa;
+font-weight:600;'>
+
+Current Status
+
+</td>
+
+<td style='
+padding:12px;
+border:1px solid #eee;
+font-weight:bold;
+color:{statusColor};'>
+
+{order.OrderStatus}
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style='padding:12px;
+border:1px solid #eee;
+background:#fafafa;
+font-weight:600;'>
+
+Payment Status
+
+</td>
+
+<td style='padding:12px;
+border:1px solid #eee;'>
+
+{order.PaymentStatus}
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style='padding:12px;
+border:1px solid #eee;
+background:#fafafa;
+font-weight:600;'>
+
+Updated On
+
+</td>
+
+<td style='padding:12px;
+border:1px solid #eee;'>
+
+{updatedOn}
+
+</td>
+
+</tr>
+
+</table>
+
+<div style='text-align:center;
+margin-top:40px;'>
+
+<a href='{orderUrl}'
+style='
+display:inline-block;
+background:#ff5b84;
+color:#fff;
+text-decoration:none;
+padding:15px 30px;
+border-radius:8px;
+font-size:16px;
+font-weight:600;'>
+
+View Order Details
+
+</a>
+
+</div>
+
+<p style='margin-top:35px;
+color:#555;
+line-height:1.8;'>
+
+Using the above page you can:
+
+</p>
+
+<ul style='color:#555;
+line-height:2;'>
+
+<li>Track your order progress</li>
+
+<li>View ordered items</li>
+
+<li>Cancel your order (if applicable)</li>
+
+</ul>
+
+<hr style='margin:35px 0;
+border:none;
+border-top:1px solid #eee;'>
+
+<p style='text-align:center;
+color:#777;
+font-size:14px;'>
+
+Thank you for choosing
+
+<strong style='color:#ff5b84;'>CakeStudio ❤️</strong>
+
+</p>
+
+</td>
+
+</tr>
+
+</table>
+
+</td>
+
+</tr>
+
+</table>
 
 </body>
 

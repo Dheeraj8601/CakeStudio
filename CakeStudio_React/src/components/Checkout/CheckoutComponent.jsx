@@ -80,15 +80,27 @@ export default function CheckoutComponent() {
                 };
 
             } else {
-
                 order = {
                     guestAddress: {
+
+                        fullName: shipping.fullName,
+
+                        mobile: shipping.mobile,
+
+                        email: shipping.email,
+
                         addressLine1: shipping.address,
+
                         addressLine2: shipping.landmark,
+
                         city: shipping.city,
+
                         state: shipping.state,
+
                         postalCode: shipping.pincode,
+
                         country: "India"
+
                     },
                     items: cart.map(x => ({
                         cakeId: x.productId,

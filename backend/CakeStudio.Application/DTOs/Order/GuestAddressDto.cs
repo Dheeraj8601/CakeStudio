@@ -8,6 +8,12 @@ namespace CakeStudio.Application.DTOs.Order
 {
     public class GuestAddressDto
     {
+        public string FullName { get; set; } = string.Empty;
+
+        public string Mobile { get; set; } = string.Empty;
+
+        public string? Email { get; set; }
+
         public string AddressLine1 { get; set; } = string.Empty;
 
         public string? AddressLine2 { get; set; }

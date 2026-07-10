@@ -35,6 +35,14 @@ namespace CakeStudio.Persistence.Entities
         public bool IsDefault { get; set; }
 
         public DateTime CreatedAt { get; set; }
+        [StringLength(150)]
+        public string FullName { get; set; } = null!;
+
+        [StringLength(20)]
+        public string Mobile { get; set; } = null!;
+
+        [StringLength(150)]
+        public string? Email { get; set; }
 
         [ForeignKey("UserId")]
         public virtual User User { get; set; } = null!;

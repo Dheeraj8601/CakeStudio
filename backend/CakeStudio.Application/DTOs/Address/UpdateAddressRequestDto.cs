@@ -23,5 +23,11 @@ namespace CakeStudio.Application.DTOs.Address
         public string Country { get; set; } = string.Empty;
 
         public bool IsDefault { get; set; }
+
+        public string? FullName { get; set; }
+
+        public string? Mobile { get; set; }
+
+        public string? Email { get; set; }
     }
 }

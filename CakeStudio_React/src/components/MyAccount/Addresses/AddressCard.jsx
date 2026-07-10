@@ -66,6 +66,38 @@ export default function AddressCard({
 
                 <Box className="address-info">
 
+                    <Box className="address-user">
+
+                        <Box>
+
+                            <Typography className="customer-name">
+
+                                {address.fullName}
+
+                            </Typography>
+
+                            <Typography className="customer-mobile">
+
+                                {address.mobile}
+
+                            </Typography>
+
+                            {
+
+                                address.email &&
+
+                                <Typography className="customer-email">
+
+                                    {address.email}
+
+                                </Typography>
+
+                            }
+
+                        </Box>
+
+                    </Box>
+
                     <Box className="address-row">
 
                         <LocationOnOutlinedIcon />
