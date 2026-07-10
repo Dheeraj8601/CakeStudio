@@ -1,4 +1,5 @@
 ﻿using CakeStudio.Application.DTOs.Cake;
+using CakeStudio.Application.DTOs.Review;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,5 +19,6 @@ namespace CakeStudio.Application.Interfaces
         Task<PagedResult<CakeCatalogResponseDto>> GetCatalogAsync(CakeCatalogFilterDto request);
         Task<CakeCatalogResponseDto?> GetCatalogCakeByIdAsync(int id);
         Task<List<CartItemResponseDto>> GetCartItemsAsync(CartItemsRequestDto request);
+        Task<List<RatingFilterResponseDto>> GetRatingFiltersAsync();
     }
 }

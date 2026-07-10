@@ -323,16 +323,17 @@ namespace CakeStudio.Infrastructure.Services
                                             Country = order.Address.Country
                                         },
                 Items = order.OrderItems
-                    .Select(x => new OrderItemDto
-                    {
-                        CakeId = x.CakeId,
-                        CakeName = x.Cake.Name,
-                        Quantity = x.Quantity,
-                        UnitPrice = x.UnitPrice,
-                        TotalPrice = x.UnitPrice * x.Quantity,
-                        ImageUrl = _fileUpload.GetImageUrl(x.Cake.ImageUrl)
-                    })
-                    .ToList()
+    .Select(x => new OrderItemDto
+    {
+        OrderItemId = x.Id,
+        CakeId = x.CakeId,
+        CakeName = x.Cake.Name,
+        ImageUrl = _fileUpload.GetImageUrl(x.Cake.ImageUrl),
+        Quantity = x.Quantity,
+        UnitPrice = x.UnitPrice,
+        TotalPrice = x.UnitPrice * x.Quantity
+    })
+    .ToList()
             };
         }
 
@@ -412,8 +413,8 @@ namespace CakeStudio.Infrastructure.Services
             {
                 "Placed",
                 "Confirmed",
-                "Preparing",
-                "OutForDelivery",
+                "Processing",
+                "Out for Delivery",
                 "Delivered",
                 "Cancelled"
             };

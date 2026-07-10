@@ -1,18 +1,27 @@
 import {
     Box,
+    Button,
     Dialog,
     DialogActions,
     DialogContent,
     DialogTitle,
-    Button,
     Divider,
     Grid,
+    Paper,
     Typography
 } from "@mui/material";
 
+import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
+import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
+import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
+import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
+import ChatBubbleOutlineOutlinedIcon from "@mui/icons-material/ChatBubbleOutlineOutlined";
+import ReplyOutlinedIcon from "@mui/icons-material/ReplyOutlined";
+
+import dayjs from "dayjs";
+
 import RatingStars from "./RatingStars";
 import ReviewStatusChip from "./ReviewStatusChip";
-import ReviewTypeChip from "./ReviewTypeChip";
 
 import "./ReviewDetailsDialog.css";
 
@@ -31,18 +40,13 @@ export default function ReviewDetailsDialog({
     return (
 
         <Dialog
-
             open={open}
-
             onClose={onClose}
-
             fullWidth
-
             maxWidth="md"
-
         >
 
-            <DialogTitle>
+            <DialogTitle className="review-dialog-title">
 
                 Review Details
 
@@ -51,136 +55,133 @@ export default function ReviewDetailsDialog({
             <DialogContent>
 
                 <Grid
-
                     container
-
                     spacing={3}
-
                 >
 
                     <Grid size={{ xs: 12, md: 6 }}>
 
-                        <Box className="review-info">
+                        <Paper className="review-card">
 
-                            <Typography className="info-label">
+                            <Box className="review-row">
 
-                                Customer
+                                <PersonOutlineOutlinedIcon />
 
-                            </Typography>
+                                <Box>
 
-                            <Typography className="info-value">
+                                    <Typography className="info-label">
 
-                                {review.customer}
+                                        Customer
 
-                            </Typography>
+                                    </Typography>
 
-                        </Box>
+                                    <Typography className="info-value">
 
-                    </Grid>
+                                        {review.customerName}
 
-                    <Grid size={{ xs: 12, md: 6 }}>
+                                    </Typography>
 
-                        <Box className="review-info">
+                                </Box>
 
-                            <Typography className="info-label">
+                            </Box>
 
-                                Email
-
-                            </Typography>
-
-                            <Typography className="info-value">
-
-                                {review.email}
-
-                            </Typography>
-
-                        </Box>
+                        </Paper>
 
                     </Grid>
 
                     <Grid size={{ xs: 12, md: 6 }}>
 
-                        <Box className="review-info">
+                        <Paper className="review-card">
 
-                            <Typography className="info-label">
+                            <Box className="review-row">
 
-                                Mobile
+                                <EmailOutlinedIcon />
 
-                            </Typography>
+                                <Box>
 
-                            <Typography className="info-value">
+                                    <Typography className="info-label">
 
-                                {review.mobile}
+                                        Email
 
-                            </Typography>
+                                    </Typography>
 
-                        </Box>
+                                    <Typography className="info-value">
 
-                    </Grid>
+                                        {review.email}
 
-                    <Grid size={{ xs: 12, md: 6 }}>
+                                    </Typography>
 
-                        <Box className="review-info">
+                                </Box>
 
-                            <Typography className="info-label">
+                            </Box>
 
-                                Order ID
-
-                            </Typography>
-
-                            <Typography className="info-value">
-
-                                {review.orderId}
-
-                            </Typography>
-
-                        </Box>
+                        </Paper>
 
                     </Grid>
 
                     <Grid size={{ xs: 12, md: 6 }}>
 
-                        <Box className="review-info">
+                        <Paper className="review-card">
 
-                            <Typography className="info-label">
+                            <Box className="review-row">
 
-                                Type
+                                <ReceiptLongOutlinedIcon />
 
-                            </Typography>
+                                <Box>
 
-                            <ReviewTypeChip
+                                    <Typography className="info-label">
 
-                                type={review.type}
+                                        Order ID
 
-                            />
+                                    </Typography>
 
-                        </Box>
+                                    <Typography className="info-value">
 
-                    </Grid>
+                                        #{review.orderId}
 
-                    <Grid size={{ xs: 12, md: 6 }}>
+                                    </Typography>
 
-                        <Box className="review-info">
+                                </Box>
 
-                            <Typography className="info-label">
+                            </Box>
 
-                                Status
-
-                            </Typography>
-
-                            <ReviewStatusChip
-
-                                status={review.status}
-
-                            />
-
-                        </Box>
+                        </Paper>
 
                     </Grid>
 
                     <Grid size={{ xs: 12, md: 6 }}>
 
-                        <Box className="review-info">
+                        <Paper className="review-card">
+
+                            <Box className="review-row">
+
+                                <CalendarTodayOutlinedIcon />
+
+                                <Box>
+
+                                    <Typography className="info-label">
+
+                                        Submitted On
+
+                                    </Typography>
+
+                                    <Typography className="info-value">
+
+                                        {dayjs(review.createdAt).format("DD MMM YYYY")}
+
+                                    </Typography>
+
+                                </Box>
+
+                            </Box>
+
+                        </Paper>
+
+                    </Grid>
+
+                    <Grid size={{ xs: 12, md: 6 }}>
+
+                        <Paper className="review-card">
 
                             <Typography className="info-label">
 
@@ -189,54 +190,99 @@ export default function ReviewDetailsDialog({
                             </Typography>
 
                             <RatingStars
-
                                 rating={review.rating}
-
                             />
 
-                        </Box>
+                        </Paper>
 
                     </Grid>
 
                     <Grid size={{ xs: 12, md: 6 }}>
 
-                        <Box className="review-info">
+                        <Paper className="review-card">
 
                             <Typography className="info-label">
 
-                                Submitted On
+                                Status
 
                             </Typography>
 
-                            <Typography className="info-value">
+                            <ReviewStatusChip
+                                status={review.status}
+                            />
 
-                                {review.date}
-
-                            </Typography>
-
-                        </Box>
+                        </Paper>
 
                     </Grid>
 
                 </Grid>
 
-                <Divider sx={{ my: 3 }} />
+                <Divider className="section-divider" />
 
-                <Typography className="info-label">
+                <Box className="message-card">
 
-                    Customer Message
+                    <Box className="message-header">
 
-                </Typography>
+                        <ChatBubbleOutlineOutlinedIcon />
 
-                <Typography className="review-message-full">
+                        <Typography>
 
-                    {review.message}
+                            Customer Review
 
-                </Typography>
+                        </Typography>
+
+                    </Box>
+
+                    <Typography className="review-message-full">
+
+                        {review.comment}
+
+                    </Typography>
+
+                </Box>
+
+                {
+
+                    review.status === "Replied" &&
+
+                    <>
+
+                        <Divider className="section-divider" />
+
+                        <Box className="message-card reply-card">
+
+                            <Box className="message-header">
+
+                                <ReplyOutlinedIcon />
+
+                                <Typography>
+
+                                    Admin Reply
+
+                                </Typography>
+
+                            </Box>
+
+                            <Typography className="review-message-full">
+
+                                {review.reply}
+
+                            </Typography>
+
+                        </Box>
+
+                    </>
+
+                }
 
             </DialogContent>
 
-            <DialogActions>
+            <DialogActions
+                sx={{
+                    px: 3,
+                    pb: 3
+                }}
+            >
 
                 <Button
 

@@ -1,6 +1,7 @@
 ﻿
 
 using CakeStudio.Application.DTOs.Cake;
+using CakeStudio.Application.DTOs.Review;
 using CakeStudio.Persistence.Entities;
 
 namespace CakeStudio.Application.Interfaces
@@ -17,11 +18,11 @@ namespace CakeStudio.Application.Interfaces
 
         Task DeleteAsync(Cake cake);
         Task<PagedResult<Cake>> GetPagedCakesAsync(CakeFilterRequestDto request);
-        Task<PagedResult<Cake>> GetCatalogAsync(
-    CakeCatalogFilterDto request);
+        Task<PagedResult<Cake>> GetCatalogAsync(CakeCatalogFilterDto request);
 
         Task<Cake?> GetByIdAsyncCatalog(int id);
 
         Task<List<Cake>> GetCartItems(List<int> ids);
+        Task<List<RatingFilterResponseDto>> GetRatingFiltersAsync();
     }
 }

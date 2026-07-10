@@ -13,6 +13,7 @@ import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
 import CurrencyRupeeOutlinedIcon from "@mui/icons-material/CurrencyRupeeOutlined";
 
 import "./OrderSummaryCard.css";
+import dayjs from "dayjs";
 
 export default function OrderSummaryCard({ order }) {
 
@@ -26,7 +27,7 @@ export default function OrderSummaryCard({ order }) {
 
         {
             label: "Order Date",
-            value: order.orderDate,
+            value: dayjs(order.createdAt).format("dddd,DD MMMM YYYY,hh:mm A"),
             icon: <CalendarMonthOutlinedIcon />
         },
 

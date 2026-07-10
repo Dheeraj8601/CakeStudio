@@ -15,6 +15,7 @@ import ReviewTypeChip from "./ReviewTypeChip";
 import ReviewStatusChip from "./ReviewStatusChip";
 
 import "./ReviewRow.css";
+import dayjs from "dayjs";
 
 export default function ReviewRow({
 
@@ -36,7 +37,7 @@ export default function ReviewRow({
 
                     <Typography className="review-customer-name">
 
-                        {review.customer}
+                        {review.customerName}
 
                     </Typography>
 
@@ -56,7 +57,7 @@ export default function ReviewRow({
 
             </TableCell>
 
-            <TableCell align="center">
+            {/* <TableCell align="center">
 
                 <ReviewTypeChip
 
@@ -64,7 +65,7 @@ export default function ReviewRow({
 
                 />
 
-            </TableCell>
+            </TableCell> */}
 
             <TableCell align="center">
 
@@ -86,7 +87,7 @@ export default function ReviewRow({
 
                 <Typography className="review-message">
 
-                    {review.message}
+                    {review.comment}
 
                 </Typography>
 
@@ -104,7 +105,7 @@ export default function ReviewRow({
 
             <TableCell align="center">
 
-                {review.date}
+                {dayjs(review.createdAt).format("DD MMMM YYYY")}
 
             </TableCell>
 

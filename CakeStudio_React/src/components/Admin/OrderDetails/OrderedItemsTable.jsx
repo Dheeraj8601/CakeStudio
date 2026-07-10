@@ -83,7 +83,7 @@ export default function OrderedItemsTable({ items }) {
 
                                             <Avatar
 
-                                                src={item.image}
+                                                src={item.imageUrl}
 
                                                 variant="rounded"
 
@@ -97,7 +97,7 @@ export default function OrderedItemsTable({ items }) {
 
                                             <Typography className="ordered-item-name">
 
-                                                {item.name}
+                                                {item.cakeName}
 
                                             </Typography>
 
@@ -111,7 +111,7 @@ export default function OrderedItemsTable({ items }) {
 
                                         <TableCell align="right">
 
-                                            ₹{item.price}
+                                            ₹{item.unitPrice}
 
                                         </TableCell>
 
@@ -119,7 +119,7 @@ export default function OrderedItemsTable({ items }) {
 
                                             <Typography className="ordered-item-total">
 
-                                                ₹{item.price * item.quantity}
+                                                ₹{item.unitPrice * item.quantity}
 
                                             </Typography>
 

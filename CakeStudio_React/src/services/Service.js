@@ -342,6 +342,45 @@ class Service {
             params
         });
     }
+
+    //------- Reviews ------
+
+    createReview(data) {
+        return api.post("/reviews", data);
+    }
+
+    updateReview(data) {
+        return api.put("/reviews", data);
+    }
+
+    deleteReview(id) {
+        return api.delete(`/reviews/${id}`);
+    }
+
+    getCakeReviews(cakeId) {
+        return api.get(`/reviews/cake/${cakeId}`);
+    }
+
+    getReviewByOrderItem(orderItemId) {
+        return api.get(`/reviews/order-item/${orderItemId}`);
+    }
+
+    getRatingFilters() {
+        return api.get("/cake-catalog/rating-filters");
+    }
+
+    getReviews(params) {
+        return api.get("/reviews/admin", {
+            params
+        });
+    }
+
+    replyReview(data) {
+        return api.post(
+            "/reviews/reply",
+            data
+        );
+    }
 }
 
 export default new Service();

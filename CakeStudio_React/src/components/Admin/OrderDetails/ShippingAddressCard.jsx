@@ -20,13 +20,13 @@ export default function ShippingAddressCard({ order }) {
 
         {
             label: "Address",
-            value: order.address,
+            value: order.addressLine1,
             icon: <LocationOnOutlinedIcon />
         },
 
         {
             label: "Landmark",
-            value: order.landmark || "-",
+            value: order.addressLine2 || "-",
             icon: <ApartmentOutlinedIcon />
         },
 
@@ -44,7 +44,7 @@ export default function ShippingAddressCard({ order }) {
 
         {
             label: "Pincode",
-            value: order.pincode,
+            value: order.postalCode,
             icon: <MarkunreadMailboxOutlinedIcon />
         }
 

@@ -29,15 +29,19 @@ public partial class Order
 
     [StringLength(255)]
     public string? StripePaymentIntentId { get; set; }
-    public string PaymentMethod { get; set; } = string.Empty;
+
     public int? AddressId { get; set; }
+
+    [StringLength(50)]
+    public string PaymentMethod { get; set; } = null!;
 
     [ForeignKey("AddressId")]
     [InverseProperty("Orders")]
     public virtual Address? Address { get; set; }
 
+    [InverseProperty("Order")]
     public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
 
     [ForeignKey("UserId")]
-    public virtual User User { get; set; } = null!;
+    public virtual User? User { get; set; }
 }

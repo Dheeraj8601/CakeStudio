@@ -94,6 +94,7 @@ export default function Orders() {
                         totalCount={totalCount}
                         setPage={setPage}
                         setRowsPerPage={setRowsPerPage}
+                        onReload = {loadOrders}
                     />
             }
 

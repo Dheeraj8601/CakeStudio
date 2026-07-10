@@ -14,6 +14,8 @@ import SendOutlinedIcon from "@mui/icons-material/SendOutlined";
 import { useEffect, useState } from "react";
 
 import "./ReplyReviewDialog.css";
+import Service from "../../../services/Service";
+import { toast } from "react-toastify";
 
 export default function ReplyReviewDialog({
 
@@ -29,7 +31,7 @@ export default function ReplyReviewDialog({
 
     useEffect(() => {
 
-        if(open){
+        if (open) {
 
             setReply("");
 
@@ -37,21 +39,36 @@ export default function ReplyReviewDialog({
 
     }, [open]);
 
-    const handleSend = () => {
+    const handleSend = async () => {
 
-        console.log({
+        try {
 
-            reviewId: review?.id,
+            await Service.replyReview({
 
-            reply
+                reviewId: review.reviewId,
 
-        });
+                reply
 
-        onClose();
+            });
+
+            toast.success(
+                "Reply sent successfully."
+            );
+
+            onClose();
+
+        }
+        catch (err) {
+
+            toast.error(
+                "Unable to send reply."
+            );
+
+        }
 
     };
 
-    if(!review) return null;
+    if (!review) return null;
 
     return (
 
@@ -81,7 +98,7 @@ export default function ReplyReviewDialog({
 
                         <Typography className="reply-customer-name">
 
-                            {review.customer}
+                            {review.customerName}
 
                         </Typography>
 
@@ -102,13 +119,33 @@ export default function ReplyReviewDialog({
 
                         <Typography className="customer-message">
 
-                            {review.message}
+                            {review.comment}
 
                         </Typography>
 
                     </Box>
 
-                    <TextField
+                    {review.status === 'Replied' ?
+                        <Box className="reply-message-card2">
+
+                            <Typography className="reply-label">
+
+                                Admin Reply
+
+                            </Typography>
+
+                            <Typography className="customer-message">
+
+                                {review.reply}
+
+                            </Typography>
+
+                        </Box>
+                        :
+                        ''
+                    }
+
+                    {review.status !== 'Replied' ? <TextField
 
                         fullWidth
 
@@ -122,13 +159,16 @@ export default function ReplyReviewDialog({
 
                         value={reply}
 
-                        onChange={(e)=>
+                        onChange={(e) =>
 
                             setReply(e.target.value)
 
                         }
 
                     />
+                        :
+                        ''
+                    }
 
                 </Box>
 
@@ -146,7 +186,7 @@ export default function ReplyReviewDialog({
 
                 </Button>
 
-                <Button
+                {review.status !== 'Replied' ? <Button
 
                     variant="contained"
 
@@ -163,6 +203,9 @@ export default function ReplyReviewDialog({
                     Send Reply
 
                 </Button>
+                    :
+                    ''
+                }
 
             </DialogActions>
 

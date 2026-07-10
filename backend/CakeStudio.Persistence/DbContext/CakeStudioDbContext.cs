@@ -140,9 +140,7 @@ public partial class CakeStudioDbContext : DbContext
 
             entity.HasOne(d => d.Address).WithMany(p => p.Orders).HasConstraintName("FK_Orders_Addresses");
 
-            entity.HasOne(d => d.User).WithMany(p => p.Orders)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Orders_Users");
+            entity.HasOne(d => d.User).WithMany(p => p.Orders).HasConstraintName("FK_Orders_Users");
         });
 
         modelBuilder.Entity<OrderItem>(entity =>
@@ -185,6 +183,10 @@ public partial class CakeStudioDbContext : DbContext
             entity.HasOne(d => d.Cake).WithMany(p => p.Reviews)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Reviews_Cakes");
+
+            entity.HasOne(d => d.OrderItem).WithMany(p => p.Reviews)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Reviews_OrderItems");
 
             entity.HasOne(d => d.User).WithMany(p => p.Reviews)
                 .OnDelete(DeleteBehavior.ClientSetNull)

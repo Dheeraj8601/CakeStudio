@@ -1,5 +1,6 @@
 ﻿using CakeStudio.Application.Common.Exceptions;
 using CakeStudio.Application.DTOs.Cake;
+using CakeStudio.Application.DTOs.Review;
 using CakeStudio.Application.Helpers;
 using CakeStudio.Application.Interfaces;
 using CakeStudio.Persistence.Entities;
@@ -237,8 +238,13 @@ namespace CakeStudio.Infrastructure.Services
                                 x.Reviews.Average(r => r.Rating),
                                 1)
                             : 0,
-
-                    TotalReviews =
+                    rating = x.Reviews.Any()
+                            ? Math.Round(
+                                x.Reviews.Average(r => r.Rating),
+                                1)
+                            : 0,
+                    reviewCount = x.Reviews.Count,
+                    TotalReviews = 
                         x.Reviews.Count
                 })
                 .ToList()
@@ -276,8 +282,11 @@ namespace CakeStudio.Infrastructure.Services
 
                 delievery = "Same Day / Next Day",
 
-                rating = 4.5,
-                reviewCount = 12,
+                rating = cake.Reviews.Any()
+                                    ? Math.Round( cake.Reviews.Average(x => x.Rating),1)
+                                    : 0,
+
+                reviewCount =cake.Reviews.Count,
                 flavour = cake.Category.Name,
                 images = Enumerable.Repeat(_fileUpload.GetImageUrl(cake.ImageUrl), 5).ToList(),
 
@@ -309,6 +318,12 @@ namespace CakeStudio.Infrastructure.Services
             }).ToList();
 
             return data;
+        }
+
+        public async Task<List<RatingFilterResponseDto>> GetRatingFiltersAsync()
+        {
+            return await _cakeRepository
+                .GetRatingFiltersAsync();
         }
     }
 }

@@ -681,12 +681,7 @@ body {{
 </html>";
         }
 
-        public static string ContactUsTemplate(
-    string fullName,
-    string email,
-    string phone,
-    string subject,
-    string message)
+        public static string ContactUsTemplate(string fullName,string email,string phone,string subject,string message)
         {
             return $@"
 <!DOCTYPE html>
@@ -797,6 +792,129 @@ A customer has submitted the Contact Us form.
 <div class='footer'>
 
 CakeStudio Contact Form
+
+</div>
+
+</div>
+
+</body>
+
+</html>";
+        }
+
+        public static string ReviewReplyTemplate(string customerName,string cakeName,string review,string reply)
+        {
+            return $@"
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<style>
+
+body{{
+font-family:Segoe UI;
+background:#fff8fa;
+margin:0;
+padding:40px;
+}}
+
+.card{{
+max-width:650px;
+margin:auto;
+background:#fff;
+border-radius:16px;
+overflow:hidden;
+box-shadow:0 8px 25px rgba(0,0,0,.08);
+}}
+
+.header{{
+background:#ff5b84;
+padding:24px;
+color:#fff;
+font-size:28px;
+font-weight:bold;
+text-align:center;
+}}
+
+.content{{
+padding:30px;
+}}
+
+.review{{
+background:#fff6f8;
+padding:16px;
+border-left:5px solid #ff5b84;
+border-radius:8px;
+margin:20px 0;
+}}
+
+.reply{{
+background:#f8fff8;
+padding:16px;
+border-left:5px solid #3cb371;
+border-radius:8px;
+margin-top:20px;
+}}
+
+.footer{{
+padding:20px;
+background:#fafafa;
+text-align:center;
+color:#777;
+}}
+
+</style>
+
+</head>
+
+<body>
+
+<div class='card'>
+
+<div class='header'>
+CakeStudio
+</div>
+
+<div class='content'>
+
+<h2>Hello {customerName}, 👋</h2>
+
+<p>
+Thank you for taking the time to review
+<b>{cakeName}</b>.
+We truly value your feedback.
+</p>
+
+<div class='review'>
+
+<b>Your Review</b>
+
+<p>{review}</p>
+
+</div>
+
+<div class='reply'>
+
+<b>Our Reply</b>
+
+<p>{reply}</p>
+
+</div>
+
+<p style='margin-top:30px;'>
+
+We appreciate your support and look forward
+to serving you again.
+
+</p>
+
+</div>
+
+<div class='footer'>
+
+Made with ❤️ by CakeStudio
 
 </div>
 

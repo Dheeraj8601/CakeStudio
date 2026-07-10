@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import ReviewsHeader from "./ReviewsHeader";
 import ReviewsFilters from "./ReviewsFilters";
@@ -10,52 +10,18 @@ import ReviewDetailsDialog from "./ReviewDetailsDialog";
 import ReplyReviewDialog from "./ReplyReviewDialog";
 
 import "./Reviews.css";
+import Service from "../../../services/Service";
 
 export default function Reviews() {
 
-    const [reviews] = useState([
+    const [reviews, setReviews] = useState([]);
 
-        {
-            id: 1,
-            customer: "Rahul Sharma",
-            email: "rahul@gmail.com",
-            mobile: "+91 9876543210",
-            type: "Review",
-            orderId: "#1001",
-            rating: 5,
-            message: "Amazing cake! Very fresh and delicious.",
-            status: "Published",
-            date: "25 May 2026"
-        },
+    const [totalRecords, setTotalRecords] = useState(0);
+    const [page, setPage] = useState(0);
 
-        {
-            id: 2,
-            customer: "Priya Verma",
-            email: "priya@gmail.com",
-            mobile: "+91 9123456789",
-            type: "Complaint",
-            orderId: "#1002",
-            rating: 1,
-            message: "Cake arrived damaged.",
-            status: "New",
-            date: "24 May 2026"
-        },
+    const [rowsPerPage, setRowsPerPage] = useState(10);
 
-        {
-            id: 3,
-            customer: "Amit Patel",
-            email: "amit@gmail.com",
-            mobile: "+91 9988776655",
-            type: "Review",
-            orderId: "#1003",
-            rating: 4,
-            message: "Very good quality.",
-            status: "Published",
-            date: "23 May 2026"
-        }
-
-    ]);
-
+    const [rating, setRating] = useState(null);
     const [search, setSearch] = useState("");
 
     const [type, setType] = useState("All");
@@ -70,47 +36,44 @@ export default function Reviews() {
 
     const [openReply, setOpenReply] = useState(false);
 
-    const filteredReviews = reviews.filter(review => {
+    useEffect(() => {
 
-        const matchesSearch =
+        loadReviews();
 
-            review.customer.toLowerCase().includes(search.toLowerCase()) ||
+    }, [search, page, rowsPerPage, rating]);
 
-            review.email.toLowerCase().includes(search.toLowerCase()) ||
+    const loadReviews = async () => {
 
-            review.orderId.toLowerCase().includes(search.toLowerCase());
+        try {
 
-        const matchesType =
+            const response =
+                await Service.getReviews({
 
-            type === "All" ||
+                    search,
 
-            review.type === type;
+                    rating,
 
-        const matchesStatus =
+                    pageNumber: page + 1,
 
-            status === "All" ||
+                    pageSize: rowsPerPage
 
-            review.status === status;
+                });
 
-        const matchesTab =
+                const data = response.data.data
+                console.log(data,"data ll")
 
-            tab === "All" ||
+            setReviews(data);
 
-            review.type === tab;
+            setTotalRecords(response.data.totalRecords);
 
-        return (
+        }
+        catch (error) {
 
-            matchesSearch &&
+            console.error(error);
 
-            matchesType &&
+        }
 
-            matchesStatus &&
-
-            matchesTab
-
-        );
-
-    });
+    };
 
     return (
 
@@ -131,19 +94,9 @@ export default function Reviews() {
 
             />
 
-            <ReviewsTabs
-
-                tab={tab}
-
-                setTab={setTab}
-
-                reviews={reviews}
-
-            />
-
             {
 
-                filteredReviews.length === 0 ?
+                reviews.length === 0 ?
 
                     <EmptyReviews />
 
@@ -151,7 +104,7 @@ export default function Reviews() {
 
                     <ReviewsTable
 
-                        reviews={filteredReviews}
+                        reviews={reviews}
 
                         onView={(review) => {
 

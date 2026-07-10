@@ -6,13 +6,9 @@ using System.Threading.Tasks;
 
 namespace CakeStudio.Application.DTOs.Review
 {
-    public class ReviewResponseDto
+    public class CakeReviewResponseDto
     {
         public int ReviewId { get; set; }
-
-        public int OrderItemId { get; set; }
-
-        public int CakeId { get; set; }
 
         public int Rating { get; set; }
 
@@ -20,6 +16,9 @@ namespace CakeStudio.Application.DTOs.Review
 
         public DateTime CreatedAt { get; set; }
 
-        public DateTime? UpdatedAt { get; set; }
+        public string? Status { get; set; }
+        public string? Reply { get; set; }
+        public DateTime? ReviewCommentedDate { get; set; }
+        public string UserName { get; set; } = string.Empty;
     }
 }

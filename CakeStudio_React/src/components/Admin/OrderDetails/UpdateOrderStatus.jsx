@@ -13,25 +13,54 @@ import UpdateOutlinedIcon from "@mui/icons-material/UpdateOutlined";
 
 import { useState } from "react";
 
+import { toast } from "react-toastify";
+
+import Service from "../../../services/Service";
+
 import "./UpdateOrderStatus.css";
 
-export default function UpdateOrderStatus({ order }) {
+export default function UpdateOrderStatus({
 
+    order,
+
+    onReload
+
+}) {
+    console.log(order, "19-5")
     const [status, setStatus] = useState(order.orderStatus);
 
     const [notes, setNotes] = useState("");
 
-    const handleUpdate = () => {
+    const [loading, setLoading] = useState(false);
 
-        console.log({
+    const handleUpdate = async () => {
 
-            orderId: order.orderId,
+        try {
 
-            status,
+            setLoading(true);
 
-            notes
+            await Service.updateOrderStatus(
+                order.orderId,
+                status
+            );
 
-        });
+            toast.success("Order status updated successfully.");
+
+            onReload?.();
+
+        }
+        catch (error) {
+
+            console.error(error);
+
+            toast.error("Unable to update order status.");
+
+        }
+        finally {
+
+            setLoading(false);
+
+        }
 
     };
 
@@ -139,9 +168,19 @@ export default function UpdateOrderStatus({ order }) {
 
                         onClick={handleUpdate}
 
+                        disabled={loading}
+
                     >
 
-                        Update Status
+                        {
+
+                            loading
+
+                                ? "Updating..."
+
+                                : "Update Status"
+
+                        }
 
                     </Button>
 

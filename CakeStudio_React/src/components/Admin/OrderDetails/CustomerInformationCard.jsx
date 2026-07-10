@@ -18,19 +18,19 @@ export default function CustomerInformationCard({ order }) {
 
         {
             label: "Customer Name",
-            value: order.customerName,
+            value: order.customerName ?? '-',
             icon: <PersonOutlineOutlinedIcon />
         },
 
         {
             label: "Email Address",
-            value: order.email,
+            value: order.email?? '-',
             icon: <EmailOutlinedIcon />
         },
 
         {
             label: "Mobile Number",
-            value: order.mobile,
+            value: order.mobile ?? '-',
             icon: <PhoneOutlinedIcon />
         }
 

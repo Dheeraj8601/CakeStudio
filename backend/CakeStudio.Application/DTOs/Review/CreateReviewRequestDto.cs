@@ -8,6 +8,8 @@ namespace CakeStudio.Application.DTOs.Review
 {
     public class CreateReviewRequestDto
     {
+        public int OrderItemId { get; set; }
+
         public int CakeId { get; set; }
 
         public int Rating { get; set; }

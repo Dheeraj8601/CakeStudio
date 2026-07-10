@@ -1,4 +1,5 @@
-﻿using CakeStudio.Application.DTOs.Review;
+﻿using CakeStudio.Application.DTOs.Cake;
+using CakeStudio.Application.DTOs.Review;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,11 +11,11 @@ namespace CakeStudio.Application.Interfaces
     public interface IReviewService
     {
         Task CreateAsync(CreateReviewRequestDto request);
-
         Task UpdateAsync(UpdateReviewRequestDto request);
-
         Task DeleteAsync(int reviewId);
-
-        Task<List<ReviewResponseDto>> GetCakeReviewsAsync(int cakeId);
+        Task<List<CakeReviewResponseDto>> GetCakeReviewsAsync(int cakeId);
+        Task<ReviewResponseDto?> GetByOrderItemAsync(int orderItemId);
+        Task<PagedResult<AdminReviewResponseDto>> GetPagedReviewsAsync(ReviewPagedRequestDto request);
+        Task ReplyAsync(ReplyReviewRequestDto request);
     }
 }
