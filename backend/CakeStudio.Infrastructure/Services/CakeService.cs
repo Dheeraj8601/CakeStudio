@@ -325,5 +325,39 @@ namespace CakeStudio.Infrastructure.Services
             return await _cakeRepository
                 .GetRatingFiltersAsync();
         }
+
+        public async Task<List<CakeCardResponseDto>> GetFeaturedCakesAsync()
+        {
+            var cakes =
+                await _cakeRepository
+                    .GetFeaturedCakesAsync(4);
+
+            return cakes.Select(cake =>
+
+                new CakeCardResponseDto
+                {
+                    Id = cake.Id,
+
+                    Name = cake.Name,
+
+                    Price = cake.Price,
+
+                    ImageUrl =
+                        _fileUpload.GetImageUrl(
+                            cake.ImageUrl),
+
+                    Rating =
+                        cake.Reviews.Any()
+                            ? Math.Round(
+                                cake.Reviews.Average(x => x.Rating),
+                                1)
+                            : 0,
+
+                    TotalReviews =
+                        cake.Reviews.Count
+                })
+
+                .ToList();
+        }
     }
 }

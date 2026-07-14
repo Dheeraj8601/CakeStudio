@@ -87,7 +87,7 @@ namespace CakeStudio.Infrastructure.Services
                 CategoryName = x.Name,
                 Description = x.Description,
                 createdOn = x.CreatedDate,
-                imageUrl = x.ImageUrl,
+                imageUrl = _fileupload.GetImageUrl(x.ImageUrl),
                 isActive = x.IsActive
             }).ToList();
 

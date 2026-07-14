@@ -23,3 +23,91 @@
     min-height: 75px !important;
 
 }
+
+.header-promo{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:10px;
+
+    padding:10px 22px;
+
+    margin:0 auto;
+
+    background:#fff5f7;
+
+    border:1px solid #ffd9e4;
+
+    border-radius:50px;
+
+    color:#ff5b84;
+
+    transition:all .3s ease;
+
+    cursor:default;
+
+}
+
+.header-promo:hover{
+
+    background:#ffeef3;
+
+    box-shadow:0 8px 22px rgba(255,91,132,.15);
+
+}
+
+.header-promo svg{
+
+    font-size:22px;
+
+    color:#ff5b84;
+
+    flex-shrink:0;
+
+}
+
+.header-promo p{
+
+    margin:0;
+
+    font-size:15px;
+
+    font-weight:600;
+
+    color:#555;
+
+    white-space:nowrap;
+
+    letter-spacing:.2px;
+
+}
+
+@media (max-width:900px){
+
+    .header-promo{
+
+        padding:8px 16px;
+
+    }
+
+    .header-promo p{
+
+        font-size:14px;
+
+    }
+
+}
+
+@media (max-width:768px){
+
+    .header-promo{
+
+        display:none;
+
+    }
+
+}

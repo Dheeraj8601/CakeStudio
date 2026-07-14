@@ -234,5 +234,36 @@ namespace CakeStudio.Infrastructure.Repositories
 
             return ratings;
         }
+
+        public async Task<List<Cake>> GetFeaturedCakesAsync(int count)
+        {
+            return await _context.Cakes
+
+                .Include(x => x.Category)
+
+                .Include(x => x.Reviews)
+
+                .Where(x =>
+                    !x.IsDeleted &&
+                    x.IsAvailable)
+
+                .OrderByDescending(x =>
+                    x.Reviews.Any()
+                        ? x.Reviews.Average(r => r.Rating)
+                        : 0)
+
+                .ThenByDescending(x =>
+                    x.Reviews.Count)
+
+                .ThenByDescending(x =>
+                    x.Price)
+
+                .ThenByDescending(x =>
+                    x.CreatedAt)
+
+                .Take(count)
+
+                .ToListAsync();
+        }
     }
 }

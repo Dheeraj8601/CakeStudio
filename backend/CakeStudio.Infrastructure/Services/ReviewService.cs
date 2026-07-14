@@ -84,7 +84,8 @@ namespace CakeStudio.Infrastructure.Services
                                         CakeId = request.CakeId,
                                         Rating = request.Rating,
                                         Comment = request.Comment,
-                                        CreatedAt = DateTime.UtcNow
+                                        CreatedAt = DateTime.UtcNow,
+                                        Status = "Pending"
                                     });
         }
 

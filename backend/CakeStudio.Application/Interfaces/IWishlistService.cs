@@ -9,19 +9,12 @@ namespace CakeStudio.Application.Interfaces
 {
     public interface IWishlistService
     {
-        Task AddAsync(
-            AddWishlistRequestDto request);
-
-        Task RemoveAsync(
-            int wishlistId);
-
-        Task<List<WishlistResponseDto>>
-            GetMyWishlistAsync();
-
-        Task MoveToCartAsync(
-            int wishlistId);
-
-        Task<WishlistPagedResponseDto> GetWishlistAsync(
-    WishlistFilterRequestDto request);
+        Task AddAsync(AddWishlistRequestDto request);
+        Task RemoveAsync(int wishlistId);
+        Task<List<WishlistResponseDto>> GetMyWishlistAsync();
+        Task<WishlistPagedResponseDto> GetWishlistAsync(WishlistFilterRequestDto request);
+        Task MoveAllToCartAsync();
+        Task<List<int>> GetWishlistCakeIdsAsync();
+        Task RemoveByCakeId(int id);
     }
 }

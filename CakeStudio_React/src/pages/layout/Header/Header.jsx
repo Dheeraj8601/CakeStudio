@@ -1,10 +1,11 @@
-import { AppBar, Toolbar } from "@mui/material";
+import { AppBar, Box, Toolbar, Typography } from "@mui/material";
 
 import Logo from "./Logo";
 import SearchBar from "./SearchBar";
 import HeaderActions from "./HeaderActions";
 
 import "./Header.css";
+import { LocalShippingOutlined } from "@mui/icons-material";
 
 const Header = () => {
 
@@ -21,7 +22,18 @@ const Header = () => {
 
                 <Logo />
 
-                <SearchBar />
+                {/* <SearchBar /> */}
+                <Box className="header-promo">
+
+                    <LocalShippingOutlined/>
+
+                    <Typography>
+
+                        Same Day Delivery •  Birthday Cakes | Anniversary Specials | Midnight Delivery Available
+
+                    </Typography>
+
+                </Box>
 
                 <HeaderActions />
 

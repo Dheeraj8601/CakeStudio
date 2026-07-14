@@ -22,9 +22,7 @@ namespace CakeStudio.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<Wishlist?> GetAsync(
-            int userId,
-            int cakeId)
+        public async Task<Wishlist?> GetAsync(int userId,int cakeId)
         {
             return await _context.Wishlists
                 .FirstOrDefaultAsync(x =>
@@ -32,8 +30,7 @@ namespace CakeStudio.Infrastructure.Repositories
                     x.CakeId == cakeId);
         }
 
-        public async Task<List<Wishlist>>
-            GetByUserIdAsync(int userId)
+        public async Task<List<Wishlist>> GetByUserIdAsync(int userId)
         {
             return await _context.Wishlists
                 .Include(x => x.Cake)
@@ -42,24 +39,21 @@ namespace CakeStudio.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<Wishlist?> GetByIdAsync(
-            int wishlistId)
+        public async Task<Wishlist?> GetByIdAsync(int wishlistId)
         {
             return await _context.Wishlists
                 .FirstOrDefaultAsync(x =>
                     x.Id == wishlistId);
         }
 
-        public async Task AddAsync(
-            Wishlist wishlist)
+        public async Task AddAsync(Wishlist wishlist)
         {
             _context.Wishlists.Add(wishlist);
 
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(
-            Wishlist wishlist)
+        public async Task DeleteAsync(Wishlist wishlist)
         {
             _context.Wishlists.Remove(wishlist);
 
@@ -119,6 +113,24 @@ namespace CakeStudio.Infrastructure.Repositories
 
                 Data = items
             };
+        }
+
+        public async Task DeleteRangeAsync(List<Wishlist> wishlists)
+        {
+            _context.Wishlists.RemoveRange(wishlists);
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<int>> GetWishlistCakeIdsAsync(int userId)
+        {
+            return await _context.Wishlists
+
+                .Where(x => x.UserId == userId)
+
+                .Select(x => x.CakeId)
+
+                .ToListAsync();
         }
     }
 }

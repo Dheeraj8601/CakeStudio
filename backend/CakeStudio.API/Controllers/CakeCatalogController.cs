@@ -64,5 +64,13 @@ namespace CakeStudio.API.Controllers
             return Ok(
                 await _cakeService.GetRatingFiltersAsync());
         }
+
+        [AllowAnonymous]
+        [HttpGet("featured")]
+        public async Task<IActionResult> GetFeaturedCakes()
+        {
+            return Ok(
+                await _cakeService.GetFeaturedCakesAsync());
+        }
     }
 }

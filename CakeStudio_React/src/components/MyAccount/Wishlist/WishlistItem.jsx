@@ -24,9 +24,10 @@ export default function WishlistItem({
 
 }) {
     const { addToCart } = useCart();
-    const onAddToCart = (item) => {
+    const onAddToCart = async(item) => {
         //console.log("ff", item)
-        addToCart(item.cakeId, 1)
+        await addToCart(item.cakeId, 1)
+        await handleRemove()
     }
     const handleRemove = async () => {
 

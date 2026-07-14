@@ -1,31 +1,87 @@
-import { Box, Grid } from "@mui/material";
+import { useEffect, useRef, useState } from "react";
+
+import {
+    Box,
+    Grid,
+    IconButton
+} from "@mui/material";
+
+import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded";
+import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
+
 import Breadcrumb from "../common/Breadcrumb/Breadcrumb";
 import SectionTitle from "../common/SectionTitle/SectionTitle";
 import CategoryCardLarge from "../common/Categories/CategoryCardLarge";
-import { categoryData } from "./categoryData";
-import Service from "../../services/Service"
-import { useEffect, useState } from "react";
-import { Description } from "@mui/icons-material";
+
+import Service from "../../services/Service";
+
+import "./CategoriesComponent.css";
+
 export default function CategoriesComponent() {
-    const [categories, setCategories] = useState([])
+
+    const [categories, setCategories] = useState([]);
+
+    const sliderRef = useRef(null);
+
     useEffect(() => {
+
         loadCategory();
-    }, [])
+
+    }, []);
+
     const loadCategory = async () => {
-        const res = await Service.getCategories();
-        console.log(res,"kk")
+
+        const res =
+            await Service.getCategories();
+
         setCategories(
-            res.data.data.map((item, index) => ({
+
+            res.data.data.map(item => ({
+
                 id: item.id,
+
                 slug: item.id,
+
                 image: item.imageUrl,
+
                 icon: item.imageUrl,
-                description : item.description,
+
+                description: item.description,
+
                 title: item.categoryName
+
             }))
-        )
-    }
+
+        );
+
+    };
+
+    const scrollLeft = () => {
+
+        sliderRef.current?.scrollBy({
+
+            left: -1350,
+
+            behavior: "smooth"
+
+        });
+
+    };
+
+    const scrollRight = () => {
+
+        sliderRef.current?.scrollBy({
+
+            left: 1350,
+
+            behavior: "smooth"
+
+        });
+
+    };
+
     return (
+
         <Box
             sx={{
                 maxWidth: "1400px",
@@ -34,10 +90,16 @@ export default function CategoriesComponent() {
                 py: 3
             }}
         >
+
             <Breadcrumb
                 items={[
-                    { label: "Home", path: "/" },
-                    { label: "Categories" }
+                    {
+                        label: "Home",
+                        path: "/"
+                    },
+                    {
+                        label: "Categories"
+                    }
                 ]}
             />
 
@@ -46,22 +108,82 @@ export default function CategoriesComponent() {
                 subtitle="Discover delicious cakes for every celebration."
             />
 
-            <Grid
-                container
-                spacing={4}
-                justifyContent="center"
-                alignItems="stretch"
-                sx={{ mb: 4 }}
-            >
-                {categories.map((category) => (
-                    <Grid
-                        key={category.id}
-                        size={{ xs: 12, sm: 6, md: 3 }}
+            <Box className="category-slider-wrapper">
+
+                {
+
+                    categories.length > 4 &&
+
+                    <IconButton
+
+                        className="category-nav left"
+
+                        onClick={scrollLeft}
+
                     >
-                        <CategoryCardLarge category={category} />
-                    </Grid>
-                ))}
-            </Grid>
+
+                        <ChevronLeftRoundedIcon />
+
+                    </IconButton>
+
+                }
+
+                <Box
+
+                    ref={sliderRef}
+
+                    className="category-slider"
+
+                >
+
+                    {
+
+                        categories.map(category => (
+
+                            <Box
+
+                                key={category.id}
+
+                                className="category-slide"
+
+                            >
+
+                                <CategoryCardLarge
+
+                                    category={category}
+
+                                />
+
+                            </Box>
+
+                        ))
+
+                    }
+
+                </Box>
+
+                {
+
+                    categories.length > 4 &&
+
+                    <IconButton
+
+                        className="category-nav right"
+
+                        onClick={scrollRight}
+
+                    >
+
+                        <ChevronRightRoundedIcon />
+
+                    </IconButton>
+
+                }
+
+            </Box>
+
         </Box>
+
     );
+
 }

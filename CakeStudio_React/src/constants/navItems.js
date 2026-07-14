@@ -14,16 +14,16 @@ export const navItems = [
         label: "Categories",
         path: "/categories"
     },
-    {
-        id: 4,
-        label: "Occasions",
-        path: "/occasions"
-    },
-    {
-        id: 5,
-        label: "Custom Cakes",
-        path: "/custom-cakes"
-    },
+    // {
+    //     id: 4,
+    //     label: "Occasions",
+    //     path: "/occasions"
+    // },
+    // {
+    //     id: 5,
+    //     label: "Custom Cakes",
+    //     path: "/custom-cakes"
+    // },
     {
         id: 6,
         label: "Offers",

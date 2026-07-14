@@ -1,4 +1,5 @@
-﻿using CakeStudio.Application.DTOs.Cart;
+﻿using CakeStudio.Application.Common.Exceptions;
+using CakeStudio.Application.DTOs.Cart;
 using CakeStudio.Application.DTOs.Wishlist;
 using CakeStudio.Application.Interfaces;
 using CakeStudio.Persistence.Entities;
@@ -24,7 +25,6 @@ namespace CakeStudio.Infrastructure.Services
             _cartService = cartService;
             _fileUpload = fileUpload;
         }
-
         public async Task AddAsync(AddWishlistRequestDto request)
         {
             var currentUser =
@@ -49,7 +49,6 @@ namespace CakeStudio.Infrastructure.Services
                     CreatedAt = DateTime.UtcNow
                 });
         }
-
         public async Task<List<WishlistResponseDto>> GetMyWishlistAsync()
         {
             var currentUser =
@@ -72,35 +71,6 @@ namespace CakeStudio.Infrastructure.Services
                 })
                 .ToList();
         }
-
-        public async Task MoveToCartAsync(int wishlistId)
-        {
-            var currentUser =
-                _userContext.GetCurrentUser();
-
-            var wishlist =
-                await _wishlistRepository
-                    .GetByIdAsync(wishlistId);
-
-            if (wishlist == null)
-                throw new Exception(
-                    "Wishlist item not found");
-
-            if (wishlist.UserId != currentUser.UserId)
-                throw new Exception(
-                    "Access denied");
-
-            await _cartService.AddToCartAsync(
-                new AddToCartRequestDto
-                {
-                    CakeId = wishlist.CakeId,
-                    Quantity = 1
-                });
-
-            await _wishlistRepository
-                .DeleteAsync(wishlist);
-        }
-
         public async Task RemoveAsync(int wishlistId)
         {
             var currentUser =
@@ -122,6 +92,24 @@ namespace CakeStudio.Infrastructure.Services
                 .DeleteAsync(wishlist);
         }
 
+        public async Task RemoveByCakeId(int id)
+        {
+            var currentUser = _userContext.GetCurrentUser();
+
+            var wishlist = await _wishlistRepository.GetByUserIdAsync(currentUser.UserId);
+
+            if(wishlist == null)
+            {
+                throw new Exception("Wishlist item not found");
+            }
+
+            var cake = wishlist.FirstOrDefault(x => x.CakeId == id);
+            if(cake == null)
+            {
+                throw new Exception("Cake not found.");
+            }
+            await _wishlistRepository.DeleteAsync(cake);
+        }
         public async Task<WishlistPagedResponseDto> GetWishlistAsync(WishlistFilterRequestDto request)
         {
             var currentUser = _userContext.GetCurrentUser();
@@ -160,6 +148,44 @@ namespace CakeStudio.Infrastructure.Services
                     Reviews = x.Cake.Reviews.Count
                 }).ToList()
             };
+        }
+
+        public async Task MoveAllToCartAsync()
+        {
+            var currentUser =
+                _userContext.GetCurrentUser();
+
+            var wishlists =
+                await _wishlistRepository
+                    .GetByUserIdAsync(currentUser.UserId);
+
+            if (!wishlists.Any())
+            {
+                throw new BadRequestException(
+                    "Wishlist is empty.");
+            }
+
+            foreach (var wishlist in wishlists)
+            {
+                await _cartService.AddToCartAsync(
+                    new AddToCartRequestDto
+                    {
+                        CakeId = wishlist.CakeId,
+                        Quantity = 1
+                    });
+            }
+
+            await _wishlistRepository.DeleteRangeAsync(wishlists);
+        }
+
+        public async Task<List<int>> GetWishlistCakeIdsAsync()
+        {
+            var currentUser =
+                _userContext.GetCurrentUser();
+
+            return await _wishlistRepository
+                .GetWishlistCakeIdsAsync(
+                    currentUser.UserId);
         }
     }
 }

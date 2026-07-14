@@ -20,5 +20,6 @@ namespace CakeStudio.Application.Interfaces
         Task<CakeCatalogResponseDto?> GetCatalogCakeByIdAsync(int id);
         Task<List<CartItemResponseDto>> GetCartItemsAsync(CartItemsRequestDto request);
         Task<List<RatingFilterResponseDto>> GetRatingFiltersAsync();
+        Task<List<CakeCardResponseDto>> GetFeaturedCakesAsync();
     }
 }
