@@ -14,3 +14,67 @@
 
     background: #FEF5F6;
 }
+
+.categories-wrapper {
+
+    position: relative;
+
+    max-width: 1400px;
+
+    margin: 0 auto;
+
+    padding: 0 45px;
+
+}
+
+.categories-slider {
+
+    overflow-x: auto;
+
+    overflow-y: hidden;
+
+    scroll-behavior: smooth;
+
+    flex-wrap: nowrap !important;
+
+    scrollbar-width: none;
+
+}
+
+.categories-slider::-webkit-scrollbar {
+
+    display: none;
+
+}
+
+.category-arrow {
+
+    position: absolute !important;
+
+    top: 50%;
+
+    transform: translateY(-50%);
+
+    width: 42px;
+
+    height: 42px;
+
+    background: white !important;
+
+    box-shadow: 0 8px 25px rgba(0,0,0,.12);
+
+    z-index: 10;
+
+}
+
+.category-arrow.left {
+
+    left: 0;
+
+}
+
+.category-arrow.right {
+
+    right: 0;
+
+}

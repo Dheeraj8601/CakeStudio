@@ -42,7 +42,7 @@ export default function Wishlist() {
                 sortBy
 
             });
-
+            
             setWishlist(response.data.data);
 
             setTotalItems(response.data.totalRecords);
@@ -67,6 +67,7 @@ export default function Wishlist() {
                 sortBy={sortBy}
 
                 onSortChange={setSortBy}
+                onReload = {() => loadWishlist()}
 
             />
 

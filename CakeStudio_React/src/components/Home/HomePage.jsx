@@ -1,107 +1,251 @@
+import { useEffect, useRef, useState } from "react";
+
 import HeroBanner from "../common/HeroBanner/HeroBanner";
 import { HERO_BANNER } from "../../constants/heroBanner";
-import { Box, Grid } from "@mui/material";
-import CategoryCard from "../common/CategoryCard/CategoryCard";
-import { categories } from "../../constants/categoryData"
-import './homepage.css'
-import SectionTitle from "../common/SectionTitle/SectionTitle";
-import CakeCard from "../common/CakeCard/CakeCard";
-import { cakes } from "../../constants/cakeData"
-import { features } from "../../constants/featureData";
-import FeatureCard from "../common/FeatureCard/FeatureCard";
 
-const HomePage = () => {
+import {
+    Box,
+    Grid,
+    IconButton
+} from "@mui/material";
+
+import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded";
+import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
+
+import CategoryCard from "../common/CategoryCard/CategoryCard";
+import CakeCard from "../common/CakeCard/CakeCard";
+import FeatureCard from "../common/FeatureCard/FeatureCard";
+import SectionTitle from "../common/SectionTitle/SectionTitle";
+
+import Service from "../../services/Service";
+import { features } from "../../constants/featureData";
+
+import "./homepage.css";
+
+export default function HomePage() {
+
+    const [wishlistCakeIds, setWishlistCakeIds] = useState([])
+    const [categories, setCategories] = useState([]);
+    const [cakes, setCakes] = useState([]);
+
+    const sliderRef = useRef(null);
+
+    useEffect(() => {
+        loadCategories();
+        loadFeaturedCakes();
+        loadWishlistIds();
+    }, []);
+
+    const loadCategories = async () => {
+
+        try {
+
+            const response =
+                await Service.getAllCategories();
+            setCategories(response.data);
+
+        }
+        catch (error) {
+
+            console.error(error);
+
+        }
+
+    };
+
+    const loadFeaturedCakes = async () => {
+
+        try {
+
+            const response =
+                await Service.getFeaturedCakes();
+
+            setCakes(response.data);
+
+        }
+        catch (error) {
+
+            console.error(error);
+
+        }
+
+    };
+
+    const loadWishlistIds = async () => {
+        try {
+            const res = await Service.getWishlistCakeIds();
+            setWishlistCakeIds(res.data)
+        } catch (err) {
+            console.error(err?.response)
+        }
+    }
+
+    const scrollLeft = () => {
+
+        sliderRef.current?.scrollBy({
+
+            left: -300,
+
+            behavior: "smooth"
+
+        });
+
+    };
+
+    const scrollRight = () => {
+
+        sliderRef.current?.scrollBy({
+
+            left: 300,
+
+            behavior: "smooth"
+
+        });
+
+    };
 
     return (
+
         <>
+
             <HeroBanner banner={HERO_BANNER} />
+
             <SectionTitle
                 title="Featured Categories"
-            //subtitle="Discover delicious cakes for every celebration."
             />
-            <Box className="categories-section">
+
+            <Box className="categories-wrapper">
+
+                {categories.length > 4 && (
+                    <IconButton
+                        className="category-arrow left"
+                        onClick={scrollLeft}
+                    >
+                        <ChevronLeftRoundedIcon />
+                    </IconButton>
+                )}
+
                 <Grid
+                    ref={sliderRef}
                     container
+                    wrap="nowrap"
                     spacing={4}
-                    justifycontent="center"
-                    alignitems="stretch"
+                    className="categories-slider"
                 >
-                    {categories.map((category) => (
+                    {categories.map(category => (
+
                         <Grid
                             key={category.id}
-                            size={{ xs: 12, sm: 6, md: 3 }}
+                            sx={{
+                                minWidth: 300,
+                                flexShrink: 0
+                            }}
                         >
-                            <CategoryCard category={category} />
+                            <CategoryCard
+                                category={category}
+                            />
                         </Grid>
+
                     ))}
                 </Grid>
+
+                {categories.length > 4 && (
+                    <IconButton
+                        className="category-arrow right"
+                        onClick={scrollRight}
+                    >
+                        <ChevronRightRoundedIcon />
+                    </IconButton>
+                )}
+
             </Box>
+
             <SectionTitle
                 title="Popular Cakes"
-            //subtitle="Our customers' favorite handcrafted cakes."
             />
+
             <Grid
                 container
-                spacing={6}
+                spacing={4}
                 sx={{
-                    display: "flex",
-                    alignItems: "center",
                     justifyContent: "center",
+                    alignItems: "stretch",
+                    mt: 1
                 }}
             >
 
-                {cakes.map((cake) => (
+                {
 
-                    <Grid key={cake.id}>
+                    cakes.map(cake => (
 
-                        <CakeCard
-                            id={cake.id}
-                            image={cake.image}
-                            name={cake.name}
-                            rating={cake.rating}
-                            reviews={cake.reviews}
-                            price={cake.price}
-                            favourite={cake.favourite}
-                        />
+                        <Grid key={cake.id}>
 
-                    </Grid>
+                            <CakeCard
+                                id={cake.id}
+                                image={cake.imageUrl}
+                                name={cake.name}
+                                rating={cake.rating}
+                                reviews={cake.totalReviews}
+                                price={cake.price}
+                                favourite={wishlistCakeIds.includes(cake.id)}
+                            />
 
-                ))}
+                        </Grid>
+
+                    ))
+
+                }
 
             </Grid>
+
             <Box
                 sx={{
-                    // maxWidth: "1400px",
-                    // width:"100%",
                     mx: "auto",
-                    paddingTop: 5
+                    pt: 5
                 }}
             >
+
                 <Box className="feature-section">
 
                     <Grid
                         container
-                        justifyContent="space-between"
-                        alignItems="center"
+                        spacing={4}
+                        sx={{
+                            justifyContent: "space-between",
+                            alignItems: "center"
+                        }}
                     >
 
-                        {features.map((feature) => (
+                        {
 
-                            <Grid
-                                key={feature.id}
-                                size={{ xs: 12, md: 3 }}
-                            >
-                                <FeatureCard feature={feature} />
-                            </Grid>
+                            features.map(feature => (
 
-                        ))}
+                                <Grid
+                                    key={feature.id}
+                                    size={{
+                                        xs: 12,
+                                        md: 3
+                                    }}
+                                >
+
+                                    <FeatureCard
+                                        feature={feature}
+                                    />
+
+                                </Grid>
+
+                            ))
+
+                        }
 
                     </Grid>
 
                 </Box>
-            </Box>
-        </>
-    );
-};
 
-export default HomePage;
+            </Box>
+
+        </>
+
+    );
+
+}

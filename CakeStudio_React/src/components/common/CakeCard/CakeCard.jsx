@@ -27,7 +27,8 @@ const CakeCard = ({
     rating,
     reviews,
     price,
-    favourite = false
+    favourite = false,
+    onLoad
 }) => {
     const navigate = useNavigate();
     const { addToCart } = useCart();
@@ -52,10 +53,17 @@ const CakeCard = ({
         }
 
         try {
+            if (!favourite) {
 
-            await Service.addToWishlist({ cakeId: id });
 
-            toast.success("Added to wishlist.");
+                await Service.addToWishlist({ cakeId: id });
+                toast.success("Added to wishlist.");
+            } else {
+                await Service.removeWishlistByCakeId(id)
+                toast.success("Removed from wishlist.");
+            }
+            await onLoad?.()
+
 
         }
         catch (error) {

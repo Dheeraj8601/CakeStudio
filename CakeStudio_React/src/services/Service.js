@@ -292,13 +292,27 @@ class Service {
         return api.get("/wishlist");
     }
 
-    moveWishlistToCart(wishlistId) {
-        return api.post(`/wishlist/${wishlistId}/move-to-cart`);
+    moveWishlistToCart() {
+        return api.post(
+            `/wishlist/move-all-to-cart`
+        );
     }
 
     getWishlist(params) {
         return api.get("/wishlist/getWishlist", {
             params
+        });
+    }
+
+    getWishlistCakeIds() {
+        return api.get("/wishlist/cake-ids");
+    }
+
+    removeWishlistByCakeId(id) {
+        return api.delete("/wishlist/removebycakeid", {
+            params: {
+                id
+            }
         });
     }
 
@@ -380,6 +394,12 @@ class Service {
             "/reviews/reply",
             data
         );
+    }
+
+    //------ home -----
+
+    getFeaturedCakes() {
+        return api.get("/cake-catalog/featured");
     }
 }
 

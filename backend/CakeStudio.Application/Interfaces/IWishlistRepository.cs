@@ -22,5 +22,8 @@ namespace CakeStudio.Application.Interfaces
         Task DeleteAsync(Wishlist wishlist);
 
         Task<PagedResult<Wishlist>> GetPagedWishlistAsync(int userId,WishlistFilterRequestDto request);
+        Task DeleteRangeAsync(List<Wishlist> wishlists);
+
+        Task<List<int>> GetWishlistCakeIdsAsync(int userId);
     }
 }

@@ -217,7 +217,8 @@ export const CartProvider = ({ children }) => {
 
         removeItem,
 
-        clearCart
+        clearCart,
+        loadCart
 
     };
 
