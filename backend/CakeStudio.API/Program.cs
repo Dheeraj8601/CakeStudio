@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using Serilog;
+using Stripe;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -16,6 +17,18 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
+
+var stripeSecretKey =
+    builder.Configuration["StripeSettings:SecretKey"];
+
+if (string.IsNullOrWhiteSpace(stripeSecretKey))
+{
+    throw new InvalidOperationException(
+        "Stripe SecretKey is not configured."
+    );
+}
+
+StripeConfiguration.ApiKey = stripeSecretKey;
 
 builder.Host.UseSerilog();
 

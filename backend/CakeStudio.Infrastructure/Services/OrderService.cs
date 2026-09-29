@@ -56,12 +56,30 @@ namespace CakeStudio.Infrastructure.Services
             var paymentProcessor =
                 _paymentProcessorFactory.GetProcessor(
                     request.PaymentMethod);
+      
 
             await paymentProcessor.ProcessPaymentAsync(order);
 
             await _orderRepository.AddOrderAsync(order);
 
-            await SendOrderConfirmationEmailAsync(order);
+            if (request.PaymentMethod.Equals("cod", StringComparison.OrdinalIgnoreCase))
+            {
+                var cart =
+                    await _cartRepository.GetByUserIdAsync(
+                        currentUser.UserId);
+
+                if (cart != null)
+                {
+                    _context.CartItems.RemoveRange(
+                        cart.CartItems);
+
+                    await _context.SaveChangesAsync();
+                }
+
+                await SendOrderConfirmationEmailAsync(order);
+            }
+
+            //await SendOrderConfirmationEmailAsync(order);
 
             return MapOrder(order);
         }
@@ -103,7 +121,7 @@ namespace CakeStudio.Infrastructure.Services
                     item.Cake.Price * item.Quantity;
             }
 
-            _context.CartItems.RemoveRange(cart.CartItems);
+            //_context.CartItems.RemoveRange(cart.CartItems);
 
             await _context.SaveChangesAsync();
 
@@ -287,7 +305,39 @@ namespace CakeStudio.Infrastructure.Services
             if (order == null)
                 return null;
 
-            return MapOrder(order);
+            var dto = MapOrder(order);
+
+            var payment =
+                await _orderRepository.GetPaymentByOrderIdAsync(orderId);
+
+            var refundedAmount =
+                await _orderRepository
+                    .GetSuccessfulRefundAmountAsync(orderId);
+
+            var refundHistory =
+                await _orderRepository
+                    .GetRefundHistoryAsync(orderId);
+
+            dto.RefundedAmount = refundedAmount;
+
+            dto.RefundableAmount =
+                Math.Max(
+                    0m,
+                    order.TotalAmount - refundedAmount
+                );
+
+            dto.Refunds = refundHistory;
+
+            if (payment != null)
+            {
+                dto.StripePaymentIntentId =
+                    payment.StripePaymentIntentId;
+
+                dto.PaymentDate =
+                    payment.PaidAt;
+            }
+
+            return dto;
         }
 
         public async Task UpdateOrderStatusAsync(UpdateOrderStatusDto request)

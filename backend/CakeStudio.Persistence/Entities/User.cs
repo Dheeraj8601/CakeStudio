@@ -57,6 +57,7 @@ public partial class User
     public virtual Cart? Cart { get; set; }
 
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
+    public virtual ICollection<PaymentRefund> PaymentRefunds { get; set; } = new List<PaymentRefund>();
     public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();

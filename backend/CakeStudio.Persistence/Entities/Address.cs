@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CakeStudio.Persistence.Entities
 {
-
     public partial class Address
     {
         [Key]

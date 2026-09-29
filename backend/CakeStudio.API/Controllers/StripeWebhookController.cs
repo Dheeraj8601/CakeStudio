@@ -11,49 +11,130 @@ namespace CakeStudio.API.Controllers
     {
         private readonly IPaymentService _paymentService;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<StripeWebhookController> _logger;
 
-        public StripeWebhookController(IPaymentService paymentService, IConfiguration configuration)
+        public StripeWebhookController(
+            IPaymentService paymentService,
+            IConfiguration configuration,
+            ILogger<StripeWebhookController> logger)
         {
             _paymentService = paymentService;
             _configuration = configuration;
+            _logger = logger;
         }
 
         [HttpPost]
         public async Task<IActionResult> Webhook()
         {
-            var json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
+            var json =
+                await new StreamReader(
+                    Request.Body)
+                    .ReadToEndAsync();
 
             Event stripeEvent;
 
             try
             {
-                stripeEvent = EventUtility.ConstructEvent(json,Request.Headers["Stripe-Signature"],_configuration["StripeSettings:WebhookSecret"]);
+                var webhookSecret =
+                    _configuration[
+                        "StripeSettings:WebhookSecret"];
+
+                stripeEvent =
+                    EventUtility.ConstructEvent(
+                        json,
+                        Request.Headers[
+                            "Stripe-Signature"],
+                        webhookSecret);
             }
-            catch
+            catch (StripeException ex)
             {
+                _logger.LogWarning(
+                    ex,
+                    "Invalid Stripe webhook signature.");
+
                 return BadRequest();
             }
 
-            switch (stripeEvent.Type)
+            try
             {
-                case EventTypes.CheckoutSessionCompleted:
+                switch (stripeEvent.Type)
+                {
+                    case EventTypes.CheckoutSessionCompleted:
+                        {
+                            var session = stripeEvent.Data.Object as Session;
 
-                    var session = stripeEvent.Data.Object as Session;
+                            if (session != null && session.PaymentStatus == "paid")
+                            {
+                                await _paymentService.PaymentSuccessAsync(stripeEvent.Id,session.Id);
+                            }
 
-                    await _paymentService.PaymentSuccessAsync(session!.Id);
+                            break;
+                        }
 
-                    break;
+                    case EventTypes.PaymentIntentPaymentFailed:
+                        {
+                            var intent = stripeEvent.Data.Object as PaymentIntent;
 
-                case EventTypes.PaymentIntentPaymentFailed:
+                            if (intent != null)
+                            {
+                                await _paymentService.PaymentFailedAsync(stripeEvent.Id, intent.Id, intent.LastPaymentError?.Message);
+                            }
 
-                    var paymentIntent = stripeEvent.Data.Object as PaymentIntent;
+                            break;
+                        }
 
-                    await _paymentService.PaymentFailedAsync( paymentIntent!.Id);
+                    case EventTypes.CheckoutSessionExpired:
+                        {
+                            var session =
+                                stripeEvent.Data.Object
+                                    as Session;
 
-                    break;
+                            if (session != null)
+                            {
+                                await _paymentService
+                                    .CheckoutExpiredAsync(
+                                        stripeEvent.Id,
+                                        session.Id);
+                            }
+
+                            break;
+                        }
+
+                    case EventTypes.RefundUpdated:
+                        {
+                            var refund =
+                                stripeEvent.Data.Object
+                                    as Refund;
+
+                            if (refund != null)
+                            {
+                                await _paymentService
+                                    .ProcessRefundWebhookAsync(
+                                        stripeEvent.Id,
+                                        refund.Id,
+                                        refund.Status);
+                            }
+
+                            break;
+                        }
+                }
+
+                return Ok();
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Stripe webhook processing failed. Event {EventId}",
+                    stripeEvent.Id);
 
-            return Ok();
+                Console.WriteLine("=================================");
+                Console.WriteLine("STRIPE WEBHOOK ERROR");
+                Console.WriteLine(ex.ToString());
+                Console.WriteLine("=================================");
+
+                return StatusCode(500);
+            }
         }
     }
 }

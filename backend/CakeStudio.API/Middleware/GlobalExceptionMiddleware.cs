@@ -17,8 +17,7 @@ namespace CakeStudio.API.Middleware
             _logger = logger;
         }
 
-        public async Task InvokeAsync(
-            HttpContext context)
+        public async Task InvokeAsync(HttpContext context)
         {
             try
             {
@@ -33,9 +32,7 @@ namespace CakeStudio.API.Middleware
             }
         }
 
-        private static async Task HandleExceptionAsync(
-            HttpContext context,
-            Exception exception)
+        private static async Task HandleExceptionAsync(HttpContext context,Exception exception)
         {
             var response = new ErrorResponse
             {

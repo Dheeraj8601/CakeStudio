@@ -17,11 +17,16 @@ namespace CakeStudio.Application.DTOs.Order
 
         public string PaymentStatus { get; set; } = string.Empty;
         public string PaymentMethod { get; set; } = string.Empty;
+        public decimal RefundedAmount { get; set; }
 
+        public decimal RefundableAmount { get; set; }
         public string? EstimatedDelivery { get; set; }
+        public string? StripePaymentIntentId { get; set; }
+
+        public DateTime? PaymentDate { get; set; }
         public AddressResponseDto? ShippingAddress { get; set; }
         public DateTime CreatedAt { get; set; }
-
+        public List<RefundHistoryDto> Refunds { get; set; } = new();
         public List<OrderItemDto> Items { get; set; }
             = new();
     }

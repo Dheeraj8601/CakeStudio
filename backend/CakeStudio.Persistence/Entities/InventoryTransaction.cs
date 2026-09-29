@@ -21,7 +21,7 @@ public partial class InventoryTransaction
     [StringLength(500)]
     public string? Remarks { get; set; }
 
-    public int CreatedBy { get; set; }
+    public int? CreatedBy { get; set; }
 
     public DateTime CreatedAt { get; set; }
 

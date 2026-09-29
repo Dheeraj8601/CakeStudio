@@ -1,29 +1,62 @@
-import { Box, Grid } from "@mui/material";
-import Breadcrumb from "../common/Breadcrumb/Breadcrumb"
-import { useNavigate } from "react-router-dom";
+import {
+    Box,
+    Grid
+} from "@mui/material";
+
+import Breadcrumb from "../common/Breadcrumb/Breadcrumb";
+
+import {
+    useNavigate,
+    useSearchParams
+} from "react-router-dom";
+
 import { toast } from "react-toastify";
-// import ShippingForm from "../common/Checkout/ShippingForm";
-// import PaymentMethods from "../common/Checkout/PaymentMethods";
-// import OrderSummary from "../common/Checkout/OrderSummary";
 
 import "./checkout.css";
-import { useState, useEffect } from "react";
-import ShippingForm from "./ShippingForm";
+
+import {
+    useState,
+    useEffect
+} from "react";
+
 import PaymentMethods from "./PaymentMethods";
 import OrderSummary from "./OrderSummary";
-import SessionManage from "../../Session/SessionManage"
 import ShippingAddressSection from "./ShippingAddressSection";
+
+import SessionManage from "../../Session/SessionManage";
 import Service from "../../services/Service";
 import useCart from "../../hooks/useCart";
+
 export default function CheckoutComponent() {
+
     const navigate = useNavigate();
-    const [selectedAddressId, setSelectedAddressId] = useState(null);
 
-    const { cart, clearCart } = useCart();
+    const [searchParams] =
+        useSearchParams();
 
-    const [addresses, setAddresses] = useState([]);
+    // Existing order that needs another Stripe attempt
+    const retryOrderId =
+        searchParams.get("retryOrderId");
 
-    const [shipping, setShipping] = useState({
+    const {
+        cart,
+        clearCart
+    } = useCart();
+
+    const [
+        selectedAddressId,
+        setSelectedAddressId
+    ] = useState(null);
+
+    const [
+        addresses,
+        setAddresses
+    ] = useState([]);
+
+    const [
+        shipping,
+        setShipping
+    ] = useState({
         fullName: "",
         mobile: "",
         email: "",
@@ -34,122 +67,408 @@ export default function CheckoutComponent() {
         pincode: "",
         saveAddress: true
     });
-    const [paymentMethod, setPaymentMethod] = useState("cod");
+
+    const [
+        errors,
+        setErrors
+    ] = useState({});
+
+    const [
+        paymentMethod,
+        setPaymentMethod
+    ] = useState("cod");
+
+    const [
+        processing,
+        setProcessing
+    ] = useState(false);
+
+    // --------------------------------------------
+    // LOAD ADDRESSES
+    // --------------------------------------------
 
     useEffect(() => {
 
         if (SessionManage.getTokenId()) {
-
             loadAddresses();
-
         }
 
     }, []);
 
-    const loadAddresses = async () => {
+    // --------------------------------------------
+    // RETRY MODE
+    // --------------------------------------------
 
-        const response =
-            await Service.getMyAddresses();
-        console.log(response, "19-5")
-        setAddresses(response.data);
+    useEffect(() => {
 
-        const defaultAddress =
-            response.data.find(x => x.isDefault);
+        if (retryOrderId) {
 
-        if (defaultAddress) {
-
-            setSelectedAddressId(
-                defaultAddress.addressId
-            );
-
+            // A retry is specifically for the existing
+            // Stripe card order.
+            setPaymentMethod("card");
         }
 
+    }, [retryOrderId]);
+
+    // --------------------------------------------
+    // LOAD SAVED ADDRESSES
+    // --------------------------------------------
+
+    const loadAddresses = async () => {
+
+        try {
+
+            const response =
+                await Service.getMyAddresses();
+
+            setAddresses(
+                response.data
+            );
+
+            const defaultAddress =
+                response.data.find(
+                    x => x.isDefault
+                );
+
+            if (defaultAddress) {
+
+                setSelectedAddressId(
+                    defaultAddress.addressId
+                );
+            }
+
+        }
+        catch (error) {
+
+            console.error(
+                "Unable to load addresses:",
+                error
+            );
+        }
     };
+
+    // --------------------------------------------
+    // VALIDATE SHIPPING
+    // --------------------------------------------
+
+    const validateShipping = () => {
+
+        // Logged-in customer
+
+        if (SessionManage.getTokenId()) {
+
+            if (!selectedAddressId) {
+
+                toast.error(
+                    "Please select a delivery address."
+                );
+
+                return false;
+            }
+
+            return true;
+        }
+
+        // Guest checkout
+
+        const newErrors = {};
+
+        if (!shipping.fullName?.trim()) {
+
+            newErrors.fullName =
+                "Full name is required";
+        }
+
+        if (!shipping.mobile?.trim()) {
+
+            newErrors.mobile =
+                "Mobile number is required";
+        }
+        else if (
+            !/^[6-9]\d{9}$/.test(
+                shipping.mobile.trim()
+            )
+        ) {
+
+            newErrors.mobile =
+                "Enter a valid 10-digit mobile number";
+        }
+
+        if (
+            shipping.email?.trim() &&
+            !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+                shipping.email.trim()
+            )
+        ) {
+
+            newErrors.email =
+                "Enter a valid email address";
+        }
+
+        if (!shipping.address?.trim()) {
+
+            newErrors.address =
+                "Address is required";
+        }
+
+        if (!shipping.city?.trim()) {
+
+            newErrors.city =
+                "City is required";
+        }
+
+        if (!shipping.state?.trim()) {
+
+            newErrors.state =
+                "State is required";
+        }
+
+        if (!shipping.pincode?.trim()) {
+
+            newErrors.pincode =
+                "Pincode is required";
+        }
+        else if (
+            !/^\d{6}$/.test(
+                shipping.pincode.trim()
+            )
+        ) {
+
+            newErrors.pincode =
+                "Enter a valid 6-digit pincode";
+        }
+
+        setErrors(newErrors);
+
+        return (
+            Object.keys(newErrors).length === 0
+        );
+    };
+
+    // --------------------------------------------
+    // START STRIPE PAYMENT
+    // --------------------------------------------
+
+    const startStripePayment =
+        async (orderId) => {
+
+            const paymentResponse =
+                await Service.createPaymentSession(
+                    orderId
+                );
+
+            const checkoutUrl =
+                paymentResponse.data.checkoutUrl;
+
+            if (!checkoutUrl) {
+
+                throw new Error(
+                    "Unable to start payment."
+                );
+            }
+
+            // Redirect to Stripe Checkout
+
+            window.location.href =
+                checkoutUrl;
+        };
+
+    // --------------------------------------------
+    // CHECKOUT
+    // --------------------------------------------
 
     const handleCheckout = async () => {
 
+        if (processing) {
+            return;
+        }
+
         try {
+
+            setProcessing(true);
+
+            // ====================================
+            // RETRY EXISTING STRIPE ORDER
+            // ====================================
+
+            if (retryOrderId) {
+
+                const parsedOrderId =
+                    Number(retryOrderId);
+
+                if (
+                    !Number.isInteger(
+                        parsedOrderId
+                    ) ||
+                    parsedOrderId <= 0
+                ) {
+
+                    toast.error(
+                        "Invalid order reference."
+                    );
+
+                    return;
+                }
+
+                await startStripePayment(
+                    parsedOrderId
+                );
+
+                return;
+            }
+
+            // ====================================
+            // NORMAL CHECKOUT
+            // ====================================
+
+            if (!validateShipping()) {
+                return;
+            }
 
             let order;
 
-            if (SessionManage.getTokenId()) {
+            // ====================================
+            // LOGGED-IN CUSTOMER
+            // ====================================
+
+            if (
+                SessionManage.getTokenId()
+            ) {
 
                 order = {
-                    addressId: selectedAddressId,
+
+                    addressId:
+                        selectedAddressId,
+
                     paymentMethod
                 };
-
-            } else {
-                order = {
-                    guestAddress: {
-
-                        fullName: shipping.fullName,
-
-                        mobile: shipping.mobile,
-
-                        email: shipping.email,
-
-                        addressLine1: shipping.address,
-
-                        addressLine2: shipping.landmark,
-
-                        city: shipping.city,
-
-                        state: shipping.state,
-
-                        postalCode: shipping.pincode,
-
-                        country: "India"
-
-                    },
-                    items: cart.map(x => ({
-                        cakeId: x.productId,
-                        quantity: x.quantity
-                    })),
-                    paymentMethod
-                };
-
             }
 
-            const response = await Service.checkout(order);
+            // ====================================
+            // GUEST CUSTOMER
+            // ====================================
 
-            toast.success("Order placed successfully.");
+            else {
 
-            clearCart()
+                order = {
 
-            navigate(
-                `/ordersuccess/${response.data.orderId}`
+                    guestAddress: {
+
+                        fullName:
+                            shipping.fullName,
+
+                        mobile:
+                            shipping.mobile,
+
+                        email:
+                            shipping.email,
+
+                        addressLine1:
+                            shipping.address,
+
+                        addressLine2:
+                            shipping.landmark,
+
+                        city:
+                            shipping.city,
+
+                        state:
+                            shipping.state,
+
+                        postalCode:
+                            shipping.pincode,
+
+                        country:
+                            "India"
+                    },
+
+                    items: cart.map(
+                        x => ({
+                            cakeId:
+                                x.productId,
+
+                            quantity:
+                                x.quantity
+                        })
+                    ),
+
+                    paymentMethod
+                };
+            }
+
+            // ====================================
+            // CREATE ORDER
+            // ====================================
+
+            const response =
+                await Service.checkout(
+                    order
+                );
+
+            const orderId =
+                response.data.orderId;
+
+            // ====================================
+            // CASH ON DELIVERY
+            // ====================================
+
+            if (
+                paymentMethod === "cod"
+            ) {
+
+                toast.success(
+                    "Order placed successfully."
+                );
+
+                clearCart();
+
+                navigate(
+                    `/ordersuccess/${orderId}`
+                );
+
+                return;
+            }
+
+            // ====================================
+            // STRIPE CARD PAYMENT
+            // ====================================
+
+            if (
+                paymentMethod === "card"
+            ) {
+
+                await startStripePayment(
+                    orderId
+                );
+
+                return;
+            }
+
+        }
+        catch (error) {
+
+            console.error(
+                "Checkout failed:",
+                error
             );
 
+            toast.error(
+                error.response?.data?.message ||
+                error.response?.data?.Message ||
+                error.message ||
+                "Unable to process checkout."
+            );
         }
-        catch (error) {
+        finally {
 
-            console.error(error);
-
-            toast.error("Unable to place order.");
-
+            setProcessing(false);
         }
-
     };
 
-    const handleCancel = async (orderId) => {
+    // --------------------------------------------
+    // UI
+    // --------------------------------------------
 
-        try {
-
-            await Service.cancelOrder(orderId);
-
-            toast.success("Order cancelled successfully.");
-
-            loadOrders();
-
-        }
-        catch (error) {
-
-            toast.error(error.response?.data?.message);
-
-        }
-
-    };
     return (
 
         <Box className="checkout-page">
@@ -165,17 +484,73 @@ export default function CheckoutComponent() {
                         path: "/cart"
                     },
                     {
-                        label: "Checkout"
+                        label: retryOrderId
+                            ? "Retry Payment"
+                            : "Checkout"
                     }
                 ]}
             />
+
+            {/* RETRY PAYMENT INFORMATION */}
+
+            {retryOrderId && (
+
+                <div
+                    style={{
+                        backgroundColor:
+                            "#fff8e1",
+
+                        border:
+                            "1px solid #ffe082",
+
+                        borderRadius:
+                            "8px",
+
+                        padding:
+                            "14px 18px",
+
+                        marginBottom:
+                            "24px"
+                    }}
+                >
+
+                    <div
+                        style={{
+                            fontWeight:
+                                "600",
+
+                            marginBottom:
+                                "4px"
+                        }}
+                    >
+                        Retry Payment
+                    </div>
+
+                    <div
+                        style={{
+                            fontSize:
+                                "14px",
+
+                            color:
+                                "#6c757d"
+                        }}
+                    >
+                        You are retrying
+                        payment for Order #
+                        {retryOrderId}.
+                        A new order will not
+                        be created.
+                    </div>
+
+                </div>
+            )}
 
             <Grid
                 container
                 spacing={4}
             >
 
-                {/* Left */}
+                {/* LEFT */}
 
                 <Grid
                     size={{
@@ -183,35 +558,52 @@ export default function CheckoutComponent() {
                         md: 7
                     }}
                 >
+
                     <ShippingAddressSection
 
-                        addresses={addresses}
+                        addresses={
+                            addresses
+                        }
 
-                        selectedAddressId={selectedAddressId}
+                        selectedAddressId={
+                            selectedAddressId
+                        }
 
-                        setSelectedAddressId={setSelectedAddressId}
+                        setSelectedAddressId={
+                            setSelectedAddressId
+                        }
 
-                        shipping={shipping}
+                        shipping={
+                            shipping
+                        }
 
-                        setShipping={setShipping}
+                        setShipping={
+                            setShipping
+                        }
 
-                        onReload={loadAddresses}
+                        errors={
+                            errors
+                        }
 
+                        onReload={
+                            loadAddresses
+                        }
                     />
 
-                    {/* <ShippingForm
-                        shipping={shipping}
-                        setShipping={setShipping}
-                    /> */}
-
                     <PaymentMethods
-                        paymentMethod={paymentMethod}
-                        setPaymentMethod={setPaymentMethod}
+
+                        paymentMethod={
+                            paymentMethod
+                        }
+
+                        setPaymentMethod={
+                            setPaymentMethod
+                        }
                     />
 
                 </Grid>
 
-                {/* Right */}
+                {/* RIGHT */}
 
                 <Grid
                     size={{
@@ -221,8 +613,18 @@ export default function CheckoutComponent() {
                 >
 
                     <OrderSummary
-                        paymentMethod={paymentMethod}
-                        onCheckout={handleCheckout}
+
+                        paymentMethod={
+                            paymentMethod
+                        }
+
+                        onCheckout={
+                            handleCheckout
+                        }
+
+                        processing={
+                            processing
+                        }
                     />
 
                 </Grid>
@@ -230,7 +632,5 @@ export default function CheckoutComponent() {
             </Grid>
 
         </Box>
-
     );
-
 }

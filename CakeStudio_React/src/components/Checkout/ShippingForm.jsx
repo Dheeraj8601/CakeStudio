@@ -10,27 +10,14 @@ import {
     Typography
 } from "@mui/material";
 
-import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
-import { useState } from "react";
+import LocalShippingOutlinedIcon
+    from "@mui/icons-material/LocalShippingOutlined";
 
 const ShippingForm = ({
-
     shipping,
-
-    setShipping
-
+    setShipping,
+    errors = {}
 }) => {
-    // const [shipping, setShipping] = useState({
-    //     fullName: "",
-    //     mobile: "",
-    //     email: "",
-    //     address: "",
-    //     landmark: "",
-    //     city: "",
-    //     state: "",
-    //     pincode: "",
-    //     saveAddress: true
-    // });
 
     const handleChange = (e) => {
 
@@ -40,12 +27,9 @@ const ShippingForm = ({
             ...prev,
             [name]: type === "checkbox" ? checked : value
         }));
-
     };
 
-
     return (
-
         <Card
             sx={{
                 borderRadius: 4,
@@ -53,7 +37,6 @@ const ShippingForm = ({
                 boxShadow: "none"
             }}
         >
-
             <CardContent sx={{ p: 4 }}>
 
                 <Box
@@ -64,22 +47,16 @@ const ShippingForm = ({
                         mb: 3
                     }}
                 >
-
                     <LocalShippingOutlinedIcon
-                        sx={{
-                            color: "#ff5b84"
-                        }}
+                        sx={{ color: "#ff5b84" }}
                     />
 
                     <Typography
                         variant="h6"
                         fontWeight={700}
                     >
-
                         Shipping Details
-
                     </Typography>
-
                 </Box>
 
                 <Typography
@@ -89,18 +66,14 @@ const ShippingForm = ({
                         fontSize: 14
                     }}
                 >
-
                     Please provide your delivery information.
-
                 </Typography>
 
-                <Grid
-                    container
-                    spacing={3}
-                >
+                <Grid container spacing={3}>
+
+                    {/* Full Name */}
 
                     <Grid size={{ xs: 12 }}>
-
                         <TextField
                             fullWidth
                             label="Full Name"
@@ -108,12 +81,14 @@ const ShippingForm = ({
                             value={shipping.fullName}
                             onChange={handleChange}
                             required
+                            error={!!errors.fullName}
+                            helperText={errors.fullName}
                         />
-
                     </Grid>
 
-                    <Grid size={{ xs: 12, md: 6 }}>
+                    {/* Mobile */}
 
+                    <Grid size={{ xs: 12, md: 6 }}>
                         <TextField
                             fullWidth
                             label="Mobile Number"
@@ -121,24 +96,28 @@ const ShippingForm = ({
                             value={shipping.mobile}
                             onChange={handleChange}
                             required
+                            error={!!errors.mobile}
+                            helperText={errors.mobile}
                         />
-
                     </Grid>
 
-                    <Grid size={{ xs: 12, md: 6 }}>
+                    {/* Email */}
 
+                    <Grid size={{ xs: 12, md: 6 }}>
                         <TextField
                             fullWidth
                             label="Email"
                             name="email"
                             value={shipping.email}
                             onChange={handleChange}
+                            error={!!errors.email}
+                            helperText={errors.email}
                         />
-
                     </Grid>
 
-                    <Grid size={{ xs: 12 }}>
+                    {/* Address */}
 
+                    <Grid size={{ xs: 12 }}>
                         <TextField
                             fullWidth
                             multiline
@@ -148,13 +127,14 @@ const ShippingForm = ({
                             value={shipping.address}
                             onChange={handleChange}
                             required
+                            error={!!errors.address}
+                            helperText={errors.address}
                         />
-
-
                     </Grid>
 
-                    <Grid size={{ xs: 12 }}>
+                    {/* Landmark */}
 
+                    <Grid size={{ xs: 12 }}>
                         <TextField
                             fullWidth
                             label="Landmark (Optional)"
@@ -162,11 +142,11 @@ const ShippingForm = ({
                             value={shipping.landmark}
                             onChange={handleChange}
                         />
-
                     </Grid>
 
-                    <Grid size={{ xs: 12, md: 4 }}>
+                    {/* City */}
 
+                    <Grid size={{ xs: 12, md: 4 }}>
                         <TextField
                             fullWidth
                             label="City"
@@ -174,12 +154,14 @@ const ShippingForm = ({
                             value={shipping.city}
                             onChange={handleChange}
                             required
+                            error={!!errors.city}
+                            helperText={errors.city}
                         />
-
                     </Grid>
 
-                    <Grid size={{ xs: 12, md: 4 }}>
+                    {/* State */}
 
+                    <Grid size={{ xs: 12, md: 4 }}>
                         <TextField
                             select
                             fullWidth
@@ -188,38 +170,30 @@ const ShippingForm = ({
                             value={shipping.state}
                             onChange={handleChange}
                             required
+                            error={!!errors.state}
+                            helperText={errors.state}
                         >
-
                             <MenuItem value="KA">
-
                                 Karnataka
-
                             </MenuItem>
 
                             <MenuItem value="AP">
-
                                 Andhra Pradesh
-
                             </MenuItem>
 
                             <MenuItem value="TN">
-
                                 Tamil Nadu
-
                             </MenuItem>
 
                             <MenuItem value="TS">
-
                                 Telangana
-
                             </MenuItem>
-
                         </TextField>
-
                     </Grid>
 
-                    <Grid size={{ xs: 12, md: 4 }}>
+                    {/* Pincode */}
 
+                    <Grid size={{ xs: 12, md: 4 }}>
                         <TextField
                             fullWidth
                             label="Pincode"
@@ -227,16 +201,17 @@ const ShippingForm = ({
                             value={shipping.pincode}
                             onChange={handleChange}
                             required
+                            error={!!errors.pincode}
+                            helperText={errors.pincode}
                         />
-
                     </Grid>
 
-                    <Grid size={{ xs: 12 }}>
+                    {/* Save Address */}
 
+                    <Grid size={{ xs: 12 }}>
                         <FormControlLabel
                             control={
                                 <Checkbox
-                                    defaultChecked
                                     name="saveAddress"
                                     checked={shipping.saveAddress}
                                     onChange={handleChange}
@@ -250,17 +225,13 @@ const ShippingForm = ({
                             }
                             label="Save this address for future orders"
                         />
-
                     </Grid>
 
                 </Grid>
 
             </CardContent>
-
         </Card>
-
     );
-
 };
 
 export default ShippingForm;
