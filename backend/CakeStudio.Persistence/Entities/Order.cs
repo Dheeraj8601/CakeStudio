@@ -41,6 +41,7 @@ public partial class Order
 
     [InverseProperty("Order")]
     public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+    public virtual Payment? Payment { get; set; }
 
     [ForeignKey("UserId")]
     public virtual User? User { get; set; }

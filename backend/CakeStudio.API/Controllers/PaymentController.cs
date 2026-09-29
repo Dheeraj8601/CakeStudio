@@ -2,10 +2,10 @@
 using CakeStudio.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace CakeStudio.API.Controllers
 {
-    [Authorize(Roles = "Customer")]
     [ApiController]
     [Route("api/payment")]
     public class PaymentController : ControllerBase
@@ -18,10 +18,99 @@ namespace CakeStudio.API.Controllers
             _paymentService = paymentService;
         }
 
+        [AllowAnonymous]
         [HttpPost("create-session")]
         public async Task<IActionResult> CreateSession(CreatePaymentRequestDto request)
         {
-            var result = await _paymentService.CreateSessionAsync(request.OrderId);
+            
+
+            var result =
+                await _paymentService.CreateSessionAsync(request.OrderId);
+
+            return Ok(result);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("order/{orderId:int}/refund")]
+        public async Task<IActionResult> RefundPayment(int orderId,[FromBody] RefundPaymentRequestDto request)
+        {
+            var userIdValue =
+                User.FindFirstValue(
+                    ClaimTypes.NameIdentifier);
+
+            if (!int.TryParse(
+                    userIdValue,
+                    out var adminUserId))
+            {
+                return Unauthorized(
+                    new
+                    {
+                        Message =
+                            "Unable to identify the authenticated admin."
+                    });
+            }
+
+            await _paymentService.RefundAsync(orderId,request.Amount,adminUserId,request.Reason);
+
+            return Ok(
+                new
+                {
+                    Message =
+                        "Refund request submitted successfully."
+                });
+        }
+
+        [Authorize(Roles = "Customer,Admin")]
+        [HttpGet("order/{orderId:int}")]
+        public async Task<IActionResult> GetPaymentByOrder(int orderId)
+        {
+            var userIdValue =
+                User.FindFirstValue(
+                    ClaimTypes.NameIdentifier);
+
+            if (!int.TryParse(
+                    userIdValue,
+                    out var userId))
+            {
+                return Unauthorized(
+                    new
+                    {
+                        Message =
+                            "Unable to identify the authenticated user."
+                    });
+            }
+
+            var isAdmin =
+                User.IsInRole("Admin");
+
+            var payment =
+                await _paymentService
+                    .GetPaymentByOrderAsync(
+                        orderId,
+                        userId,
+                        isAdmin);
+
+            if (payment == null)
+            {
+                return NotFound(
+                    new
+                    {
+                        Message =
+                            "Payment information not found."
+                    });
+            }
+
+            return Ok(payment);
+        }
+
+        [AllowAnonymous]
+        [HttpPost("verify")]
+        public async Task<IActionResult> VerifyPayment([FromBody] VerifyPaymentRequestDto request)
+        {
+            var result =
+                await _paymentService.VerifyPaymentAsync(
+                    request.OrderId,
+                    request.SessionId);
 
             return Ok(result);
         }

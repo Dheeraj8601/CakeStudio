@@ -82,10 +82,9 @@ export default function OrderDetails(props) {
                 <Grid size={{ xs: 12, md: 6 }}>
 
                     <PaymentInformationCard
-
-                        order={order}
-
-                    />
+    order={order}
+    onRefundSuccess={loadOrder}
+/>
 
                 </Grid>
 

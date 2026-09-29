@@ -39,6 +39,15 @@ namespace CakeStudio.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<decimal> GetSuccessfulRefundAmountAsync(int orderId)
+        {
+            return await _context.PaymentRefunds
+                .Where(x =>
+                    x.Payment.OrderId == orderId &&
+                    x.RefundStatus == "Succeeded")
+                .SumAsync(x => (decimal?)x.Amount)
+                ?? 0m;
+        }
         public async Task<Order?> GetOrderByIdAsync(int orderId)
         {
             return await _context.Orders
@@ -52,6 +61,30 @@ namespace CakeStudio.Infrastructure.Repositories
         {
             return await _context.Orders
                 .Include(x => x.User)
+                .ToListAsync();
+        }
+
+        public async Task<Payment?> GetPaymentByOrderIdAsync(int orderId)
+        {
+            return await _context.Payments
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.OrderId == orderId);
+        }
+
+        public async Task<List<RefundHistoryDto>> GetRefundHistoryAsync(int orderId)
+        {
+            return await _context.PaymentRefunds
+                .Where(x => x.Payment.OrderId == orderId)
+                .OrderByDescending(x => x.RequestedAt)
+                .Select(x => new RefundHistoryDto
+                {
+                    Amount = x.Amount,
+                    Status = x.RefundStatus,
+                    StripeRefundId = x.StripeRefundId,
+                    RefundReason = x.RefundReason,
+                    RequestedAt = x.RequestedAt,
+                    RefundedAt = x.RefundedAt
+                })
                 .ToListAsync();
         }
 

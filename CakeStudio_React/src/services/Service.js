@@ -1,406 +1,504 @@
 import SessionManage from "../Session/SessionManage";
 import qs from "qs";
-import axios from 'axios';
+import axios from "axios";
 
 const CS_API_BASE_URL = window.appConfig.CS_API_BASE_URL;
 const CS_BASE_URL = window.appConfig.CS_BASE_URL;
 
 const api = axios.create({
-    baseURL: CS_API_BASE_URL,
+  baseURL: CS_API_BASE_URL,
 });
 
 api.interceptors.request.use((config) => {
+  if (!config.headers.skipAuth) {
+    const token = SessionManage.getTokenId();
+    const userId = SessionManage.getUserId();
 
-    if (!config.headers.skipAuth) {
-
-        const token = SessionManage.getTokenId();
-        const userId = SessionManage.getUserId();
-
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-
-        if (userId) {
-            config.headers.loggedInUser = userId;
-        }
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
 
-    if (config.headers?.skipAuth) {
-        delete config.headers.skipAuth;
+    if (userId) {
+      config.headers.loggedInUser = userId;
     }
+  }
 
-    return config;
+  if (config.headers?.skipAuth) {
+    delete config.headers.skipAuth;
+  }
+
+  return config;
 });
 
-
 api.interceptors.response.use(
+  (response) => response,
 
-    (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
 
-    async (error) => {
-
-        const originalRequest = error.config;
-        if (!originalRequest) {
-            return Promise.reject(error);
-        }
-        if (
-            error.response?.status === 401 &&
-            !originalRequest._retry &&
-            !originalRequest.url.includes("Auth/login") &&
-            !originalRequest.url.includes("Auth/refresh-token")
-        ) {
-
-            originalRequest._retry = true;
-
-            try {
-
-                const refreshToken = SessionManage.getRefreshToken();
-                console.log(refreshToken, "refreshToken")
-                //alert(refreshToken)
-                const response = await axios.post(
-                    CS_API_BASE_URL + "Auth/refresh-token",
-                    {
-                        refreshToken: refreshToken
-                    }
-                );
-
-                const newAccessToken = response.data.accessToken;
-                const newRefreshToken = response.data.refreshToken;
-
-                SessionManage.setTokenId(newAccessToken);
-                SessionManage.setRefreshToken(newRefreshToken);
-
-                originalRequest.headers.Authorization =
-                    `Bearer ${newAccessToken}`;
-
-                return api(originalRequest);
-
-            }
-            catch (err) {
-
-                SessionManage.clearSession();
-
-                window.location.href = "/login";
-
-                return Promise.reject(err);
-            }
-        }
-
-        return Promise.reject(error);
+    if (!originalRequest) {
+      return Promise.reject(error);
     }
+
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest.url.includes("Auth/login") &&
+      !originalRequest.url.includes("Auth/refresh-token")
+    ) {
+      const refreshToken = SessionManage.getRefreshToken();
+
+      /*
+       * Guest user:
+       *
+       * A guest has no refresh token.
+       * Therefore don't attempt token refresh
+       * and DON'T redirect to /login.
+       */
+      if (!refreshToken) {
+        return Promise.reject(error);
+      }
+
+      /*
+       * Logged-in user:
+       *
+       * They have a refresh token, so their
+       * access token may simply have expired.
+       */
+      originalRequest._retry = true;
+
+      try {
+        const response = await axios.post(
+          CS_API_BASE_URL + "Auth/refresh-token",
+          {
+            refreshToken: refreshToken,
+          },
+        );
+
+        const newAccessToken = response.data.accessToken;
+
+        const newRefreshToken = response.data.refreshToken;
+
+        SessionManage.setTokenId(newAccessToken);
+
+        SessionManage.setRefreshToken(newRefreshToken);
+
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+
+        return api(originalRequest);
+      } catch (err) {
+        /*
+         * This WAS a logged-in user,
+         * but their refresh token is no
+         * longer valid.
+         */
+        SessionManage.clearSession();
+
+        window.location.href = "/login";
+
+        return Promise.reject(err);
+      }
+    }
+
+    return Promise.reject(error);
+  },
 );
 
+// api.interceptors.response.use(
+
+//     (response) => response,
+
+//     async (error) => {
+
+//         const originalRequest = error.config;
+//         if (!originalRequest) {
+//             return Promise.reject(error);
+//         }
+//         if (
+//             error.response?.status === 401 &&
+//             !originalRequest._retry &&
+//             !originalRequest.url.includes("Auth/login") &&
+//             !originalRequest.url.includes("Auth/refresh-token")
+//         ) {
+
+//             originalRequest._retry = true;
+
+//             try {
+
+//                 const refreshToken = SessionManage.getRefreshToken();
+//                 console.log(refreshToken, "refreshToken")
+//                 //alert(refreshToken)
+//                 const response = await axios.post(
+//                     CS_API_BASE_URL + "Auth/refresh-token",
+//                     {
+//                         refreshToken: refreshToken
+//                     }
+//                 );
+
+//                 const newAccessToken = response.data.accessToken;
+//                 const newRefreshToken = response.data.refreshToken;
+
+//                 SessionManage.setTokenId(newAccessToken);
+//                 SessionManage.setRefreshToken(newRefreshToken);
+
+//                 originalRequest.headers.Authorization =
+//                     `Bearer ${newAccessToken}`;
+
+//                 return api(originalRequest);
+
+//             }
+//             catch (err) {
+
+//                 SessionManage.clearSession();
+
+//                 window.location.href = "/login";
+
+//                 return Promise.reject(err);
+//             }
+//         }
+
+//         return Promise.reject(error);
+//     }
+// );
+
 class Service {
-    login(method, value) {
-        return api.post(method, value, {
-            headers: {
-                skipAuth: true
-            }
-        });
-    }
+  login(method, value) {
+    return api.post(method, value, {
+      headers: {
+        skipAuth: true,
+      },
+    });
+  }
 
-    register(method, value) {
-        return api.post(method, value, {
-            headers: {
-                skipAuth: true
-            }
-        })
-    }
+  register(method, value) {
+    return api.post(method, value, {
+      headers: {
+        skipAuth: true,
+      },
+    });
+  }
 
-    // ---------------- Category ----------------
+  // ---------------- Category ----------------
 
-    getAllCategories() {
-        return api.get("/Category/all");
-    }
+  getAllCategories() {
+    return api.get("/Category/all");
+  }
 
-    getCategoryById(id) {
-        return api.get(`/Category/${id}`);
-    }
+  getCategoryById(id) {
+    return api.get(`/Category/${id}`);
+  }
 
-    getCategories(params) {
-        return api.get("/Category", {
-            params
-        });
-    }
+  getCategories(params) {
+    return api.get("/Category", {
+      params,
+    });
+  }
 
-    createCategory(formData) {
-        return api.post("/Category/CreateCategory", formData, {
-            headers: {
-                "Content-Type": "multipart/form-data"
-            }
-        });
-    }
+  createCategory(formData) {
+    return api.post("/Category/CreateCategory", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  }
 
-    updateCategory(formData) {
-        return api.put("/Category", formData, {
-            headers: {
-                "Content-Type": "multipart/form-data"
-            }
-        });
-    }
+  updateCategory(formData) {
+    return api.put("/Category", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  }
 
-    deleteCategory(id) {
-        return api.delete(`/Category/${id}`);
-    }
+  deleteCategory(id) {
+    return api.delete(`/Category/${id}`);
+  }
 
-    getCategoriesWithFilters(params) {
-        return api.get("/Category/getCategories", {
-            params
-        });
-    }
+  getCategoriesWithFilters(params) {
+    return api.get("/Category/getCategories", {
+      params,
+    });
+  }
 
+  //------- User ------
 
-    //------- User ------
+  getUsers(params) {
+    return api.get("/users/getUsers", {
+      params,
+    });
+  }
 
-    getUsers(params) {
-        return api.get("/users/getUsers", {
-            params
-        });
-    }
+  getAllUsers() {
+    return api.get("/users/all");
+  }
 
-    getAllUsers() {
-        return api.get("/users/all");
-    }
+  getUserById(id) {
+    return api.get(`/users/${id}`);
+  }
 
-    getUserById(id) {
-        return api.get(`/users/${id}`);
-    }
+  toggleUserStatus(id) {
+    return api.patch(`/users/${id}/toggle-status`);
+  }
 
-    toggleUserStatus(id) {
-        return api.patch(`/users/${id}/toggle-status`);
-    }
+  deleteUser(id) {
+    return api.delete(`/users/${id}`);
+  }
 
-    deleteUser(id) {
-        return api.delete(`/users/${id}`);
-    }
+  updateUser(data) {
+    return api.put("/users", data);
+  }
 
-    updateUser(data) {
-        return api.put("/users", data);
-    }
+  changePassword(data) {
+    return api.put("/users/change-password", data);
+  }
 
-    changePassword(data) {
-        return api.put("/users/change-password", data);
-    }
+  //----- Cake---------
+  getCakes(params) {
+    return api.get("/Cake/getCakes", {
+      params,
+    });
+  }
 
-    //----- Cake---------
-    getCakes(params) {
-        return api.get("/Cake/getCakes", {
-            params
-        });
-    }
+  getAllCakes() {
+    return api.get("/Cake/all");
+  }
 
-    getAllCakes() {
-        return api.get("/Cake/all");
-    }
+  getCakeById(id) {
+    return api.get(`/Cake/${id}`);
+  }
 
-    getCakeById(id) {
-        return api.get(`/Cake/${id}`);
-    }
+  createCake(formData) {
+    return api.post("/Cake/createCake", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  }
 
-    createCake(formData) {
-        return api.post("/Cake/createCake", formData, {
-            headers: {
-                "Content-Type": "multipart/form-data"
-            }
-        });
-    }
+  updateCake(formData) {
+    return api.put("/Cake/updateCake", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  }
 
-    updateCake(formData) {
-        return api.put("/Cake/updateCake", formData, {
-            headers: {
-                "Content-Type": "multipart/form-data"
-            }
-        });
-    }
+  deleteCake(id) {
+    return api.delete(`/Cake/${id}`);
+  }
 
-    deleteCake(id) {
-        return api.delete(`/Cake/${id}`);
-    }
+  //------ cake catalog ----
+  getCakeCatalog(params) {
+    return api.get("/cake-catalog", {
+      params,
+      paramsSerializer: {
+        serialize: (params) =>
+          qs.stringify(params, {
+            arrayFormat: "repeat",
+          }),
+      },
+    });
+  }
 
-    //------ cake catalog ----
-    getCakeCatalog(params) {
-        return api.get("/cake-catalog", {
-            params,
-            paramsSerializer: {
-                serialize: (params) =>
-                    qs.stringify(params, {
-                        arrayFormat: "repeat"
-                    })
-            }
-        });
-    }
+  getCakeDetails(id) {
+    return api.get(`/cake-catalog/${id}`);
+  }
 
-    getCakeDetails(id) {
-        return api.get(`/cake-catalog/${id}`);
-    }
+  getCartItems(productIds) {
+    return api.post("/cake-catalog/cart-items", {
+      productIds,
+    });
+  }
 
-    getCartItems(productIds) {
-        return api.post("/cake-catalog/cart-items", {
-            productIds
-        });
-    }
+  //------ Cart ----
+  addToCart(data) {
+    return api.post("/cart/add", data);
+  }
 
-    //------ Cart ----
-    addToCart(data) {
-        return api.post("/cart/add", data);
-    }
+  updateCartQuantity(data) {
+    return api.put("/cart/quantity", data);
+  }
 
-    updateCartQuantity(data) {
-        return api.put("/cart/quantity", data);
-    }
+  removeCartItem(cartItemId) {
+    return api.delete(`/cart/${cartItemId}`);
+  }
 
-    removeCartItem(cartItemId) {
-        return api.delete(`/cart/${cartItemId}`);
-    }
+  getMyCart() {
+    return api.get("/cart");
+  }
 
-    getMyCart() {
-        return api.get("/cart");
-    }
+  //------ Addresses ------
 
-    //------ Addresses ------
+  createAddress(data) {
+    return api.post("/address", data);
+  }
 
-    createAddress(data) {
-        return api.post("/address", data);
-    }
+  updateAddress(data) {
+    return api.put("/address", data);
+  }
 
-    updateAddress(data) {
-        return api.put("/address", data);
-    }
+  deleteAddress(id) {
+    return api.delete(`/address/${id}`);
+  }
 
-    deleteAddress(id) {
-        return api.delete(`/address/${id}`);
-    }
+  setDefaultAddress(id) {
+    return api.put(`/address/${id}/default`);
+  }
 
-    setDefaultAddress(id) {
-        return api.put(`/address/${id}/default`);
-    }
+  getMyAddresses() {
+    return api.get("/address");
+  }
 
-    getMyAddresses() {
-        return api.get("/address");
-    }
+  //------ wishlist --------------
+  addToWishlist(data) {
+    return api.post("/wishlist", data);
+  }
 
-    //------ wishlist --------------
-    addToWishlist(data) {
-        return api.post("/wishlist", data);
-    }
+  removeWishlistItem(wishlistId) {
+    return api.delete(`/wishlist/${wishlistId}`);
+  }
 
-    removeWishlistItem(wishlistId) {
-        return api.delete(`/wishlist/${wishlistId}`);
-    }
+  getMyWishlist() {
+    return api.get("/wishlist");
+  }
 
-    getMyWishlist() {
-        return api.get("/wishlist");
-    }
+  moveWishlistToCart() {
+    return api.post(`/wishlist/move-all-to-cart`);
+  }
 
-    moveWishlistToCart() {
-        return api.post(
-            `/wishlist/move-all-to-cart`
-        );
-    }
+  getWishlist(params) {
+    return api.get("/wishlist/getWishlist", {
+      params,
+    });
+  }
 
-    getWishlist(params) {
-        return api.get("/wishlist/getWishlist", {
-            params
-        });
-    }
+  getWishlistCakeIds() {
+    return api.get("/wishlist/cake-ids");
+  }
 
-    getWishlistCakeIds() {
-        return api.get("/wishlist/cake-ids");
-    }
+  removeWishlistByCakeId(id) {
+    return api.delete("/wishlist/removebycakeid", {
+      params: {
+        id,
+      },
+    });
+  }
 
-    removeWishlistByCakeId(id) {
-        return api.delete("/wishlist/removebycakeid", {
-            params: {
-                id
-            }
-        });
-    }
+  //------ contact ----
+  sendContactMessage(data) {
+    return api.post("/contact", data);
+  }
 
-    //------ contact ----
-    sendContactMessage(data) {
-        return api.post("/contact", data);
-    }
+  //------- order -----
+  checkout(order) {
+    return api.post("/orders/checkout", order);
+  }
 
-    //------- order -----
-    checkout(order) {
-        return api.post("/orders/checkout", order);
-    }
+  getMyOrders() {
+    return api.get("/orders");
+  }
 
-    getMyOrders() {
-        return api.get("/orders");
-    }
+  getOrderDetails(id) {
+    return api.get(`/orders/${id}`);
+  }
 
-    getOrderDetails(id) {
-        return api.get(`/orders/${id}`);
-    }
+  cancelOrder(orderId) {
+    return api.patch(`/orders/${orderId}/cancel`);
+  }
 
-    cancelOrder(orderId) {
-        return api.patch(`/orders/${orderId}/cancel`);
-    }
+  getRecentOrders() {
+    return api.get("/orders/recent");
+  }
 
-    getRecentOrders() {
-        return api.get("/orders/recent");
-    }
+  updateOrderStatus(orderId, status) {
+    return api.patch(`/orders/${orderId}/status`, {
+      orderStatus: status,
+    });
+  }
 
-    updateOrderStatus(orderId, status) {
-        return api.patch(
-            `/orders/${orderId}/status`,
-            {
-                orderStatus: status
-            }
-        );
-    }
+  getOrders(params) {
+    return api.get("/orders/admin", {
+      params,
+    });
+  }
 
-    getOrders(params) {
-        return api.get("/orders/admin", {
-            params
-        });
-    }
+  //------- Payment -----
 
-    //------- Reviews ------
+  //   createPaymentSession(orderId) {
+  //     return api.post(
+  //         "/payment/create-session",
+  //         {
+  //             orderId
+  //         },
+  //         {
+  //             headers: {
+  //                 skipAuth: true
+  //             }
+  //         }
+  //     );
+  // }
 
-    createReview(data) {
-        return api.post("/reviews", data);
-    }
+  createPaymentSession(orderId) {
+    return api.post("/payment/create-session", {
+      orderId,
+    });
+  }
 
-    updateReview(data) {
-        return api.put("/reviews", data);
-    }
+  verifyPayment(orderId, sessionId) {
+    return api.post("/payment/verify", {
+      orderId,
+      sessionId,
+    });
+  }
 
-    deleteReview(id) {
-        return api.delete(`/reviews/${id}`);
-    }
+  refundPayment(orderId, data) {
+    return api.post(
+        `/payment/order/${orderId}/refund`,
+        data
+    );
+}
 
-    getCakeReviews(cakeId) {
-        return api.get(`/reviews/cake/${cakeId}`);
-    }
+  //------- Reviews ------
 
-    getReviewByOrderItem(orderItemId) {
-        return api.get(`/reviews/order-item/${orderItemId}`);
-    }
+  createReview(data) {
+    return api.post("/reviews", data);
+  }
 
-    getRatingFilters() {
-        return api.get("/cake-catalog/rating-filters");
-    }
+  updateReview(data) {
+    return api.put("/reviews", data);
+  }
 
-    getReviews(params) {
-        return api.get("/reviews/admin", {
-            params
-        });
-    }
+  deleteReview(id) {
+    return api.delete(`/reviews/${id}`);
+  }
 
-    replyReview(data) {
-        return api.post(
-            "/reviews/reply",
-            data
-        );
-    }
+  getCakeReviews(cakeId) {
+    return api.get(`/reviews/cake/${cakeId}`);
+  }
 
-    //------ home -----
+  getReviewByOrderItem(orderItemId) {
+    return api.get(`/reviews/order-item/${orderItemId}`);
+  }
 
-    getFeaturedCakes() {
-        return api.get("/cake-catalog/featured");
-    }
+  getRatingFilters() {
+    return api.get("/cake-catalog/rating-filters");
+  }
+
+  getReviews(params) {
+    return api.get("/reviews/admin", {
+      params,
+    });
+  }
+
+  replyReview(data) {
+    return api.post("/reviews/reply", data);
+  }
+
+  //------ home -----
+
+  getFeaturedCakes() {
+    return api.get("/cake-catalog/featured");
+  }
 }
 
 export default new Service();

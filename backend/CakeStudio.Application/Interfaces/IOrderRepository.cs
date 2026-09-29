@@ -12,11 +12,11 @@ namespace CakeStudio.Application.Interfaces
     public interface IOrderRepository
     {
         Task<Order> AddOrderAsync(Order order);
-
+        Task<List<RefundHistoryDto>> GetRefundHistoryAsync(int orderId);
         Task<List<Order>> GetOrdersByUserIdAsync(int userId);
-
+        Task<decimal> GetSuccessfulRefundAmountAsync(int orderId);
         Task<Order?> GetOrderByIdAsync(int orderId);
-
+        Task<Payment?> GetPaymentByOrderIdAsync(int orderId);
         Task<List<Order>> GetAllOrdersAsync();
 
         Task SaveChangesAsync();

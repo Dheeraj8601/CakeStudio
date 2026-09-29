@@ -14,9 +14,12 @@ namespace CakeStudio.Infrastructure.Services
 
         public Task ProcessPaymentAsync(Order order)
         {
-            throw new NotImplementedException(
-                "Stripe payment will be implemented.");
-        }
+            // Stripe payment has not happened yet.
+            // The webhook will mark it Paid.
+            order.PaymentStatus = "Pending";
+            order.OrderStatus = "Pending";
 
+            return Task.CompletedTask;
+        }
     }
 }

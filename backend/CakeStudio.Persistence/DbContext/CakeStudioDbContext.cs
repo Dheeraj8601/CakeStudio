@@ -33,10 +33,13 @@ public partial class CakeStudioDbContext : DbContext
     public virtual DbSet<Order> Orders { get; set; }
 
     public virtual DbSet<OrderItem> OrderItems { get; set; }
-
+    public virtual DbSet<Payment> Payments { get; set; }
     public virtual DbSet<PaymentAudit> PaymentAudits { get; set; }
+    public virtual DbSet<PaymentRefund> PaymentRefunds { get; set; }
     public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
     public virtual DbSet<Review> Reviews { get; set; }
+
+    public virtual DbSet<StripeWebhookEvent> StripeWebhookEvents { get; set; }
     public virtual DbSet<User> Users { get; set; }
 
     public virtual DbSet<Wishlist> Wishlists { get; set; }
@@ -156,11 +159,48 @@ public partial class CakeStudioDbContext : DbContext
                 .HasConstraintName("FK_OrderItems_Orders");
         });
 
+        modelBuilder.Entity<Payment>(entity =>
+        {
+            entity.HasIndex(e => e.StripeCheckoutSessionId, "UX_Payments_StripeCheckoutSessionId")
+                .IsUnique()
+                .HasFilter("([StripeCheckoutSessionId] IS NOT NULL)");
+
+            entity.HasIndex(e => e.StripePaymentIntentId, "UX_Payments_StripePaymentIntentId")
+                .IsUnique()
+                .HasFilter("([StripePaymentIntentId] IS NOT NULL)");
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysutcdatetime())");
+            entity.Property(e => e.Currency)
+                .HasDefaultValue("INR")
+                .IsFixedLength();
+
+            entity.HasOne(d => d.Order).WithOne(p => p.Payment)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Payments_Orders");
+        });
+
         modelBuilder.Entity<PaymentAudit>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__PaymentA__3214EC07A61E0C24");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+        });
+
+        modelBuilder.Entity<PaymentRefund>(entity =>
+        {
+            entity.HasIndex(e => e.StripeRefundId, "UX_PaymentRefunds_StripeRefundId")
+                .IsUnique()
+                .HasFilter("([StripeRefundId] IS NOT NULL)");
+
+            entity.Property(e => e.RequestedAt).HasDefaultValueSql("(sysutcdatetime())");
+
+            entity.HasOne(d => d.Payment).WithMany(p => p.PaymentRefunds)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PaymentRefunds_Payments");
+
+            entity.HasOne(d => d.RequestedByUser).WithMany(p => p.PaymentRefunds)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PaymentRefunds_Users");
         });
 
         modelBuilder.Entity<RefreshToken>(entity =>
@@ -191,6 +231,11 @@ public partial class CakeStudioDbContext : DbContext
             entity.HasOne(d => d.User).WithMany(p => p.Reviews)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Reviews_Users");
+        });
+
+        modelBuilder.Entity<StripeWebhookEvent>(entity =>
+        {
+            entity.Property(e => e.ProcessedAt).HasDefaultValueSql("(sysutcdatetime())");
         });
 
         modelBuilder.Entity<User>(entity =>

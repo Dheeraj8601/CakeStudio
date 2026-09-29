@@ -9,15 +9,33 @@ import {
     Typography
 } from "@mui/material";
 
-import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
-import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
-import KeyboardArrowDownOutlinedIcon from "@mui/icons-material/KeyboardArrowDownOutlined";
+import MenuOutlinedIcon
+    from "@mui/icons-material/MenuOutlined";
 
-import { useState } from "react";
+import NotificationsNoneOutlinedIcon
+    from "@mui/icons-material/NotificationsNoneOutlined";
+
+import KeyboardArrowDownOutlinedIcon
+    from "@mui/icons-material/KeyboardArrowDownOutlined";
+
+import {
+    useEffect,
+    useState
+} from "react";
+
+import { useNavigate }
+    from "react-router-dom";
 
 import "./AdminHeader.css";
-import { useNavigate } from "react-router-dom";
-import LogoutDialog from "../../../../components/Admin/common/LogoutDialog/LogoutDialog";
+
+import LogoutDialog
+    from "../../../../components/Admin/common/LogoutDialog/LogoutDialog";
+
+import SessionManage
+    from "../../../../Session/SessionManage";
+
+import Service
+    from "../../../../services/Service";
 
 export default function AdminHeader({
 
@@ -26,22 +44,122 @@ export default function AdminHeader({
     pageTitle = "Dashboard"
 
 }) {
-    const [openLogout, setOpenLogout] = useState(false);
-    const [anchorEl, setAnchorEl] = useState(null);
+
     const navigate = useNavigate();
-    const open = Boolean(anchorEl);
+
+    const [
+        openLogout,
+        setOpenLogout
+    ] = useState(false);
+
+    const [
+        anchorEl,
+        setAnchorEl
+    ] = useState(null);
+
+    const [
+        admin,
+        setAdmin
+    ] = useState(null);
+
+    const open =
+        Boolean(anchorEl);
+
+    // ==========================================
+    // LOAD LOGGED-IN ADMIN
+    // ==========================================
+
+    useEffect(() => {
+
+        loadAdmin();
+
+    }, []);
+
+    const loadAdmin = async () => {
+
+        try {
+
+            const userId =
+                SessionManage.getUserId();
+
+            if (!userId) {
+                return;
+            }
+
+            const response =
+                await Service.getUserById(
+                    userId
+                );
+
+            setAdmin(
+                response.data
+            );
+
+        }
+        catch (error) {
+
+            console.error(
+                "Unable to load admin profile:",
+                error
+            );
+        }
+    };
+
+    // ==========================================
+    // PROFILE MENU
+    // ==========================================
 
     const handleOpen = (event) => {
 
-        setAnchorEl(event.currentTarget);
-
+        setAnchorEl(
+            event.currentTarget
+        );
     };
 
     const handleClose = () => {
 
         setAnchorEl(null);
-
     };
+
+    // ==========================================
+    // LOGOUT
+    // ==========================================
+
+    const handleLogout = () => {
+
+        SessionManage.clearSession();
+
+        setOpenLogout(false);
+
+        handleClose();
+
+        navigate(
+            "/login",
+            {
+                replace: true
+            }
+        );
+    };
+
+    // ==========================================
+    // DISPLAY VALUES
+    // ==========================================
+
+    const fullName = admin
+        ? `${admin.firstName ?? ""} ${admin.lastName ?? ""}`.trim()
+        : "";
+
+    const displayName =
+        fullName || "Admin";
+
+    const email =
+        admin?.email || "";
+
+    const avatarLetter =
+        admin?.firstName
+            ?.charAt(0)
+            ?.toUpperCase()
+        || "A";
 
     return (
 
@@ -58,22 +176,28 @@ export default function AdminHeader({
             <Toolbar>
 
                 <IconButton
-
-                    onClick={onMenuClick}
-
+                    onClick={
+                        onMenuClick
+                    }
                 >
 
                     <MenuOutlinedIcon />
 
                 </IconButton>
 
-                <Typography className="admin-page-title">
+                <Typography
+                    className="admin-page-title"
+                >
 
                     {pageTitle}
 
                 </Typography>
 
-                <Box sx={{ flexGrow: 1 }} />
+                <Box
+                    sx={{
+                        flexGrow: 1
+                    }}
+                />
 
                 <IconButton>
 
@@ -85,31 +209,35 @@ export default function AdminHeader({
 
                     className="admin-profile"
 
-                    onClick={handleOpen}
+                    onClick={
+                        handleOpen
+                    }
 
                 >
 
                     <Avatar
-
                         className="admin-avatar"
-
                     >
 
-                        A
+                        {avatarLetter}
 
                     </Avatar>
 
                     <Box>
 
-                        <Typography className="admin-name">
+                        <Typography
+                            className="admin-name"
+                        >
 
-                            Admin
+                            {displayName}
 
                         </Typography>
 
-                        <Typography className="admin-email">
+                        <Typography
+                            className="admin-email"
+                        >
 
-                            admin@cakestudio.com
+                            {email}
 
                         </Typography>
 
@@ -121,11 +249,17 @@ export default function AdminHeader({
 
                 <Menu
 
-                    anchorEl={anchorEl}
+                    anchorEl={
+                        anchorEl
+                    }
 
-                    open={open}
+                    open={
+                        open
+                    }
 
-                    onClose={handleClose}
+                    onClose={
+                        handleClose
+                    }
 
                 >
 
@@ -135,8 +269,9 @@ export default function AdminHeader({
 
                             handleClose();
 
-                            navigate("/admin/profile");
-
+                            navigate(
+                                "/admin/profile"
+                            );
                         }}
 
                     >
@@ -151,8 +286,9 @@ export default function AdminHeader({
 
                             handleClose();
 
-                            setOpenLogout(true);
-
+                            setOpenLogout(
+                                true
+                            );
                         }}
 
                     >
@@ -164,26 +300,23 @@ export default function AdminHeader({
                 </Menu>
 
             </Toolbar>
+
             <LogoutDialog
 
-                open={openLogout}
+                open={
+                    openLogout
+                }
 
-                onClose={() => setOpenLogout(false)}
+                onClose={() =>
+                    setOpenLogout(false)
+                }
 
-                onConfirm={() => {
-
-                    setOpenLogout(false);
-
-                    console.log("Logout");
-
-                    // navigate("/login");
-
-                }}
+                onConfirm={
+                    handleLogout
+                }
 
             />
 
         </AppBar>
-
     );
-
 }

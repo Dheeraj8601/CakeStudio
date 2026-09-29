@@ -16,7 +16,8 @@ export default function ShippingAddressSection({
 
     setShipping,
 
-    onReload
+    onReload,
+    errors = {}
 
 }) {
 
@@ -25,11 +26,9 @@ export default function ShippingAddressSection({
         return (
 
             <ShippingForm
-
                 shipping={shipping}
-
                 setShipping={setShipping}
-
+                errors={errors}
             />
 
         );
