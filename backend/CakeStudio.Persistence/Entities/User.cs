@@ -23,7 +23,7 @@ public partial class User
     public string Email { get; set; } = null!;
 
     [StringLength(500)]
-    public string PasswordHash { get; set; } = null!;
+    public string? PasswordHash { get; set; }
 
     [StringLength(20)]
     public string? PhoneNumber { get; set; }
@@ -42,6 +42,9 @@ public partial class User
 
     public int? DeletedBy { get; set; }
 
+    [StringLength(255)]
+    public string? GoogleId { get; set; }
+
     public virtual ICollection<Address> Addresses { get; set; } = new List<Address>();
 
     [InverseProperty("CreatedByNavigation")]
@@ -59,7 +62,8 @@ public partial class User
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
     public virtual ICollection<PaymentRefund> PaymentRefunds { get; set; } = new List<PaymentRefund>();
     public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
-
+    //[InverseProperty("User")]
+    public virtual ICollection<PasswordResetToken> PasswordResetTokens { get; set; } = new List<PasswordResetToken>();
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
 
     public virtual ICollection<Wishlist> Wishlists { get; set; } = new List<Wishlist>();
@@ -70,4 +74,6 @@ public partial class User
 
     //[InverseProperty("DeletedByNavigation")]
     public virtual ICollection<User> InverseDeletedByNavigation { get; set; } = new List<User>();
+    [InverseProperty("User")]
+    public virtual ICollection<PasswordChangeOtp> PasswordChangeOtps { get; set; } = new List<PasswordChangeOtp>();
 }

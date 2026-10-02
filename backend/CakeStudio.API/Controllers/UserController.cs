@@ -82,7 +82,21 @@ namespace CakeStudio.API.Controllers
 
             return Ok(new
             {
-                Message = "Password changed successfully."
+                Message =
+                    "Password changed successfully."
+            });
+        }
+
+        [HttpPost("send-change-password-otp")]
+        public async Task<IActionResult> SendChangePasswordOtp(SendChangePasswordOtpRequestDto request)
+        {
+            await _service
+                .SendChangePasswordOtpAsync(request);
+
+            return Ok(new
+            {
+                Message =
+                    "Verification code sent to your email."
             });
         }
     }

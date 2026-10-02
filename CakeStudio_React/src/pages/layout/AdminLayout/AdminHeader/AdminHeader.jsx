@@ -37,6 +37,7 @@ import SessionManage
 import Service
     from "../../../../services/Service";
 
+
 export default function AdminHeader({
 
     onMenuClick,
@@ -125,7 +126,33 @@ export default function AdminHeader({
     // LOGOUT
     // ==========================================
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+
+    const refreshToken =
+        SessionManage.getRefreshToken();
+
+    try {
+
+        if (refreshToken) {
+
+            await Service.logout(
+                refreshToken
+            );
+        }
+
+    }
+    catch (error) {
+
+        console.error(
+            "Backend logout failed:",
+            error
+        );
+
+    }
+    finally {
+
+        // Always remove local credentials,
+        // even if backend logout request fails.
 
         SessionManage.clearSession();
 
@@ -139,7 +166,8 @@ export default function AdminHeader({
                 replace: true
             }
         );
-    };
+    }
+};
 
     // ==========================================
     // DISPLAY VALUES

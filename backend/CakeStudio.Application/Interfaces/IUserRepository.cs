@@ -29,6 +29,7 @@ namespace CakeStudio.Application.Interfaces
         Task DeleteAsync(int id);
 
         Task UpdateAsync(User user);
+        Task<User?> GetByGoogleIdAsync(string googleId);
 
     }
 }

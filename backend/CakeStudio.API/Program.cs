@@ -8,6 +8,7 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using Serilog;
 using Stripe;
+using CakeStudio.Infrastructure.BackgroundServices;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -37,6 +38,8 @@ builder.Services.AddDbContext<CakeStudioDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection"));
 });
+
+builder.Services.AddHostedService<RefreshTokenCleanupService>();
 
 builder.Services.AddCors(options =>
 {

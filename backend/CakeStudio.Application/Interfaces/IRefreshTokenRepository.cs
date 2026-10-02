@@ -19,5 +19,7 @@ namespace CakeStudio.Application.Interfaces
             string token);
 
         Task SaveChangesAsync();
+
+        Task<RefreshToken?> GetByTokenAsync(string token);
     }
 }

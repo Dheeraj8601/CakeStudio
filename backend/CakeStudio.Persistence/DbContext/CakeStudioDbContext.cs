@@ -33,6 +33,8 @@ public partial class CakeStudioDbContext : DbContext
     public virtual DbSet<Order> Orders { get; set; }
 
     public virtual DbSet<OrderItem> OrderItems { get; set; }
+    public virtual DbSet<PasswordChangeOtp> PasswordChangeOtps { get; set; }
+    public virtual DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
     public virtual DbSet<Payment> Payments { get; set; }
     public virtual DbSet<PaymentAudit> PaymentAudits { get; set; }
     public virtual DbSet<PaymentRefund> PaymentRefunds { get; set; }
@@ -159,6 +161,28 @@ public partial class CakeStudioDbContext : DbContext
                 .HasConstraintName("FK_OrderItems_Orders");
         });
 
+        modelBuilder.Entity<PasswordChangeOtp>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Password__3214EC0752929C70");
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysutcdatetime())");
+
+            entity.HasOne(d => d.User).WithMany(p => p.PasswordChangeOtps)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PasswordChangeOtps_Users");
+        });
+
+        modelBuilder.Entity<PasswordResetToken>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Password__3214EC07CEC39685");
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysutcdatetime())");
+
+            entity.HasOne(d => d.User).WithMany(p => p.PasswordResetTokens)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PasswordResetTokens_Users");
+        });
+
         modelBuilder.Entity<Payment>(entity =>
         {
             entity.HasIndex(e => e.StripeCheckoutSessionId, "UX_Payments_StripeCheckoutSessionId")
@@ -241,6 +265,10 @@ public partial class CakeStudioDbContext : DbContext
         modelBuilder.Entity<User>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Users__3214EC07E5B5DD51");
+
+            entity.HasIndex(e => e.GoogleId, "IX_Users_GoogleId")
+                .IsUnique()
+                .HasFilter("([GoogleId] IS NOT NULL)");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
