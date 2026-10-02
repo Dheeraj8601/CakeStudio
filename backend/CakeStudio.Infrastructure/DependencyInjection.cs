@@ -55,6 +55,8 @@ namespace CakeStudio.Infrastructure
             services.AddScoped<IPasswordResetTokenRepository,PasswordResetTokenRepository>();
             services.AddScoped<IPasswordChangeOtpRepository,PasswordChangeOtpRepository>();
             services.AddScoped<IEmailBackgroundJob, EmailBackgroundJob>();
+            services.AddScoped<IInvoiceService, InvoiceService>();
+            services.AddScoped<IDeliveredOrderEmailJob, DeliveredOrderEmailJob>();
 
             return services;
         }
