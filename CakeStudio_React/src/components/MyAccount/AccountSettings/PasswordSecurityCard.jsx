@@ -100,9 +100,9 @@ export default function PasswordSecurityCard({
 
                 </Box>
 
-                <Divider />
+                {/* <Divider /> */}
 
-                <Box className="security-row">
+                {/* <Box className="security-row">
 
                     <Typography className="security-label">
 
@@ -140,9 +140,9 @@ export default function PasswordSecurityCard({
 
                 </Box>
 
-                <Divider />
+                <Divider /> */}
 
-                <Box className="security-row">
+                {/*<Box className="security-row">
 
                     <Typography className="security-label">
 
@@ -150,7 +150,7 @@ export default function PasswordSecurityCard({
 
                     </Typography>
 
-                    <Box className="security-action">
+                     <Box className="security-action">
 
                         <Typography className="security-note">
 
@@ -176,9 +176,9 @@ export default function PasswordSecurityCard({
 
                         </Button>
 
-                    </Box>
+                    </Box> 
 
-                </Box>
+                </Box>*/}
 
             </CardContent>
 

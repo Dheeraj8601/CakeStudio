@@ -12,5 +12,9 @@ namespace CakeStudio.Application.Interfaces
         Task<RegisterResponseDto> RegisterAsync(RegisterRequestDto request);
         Task<LoginResponseDto> LoginAsync(LoginRequestDto request);
         Task<RefreshTokenResponseDto> RefreshTokenAsync(RefreshTokenRequestDto request);
+        Task LogoutAsync(LogoutRequestDto request);
+        Task ForgotPasswordAsync(ForgotPasswordRequestDto request);
+        Task ResetPasswordAsync(ResetPasswordRequestDto request);
+        Task<LoginResponseDto> GoogleLoginAsync(GoogleLoginRequestDto request);
     }
 }

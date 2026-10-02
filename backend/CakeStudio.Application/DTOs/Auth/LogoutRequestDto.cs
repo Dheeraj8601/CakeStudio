@@ -6,11 +6,8 @@ using System.Threading.Tasks;
 
 namespace CakeStudio.Application.DTOs.Auth
 {
-    public class RefreshTokenResponseDto
+    public class LogoutRequestDto
     {
-        public string AccessToken { get; set; }
-            = string.Empty;
-
         public string RefreshToken { get; set; }
             = string.Empty;
     }

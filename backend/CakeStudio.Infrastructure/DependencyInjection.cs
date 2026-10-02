@@ -51,6 +51,8 @@ namespace CakeStudio.Infrastructure
             services.AddScoped<IPaymentProcessor,StripePaymentProcessor>();
             services.AddScoped<IPaymentProcessor,UpiPaymentProcessor>();
             services.AddScoped<IPaymentProcessorFactory,PaymentProcessorFactory>();
+            services.AddScoped<IPasswordResetTokenRepository,PasswordResetTokenRepository>();
+            services.AddScoped<IPasswordChangeOtpRepository,PasswordChangeOtpRepository>();
 
             return services;
         }

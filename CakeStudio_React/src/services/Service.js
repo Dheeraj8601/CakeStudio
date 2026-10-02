@@ -36,67 +36,46 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (!originalRequest) {
-      return Promise.reject(error);
-    }
+    // Access token expired / unauthorized
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
 
-    if (
-      error.response?.status === 401 &&
-      !originalRequest._retry &&
-      !originalRequest.url.includes("Auth/login") &&
-      !originalRequest.url.includes("Auth/refresh-token")
-    ) {
       const refreshToken = SessionManage.getRefreshToken();
 
-      /*
-       * Guest user:
-       *
-       * A guest has no refresh token.
-       * Therefore don't attempt token refresh
-       * and DON'T redirect to /login.
-       */
+      // No refresh token available
       if (!refreshToken) {
+        SessionManage.clearSession();
+
+        window.location.href = "/login";
+
         return Promise.reject(error);
       }
 
-      /*
-       * Logged-in user:
-       *
-       * They have a refresh token, so their
-       * access token may simply have expired.
-       */
-      originalRequest._retry = true;
-
       try {
-        const response = await axios.post(
-          CS_API_BASE_URL + "Auth/refresh-token",
-          {
-            refreshToken: refreshToken,
-          },
-        );
+        const response = await axios.post(`${BASE_URL}Auth/refresh-token`, {
+          refreshToken: refreshToken,
+        });
 
         const newAccessToken = response.data.accessToken;
 
         const newRefreshToken = response.data.refreshToken;
 
-        SessionManage.setTokenId(newAccessToken);
+        // Save new tokens
+        await SessionManage.setTokenId(newAccessToken);
 
-        SessionManage.setRefreshToken(newRefreshToken);
+        await SessionManage.setRefreshToken(newRefreshToken);
 
+        // Retry original API request
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
 
         return api(originalRequest);
-      } catch (err) {
-        /*
-         * This WAS a logged-in user,
-         * but their refresh token is no
-         * longer valid.
-         */
+      } catch (refreshError) {
+        // Refresh token expired / revoked / deleted
         SessionManage.clearSession();
 
         window.location.href = "/login";
 
-        return Promise.reject(err);
+        return Promise.reject(refreshError);
       }
     }
 
@@ -170,12 +149,68 @@ class Service {
     });
   }
 
+  logout(refreshToken) {
+    return api.post(
+      "Auth/logout",
+      {
+        refreshToken,
+      },
+      {
+        headers: {
+          skipAuth: true,
+        },
+      },
+    );
+  }
+
   register(method, value) {
     return api.post(method, value, {
       headers: {
         skipAuth: true,
       },
     });
+  }
+
+  forgotPassword(email) {
+    return api.post(
+      "Auth/forgot-password",
+      { email },
+      {
+        headers: {
+          skipAuth: true,
+        },
+      },
+    );
+  }
+
+  resetPassword(token, newPassword, confirmPassword) {
+    return api.post(
+      "Auth/reset-password",
+      {
+        token,
+        newPassword,
+        confirmPassword,
+      },
+      {
+        headers: {
+          skipAuth: true,
+        },
+      },
+    );
+  }
+
+  googleLogin(credential) {
+    return api.post(
+      "Auth/google-login",
+      {
+        credential,
+      },
+      {
+        headers: {
+          skipAuth: true,
+        },
+      },
+    );
   }
 
   // ---------------- Category ----------------
@@ -246,6 +281,12 @@ class Service {
 
   updateUser(data) {
     return api.put("/users", data);
+  }
+
+  sendChangePasswordOtp(currentPassword) {
+    return api.post("/users/send-change-password-otp", {
+      currentPassword,
+    });
   }
 
   changePassword(data) {
@@ -452,11 +493,8 @@ class Service {
   }
 
   refundPayment(orderId, data) {
-    return api.post(
-        `/payment/order/${orderId}/refund`,
-        data
-    );
-}
+    return api.post(`/payment/order/${orderId}/refund`, data);
+  }
 
   //------- Reviews ------
 

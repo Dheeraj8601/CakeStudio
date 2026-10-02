@@ -130,5 +130,12 @@ namespace CakeStudio.Infrastructure.Repositories
 
             await _context.SaveChangesAsync();
         }
+
+        public async Task<User?> GetByGoogleIdAsync(string googleId)
+        {
+            return await _context.Users
+                .FirstOrDefaultAsync(x =>
+                    x.GoogleId == googleId);
+        }
     }
 }

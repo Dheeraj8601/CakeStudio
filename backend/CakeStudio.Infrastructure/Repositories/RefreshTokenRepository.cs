@@ -53,5 +53,12 @@ namespace CakeStudio.Infrastructure.Repositories
         {
             await _context.SaveChangesAsync();
         }
+
+        public async Task<RefreshToken?> GetByTokenAsync(string token)
+        {
+            return await _context.RefreshTokens
+                .FirstOrDefaultAsync(
+                    x => x.Token == token);
+        }
     }
 }

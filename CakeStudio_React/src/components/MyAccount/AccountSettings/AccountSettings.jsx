@@ -114,33 +114,6 @@ export default function AccountSettings() {
 
     };
 
-    const handlePasswordChange = async (data) => {
-
-        try {
-
-            const res = await Service.changePassword(data);
-
-            if (res.status === 200) {
-
-                SessionManage.clearSession();
-
-                setOpenPasswordDialog(false);
-
-                navigate("/login", {
-                    replace: true
-                });
-
-            }
-
-        }
-        catch (error) {
-
-            console.error(error);
-
-        }
-
-    };
-
     const handleDeleteAccount = async () => {
 
         try {
@@ -240,17 +213,28 @@ export default function AccountSettings() {
 
             <ChangePasswordDialog
 
-                open={openPasswordDialog}
+    open={openPasswordDialog}
 
-                onClose={() =>
+    onClose={() =>
+        setOpenPasswordDialog(false)
+    }
 
-                    setOpenPasswordDialog(false)
+    onPasswordChanged={() => {
 
-                }
+        SessionManage.clearSession();
 
-                onSave={handlePasswordChange}
+        setOpenPasswordDialog(false);
 
-            />
+        navigate(
+            "/login",
+            {
+                replace: true
+            }
+        );
+
+    }}
+
+/>
 
             <EmailPreferencesCard
 

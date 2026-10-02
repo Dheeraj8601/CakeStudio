@@ -1455,5 +1455,290 @@ Thank you for choosing
 
 </html>";
         }
+
+        public static string PasswordResetTemplate(string customerName,string resetLink)
+        {
+            return $@"
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='UTF-8'>
+
+<meta name='viewport'
+      content='width=device-width, initial-scale=1.0'>
+
+</head>
+
+<body style='
+    margin:0;
+    padding:0;
+    background:#fff7f9;
+    font-family:Segoe UI,Arial,sans-serif;
+    color:#333333;'>
+
+<table width='100%'
+       cellpadding='0'
+       cellspacing='0'
+       style='padding:30px 15px;'>
+
+<tr>
+<td align='center'>
+
+<table width='100%'
+       cellpadding='0'
+       cellspacing='0'
+       style='
+       max-width:650px;
+       background:#ffffff;
+       border:1px solid #f5dce3;
+       border-radius:14px;
+       overflow:hidden;
+       box-shadow:0 8px 25px rgba(0,0,0,.06);'>
+
+<!-- Header -->
+
+<tr>
+<td style='
+    background:#ff5b84;
+    padding:30px;
+    text-align:center;
+    color:white;'>
+
+<h1 style='
+    margin:0;
+    font-size:32px;'>
+
+CakeStudio
+
+</h1>
+
+<p style='
+    margin:8px 0 0;
+    font-size:15px;'>
+
+Bake Moments, Deliver Happiness
+
+</p>
+
+</td>
+</tr>
+
+<!-- Content -->
+
+<tr>
+<td style='padding:40px 35px;'>
+
+<h2 style='
+    margin:0 0 20px;
+    color:#333333;'>
+
+Reset Your Password 🔐
+
+</h2>
+
+<p style='
+    font-size:16px;
+    line-height:1.7;
+    color:#555555;'>
+
+Hello <strong>{customerName}</strong>,
+
+</p>
+
+<p style='
+    font-size:16px;
+    line-height:1.7;
+    color:#555555;'>
+
+We received a request to reset the password
+for your CakeStudio account.
+
+</p>
+
+<p style='
+    font-size:16px;
+    line-height:1.7;
+    color:#555555;'>
+
+Click the button below to create a new password.
+
+</p>
+
+<!-- Reset Button -->
+
+<div style='
+    text-align:center;
+    margin:35px 0;'>
+
+<a href='{resetLink}'
+   style='
+   display:inline-block;
+   background:#ff5b84;
+   color:#ffffff;
+   text-decoration:none;
+   padding:15px 32px;
+   border-radius:8px;
+   font-size:16px;
+   font-weight:600;'>
+
+Reset Password
+
+</a>
+
+</div>
+
+<!-- Expiry -->
+
+<div style='
+    background:#fff5f8;
+    border-left:4px solid #ff5b84;
+    padding:16px;
+    border-radius:6px;
+    margin-top:25px;'>
+
+<strong>⏰ This link expires in 30 minutes.</strong>
+
+<p style='
+    margin:8px 0 0;
+    color:#666666;
+    font-size:14px;
+    line-height:1.6;'>
+
+For your security, this password reset link
+can only be used once.
+
+</p>
+
+</div>
+
+<!-- Security Message -->
+
+<p style='
+    margin-top:30px;
+    font-size:14px;
+    line-height:1.7;
+    color:#777777;'>
+
+If you did not request a password reset,
+you can safely ignore this email.
+Your password will remain unchanged.
+
+</p>
+
+<hr style='
+    margin:35px 0 25px;
+    border:none;
+    border-top:1px solid #eeeeee;'>
+
+<p style='
+    text-align:center;
+    color:#999999;
+    font-size:13px;
+    line-height:1.6;'>
+
+For security reasons, never share this
+password reset link with anyone.
+
+</p>
+
+</td>
+</tr>
+
+<!-- Footer -->
+
+<tr>
+<td style='
+    background:#fafafa;
+    padding:22px;
+    text-align:center;
+    color:#888888;
+    font-size:13px;'>
+
+© {DateTime.Now.Year} CakeStudio.
+All rights reserved.
+
+</td>
+</tr>
+
+</table>
+
+</td>
+</tr>
+
+</table>
+
+</body>
+</html>";
+        }
+
+        public static string PasswordChangeOtpTemplate(
+    string customerName,
+    string otp)
+        {
+            return $@"
+    <html>
+    <body style='
+        font-family: Arial, sans-serif;
+        background:#f7f7f7;
+        padding:30px;
+    '>
+
+        <div style='
+            max-width:600px;
+            margin:auto;
+            background:white;
+            padding:30px;
+            border-radius:10px;
+        '>
+
+            <h2 style='color:#ff5b84;'>
+                Password Change Verification
+            </h2>
+
+            <p>
+                Hi {customerName},
+            </p>
+
+            <p>
+                We received a request to change
+                your CakeStudio password.
+            </p>
+
+            <p>
+                Use the verification code below:
+            </p>
+
+            <div style='
+                font-size:32px;
+                font-weight:bold;
+                letter-spacing:8px;
+                text-align:center;
+                margin:30px 0;
+            '>
+                {otp}
+            </div>
+
+            <p>
+                This code will expire in
+                <strong>5 minutes</strong>.
+            </p>
+
+            <p>
+                If you did not request this
+                password change, you can safely
+                ignore this email.
+            </p>
+
+            <br/>
+
+            <p>
+                CakeStudio
+            </p>
+
+        </div>
+
+    </body>
+    </html>";
+        }
     }
 }

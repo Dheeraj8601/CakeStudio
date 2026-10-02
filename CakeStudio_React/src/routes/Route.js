@@ -22,7 +22,8 @@ import Wishlists from "../pages/MyAccount/Wishlists";
 import AccountSetting from "../pages/MyAccount/AccountSetting";
 import PaymentSuccess from "../pages/Payment/PaymentSuccess";
 import PaymentCancel from "../pages/Payment/PaymentCancel";
-
+import ForgotPassword from "../pages/ForgotPassword/ForgotPasswordPages"
+import ResetPassword from "../pages/ForgotPassword/ResetPasswordPages";
 
 const route = [
     { path: '/login', name: 'LogIn', component: Login, element: Login },
@@ -50,6 +51,8 @@ const route = [
     { path: "/payment/success", name: "PaymentSuccess", component: PaymentSuccess, element: PaymentSuccess},
     { path: "/payment/cancel", name: "PaymentCancel", component: PaymentCancel, element: PaymentCancel},
 
+    { path: "/forgot-password", name: "ForgotPassword", component: ForgotPassword, element: ForgotPassword},
+    { path: "/reset-password", name: "ResetPassword", component: ResetPassword, element: ResetPassword},
     
     // Always keep this last
     { path: "*", component: NotFound }

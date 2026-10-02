@@ -23,5 +23,6 @@ namespace CakeStudio.Application.Interfaces
         Task UpdateAsync(UpdateUserRequestDto request);
 
         Task ChangePasswordAsync(ChangePasswordRequestDto request);
+        Task SendChangePasswordOtpAsync(SendChangePasswordOtpRequestDto request);
     }
 }

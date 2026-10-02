@@ -1,6 +1,8 @@
 import {
     Alert,
+    Box,
     Button,
+    CircularProgress,
     Dialog,
     DialogActions,
     DialogContent,
@@ -8,7 +10,8 @@ import {
     Grid,
     IconButton,
     InputAdornment,
-    TextField
+    TextField,
+    Typography
 } from "@mui/material";
 
 import {
@@ -18,15 +21,18 @@ import {
 
 import { useEffect, useState } from "react";
 
-const initialPasswords = {
+import { toast } from "react-toastify";
 
+import Service from "../../../services/Service";
+
+
+const initialForm = {
     currentPassword: "",
-
+    otp: "",
     newPassword: "",
-
     confirmPassword: ""
-
 };
+
 
 export default function ChangePasswordDialog({
 
@@ -34,74 +40,344 @@ export default function ChangePasswordDialog({
 
     onClose,
 
-    onSave
+    onPasswordChanged
 
 }) {
 
-    const [passwords, setPasswords] = useState(initialPasswords);
+    const [form, setForm] =
+        useState(initialForm);
 
-    const [show, setShow] = useState({
+    const [step, setStep] =
+        useState(1);
 
-        current: false,
+    const [loading, setLoading] =
+        useState(false);
 
-        new: false,
+    const [show, setShow] =
+        useState({
+            current: false,
+            new: false,
+            confirm: false
+        });
 
-        confirm: false
 
-    });
+    // ==========================================
+    // RESET DIALOG
+    // ==========================================
 
     useEffect(() => {
 
         if (open) {
 
-            setPasswords(initialPasswords);
+            setForm(initialForm);
+
+            setStep(1);
+
+            setLoading(false);
 
             setShow({
-
                 current: false,
-
                 new: false,
-
                 confirm: false
-
             });
 
         }
 
     }, [open]);
 
+
+    // ==========================================
+    // INPUT CHANGE
+    // ==========================================
+
     const handleChange = (e) => {
 
-        const { name, value } = e.target;
+        const {
+            name,
+            value
+        } = e.target;
 
-        setPasswords(prev => ({
 
+        // OTP - ONLY NUMBERS, MAX 6 DIGITS
+        if (name === "otp") {
+
+            const numericValue =
+                value
+                    .replace(/\D/g, "")
+                    .slice(0, 6);
+
+            setForm(prev => ({
+                ...prev,
+                otp: numericValue
+            }));
+
+            return;
+        }
+
+
+        setForm(prev => ({
             ...prev,
-
             [name]: value
-
         }));
 
     };
 
-    const handleSubmit = async () => {
 
-        await onSave?.(passwords);
+    // ==========================================
+    // STEP 1 - SEND OTP
+    // ==========================================
+
+    const handleSendOtp = async () => {
+
+        if (!form.currentPassword) {
+
+            toast.error(
+                "Current password is required."
+            );
+
+            return;
+        }
+
+
+        try {
+
+            setLoading(true);
+
+
+            const response =
+                await Service
+                    .sendChangePasswordOtp(
+                        form.currentPassword
+                    );
+
+
+            toast.success(
+                response.data?.message ||
+                "OTP sent to your registered email."
+            );
+
+
+            setStep(2);
+
+        }
+        catch (error) {
+
+            console.error(
+                "Send OTP failed:",
+                error
+            );
+
+
+            toast.error(
+                error.response?.data?.message ||
+                error.response?.data?.Message ||
+                "Unable to send OTP."
+            );
+
+        }
+        finally {
+
+            setLoading(false);
+
+        }
 
     };
+
+
+    // ==========================================
+    // RESEND OTP
+    // ==========================================
+
+    const handleResendOtp = async () => {
+
+        if (!form.currentPassword) {
+
+            toast.error(
+                "Current password is required."
+            );
+
+            setStep(1);
+
+            return;
+        }
+
+
+        try {
+
+            setLoading(true);
+
+
+            const response =
+                await Service
+                    .sendChangePasswordOtp(
+                        form.currentPassword
+                    );
+
+
+            setForm(prev => ({
+                ...prev,
+                otp: ""
+            }));
+
+
+            toast.success(
+                response.data?.message ||
+                "A new OTP has been sent."
+            );
+
+        }
+        catch (error) {
+
+            console.error(
+                "Resend OTP failed:",
+                error
+            );
+
+
+            toast.error(
+                error.response?.data?.message ||
+                error.response?.data?.Message ||
+                "Unable to resend OTP."
+            );
+
+        }
+        finally {
+
+            setLoading(false);
+
+        }
+
+    };
+
+
+    // ==========================================
+    // STEP 2 - CHANGE PASSWORD
+    // ==========================================
+
+    const handleChangePassword = async () => {
+
+        if (!form.otp) {
+
+            toast.error(
+                "OTP is required."
+            );
+
+            return;
+        }
+
+
+        if (form.otp.length !== 6) {
+
+            toast.error(
+                "Enter the 6-digit OTP."
+            );
+
+            return;
+        }
+
+
+        if (!form.newPassword) {
+
+            toast.error(
+                "New password is required."
+            );
+
+            return;
+        }
+
+
+        if (form.newPassword.length < 8) {
+
+            toast.error(
+                "Password must be at least 8 characters."
+            );
+
+            return;
+        }
+
+
+        if (
+            form.newPassword !==
+            form.confirmPassword
+        ) {
+
+            toast.error(
+                "Passwords do not match."
+            );
+
+            return;
+        }
+
+
+        const request = {
+
+            otp:
+                form.otp,
+
+            newPassword:
+                form.newPassword,
+
+            confirmPassword:
+                form.confirmPassword
+
+        };
+
+
+        try {
+
+            setLoading(true);
+
+
+            const response =
+                await Service.changePassword(
+                    request
+                );
+
+
+            toast.success(
+                response.data?.message ||
+                "Password changed successfully."
+            );
+
+
+            onPasswordChanged?.();
+
+        }
+        catch (error) {
+
+            console.error(
+                "Change password failed:",
+                error
+            );
+
+
+            toast.error(
+                error.response?.data?.message ||
+                error.response?.data?.Message ||
+                "Unable to change password."
+            );
+
+        }
+        finally {
+
+            setLoading(false);
+
+        }
+
+    };
+
 
     return (
 
         <Dialog
-
             open={open}
-
-            onClose={onClose}
-
+            onClose={
+                loading
+                    ? undefined
+                    : onClose
+            }
             fullWidth
-
             maxWidth="sm"
-
         >
 
             <DialogTitle>
@@ -110,245 +386,475 @@ export default function ChangePasswordDialog({
 
             </DialogTitle>
 
+
             <DialogContent dividers>
 
-                <Alert
+                {/* ==================================
+                    STEP 1
+                ================================== */}
 
-                    severity="info"
+                {
+                    step === 1 && (
 
-                    sx={{ mb: 3 }}
+                        <>
 
-                >
+                            <Alert
+                                severity="info"
+                                sx={{ mb: 3 }}
+                            >
 
-                    Your new password should be at least 8 characters long.
+                                Enter your current password.
+                                We will send a 6-digit
+                                verification code to your
+                                registered email address.
 
-                </Alert>
+                            </Alert>
 
-                <Grid
-                    container
-                    spacing={3}
-                >
 
-                    <Grid size={{ xs: 12 }}>
+                            <TextField
 
-                        <TextField
+                                fullWidth
 
-                            fullWidth
+                                type={
+                                    show.current
+                                        ? "text"
+                                        : "password"
+                                }
 
-                            type={show.current ? "text" : "password"}
+                                label="Current Password"
 
-                            label="Current Password"
+                                name="currentPassword"
 
-                            name="currentPassword"
+                                value={
+                                    form.currentPassword
+                                }
 
-                            value={passwords.currentPassword}
+                                onChange={
+                                    handleChange
+                                }
 
-                            onChange={handleChange}
+                                disabled={
+                                    loading
+                                }
 
-                            InputProps={{
+                                autoComplete="current-password"
 
-                                endAdornment:
+                                InputProps={{
 
-                                    <InputAdornment position="end">
+                                    endAdornment:
 
-                                        <IconButton
+                                        <InputAdornment position="end">
 
-                                            onClick={() =>
+                                            <IconButton
 
-                                                setShow(prev => ({
+                                                disabled={
+                                                    loading
+                                                }
 
-                                                    ...prev,
+                                                onClick={() =>
 
-                                                    current: !prev.current
+                                                    setShow(prev => ({
 
-                                                }))
+                                                        ...prev,
 
-                                            }
+                                                        current:
+                                                            !prev.current
 
-                                        >
+                                                    }))
 
-                                            {
+                                                }
 
-                                                show.current
+                                            >
 
-                                                    ?
+                                                {
+                                                    show.current
+                                                        ?
+                                                        <VisibilityOff />
+                                                        :
+                                                        <Visibility />
+                                                }
 
-                                                    <VisibilityOff />
+                                            </IconButton>
 
-                                                    :
+                                        </InputAdornment>
 
-                                                    <Visibility />
+                                }}
 
-                                            }
+                            />
 
-                                        </IconButton>
+                        </>
 
-                                    </InputAdornment>
+                    )
+                }
 
-                            }}
 
-                        />
+                {/* ==================================
+                    STEP 2
+                ================================== */}
 
-                    </Grid>
+                {
+                    step === 2 && (
 
-                    <Grid size={{ xs: 12 }}>
+                        <>
 
-                        <TextField
+                            <Alert
+                                severity="success"
+                                sx={{ mb: 3 }}
+                            >
 
-                            fullWidth
+                                A 6-digit verification code
+                                has been sent to your
+                                registered email address.
 
-                            type={show.new ? "text" : "password"}
+                                The code expires in
+                                5 minutes.
 
-                            label="New Password"
+                            </Alert>
 
-                            name="newPassword"
 
-                            value={passwords.newPassword}
+                            <Grid
+                                container
+                                spacing={3}
+                            >
 
-                            onChange={handleChange}
+                                {/* OTP */}
 
-                            InputProps={{
+                                <Grid
+                                    size={{ xs: 12 }}
+                                >
 
-                                endAdornment:
+                                    <TextField
 
-                                    <InputAdornment position="end">
+                                        fullWidth
 
-                                        <IconButton
+                                        label="Verification Code"
 
-                                            onClick={() =>
+                                        name="otp"
 
-                                                setShow(prev => ({
+                                        value={
+                                            form.otp
+                                        }
 
-                                                    ...prev,
+                                        onChange={
+                                            handleChange
+                                        }
 
-                                                    new: !prev.new
+                                        placeholder="Enter 6-digit OTP"
 
-                                                }))
+                                        disabled={
+                                            loading
+                                        }
 
-                                            }
+                                        inputProps={{
+                                            maxLength: 6,
+                                            inputMode: "numeric"
+                                        }}
 
-                                        >
+                                    />
 
-                                            {
+                                </Grid>
 
-                                                show.new
 
-                                                    ?
+                                {/* NEW PASSWORD */}
 
-                                                    <VisibilityOff />
+                                <Grid
+                                    size={{ xs: 12 }}
+                                >
 
-                                                    :
+                                    <TextField
 
-                                                    <Visibility />
+                                        fullWidth
 
-                                            }
+                                        type={
+                                            show.new
+                                                ? "text"
+                                                : "password"
+                                        }
 
-                                        </IconButton>
+                                        label="New Password"
 
-                                    </InputAdornment>
+                                        name="newPassword"
 
-                            }}
+                                        value={
+                                            form.newPassword
+                                        }
 
-                        />
+                                        onChange={
+                                            handleChange
+                                        }
 
-                    </Grid>
+                                        disabled={
+                                            loading
+                                        }
 
-                    <Grid size={{ xs: 12 }}>
+                                        autoComplete="new-password"
 
-                        <TextField
+                                        InputProps={{
 
-                            fullWidth
+                                            endAdornment:
 
-                            type={show.confirm ? "text" : "password"}
+                                                <InputAdornment position="end">
 
-                            label="Confirm Password"
+                                                    <IconButton
 
-                            name="confirmPassword"
+                                                        disabled={
+                                                            loading
+                                                        }
 
-                            value={passwords.confirmPassword}
+                                                        onClick={() =>
 
-                            onChange={handleChange}
+                                                            setShow(prev => ({
 
-                            InputProps={{
+                                                                ...prev,
 
-                                endAdornment:
+                                                                new:
+                                                                    !prev.new
 
-                                    <InputAdornment position="end">
+                                                            }))
 
-                                        <IconButton
+                                                        }
 
-                                            onClick={() =>
+                                                    >
 
-                                                setShow(prev => ({
+                                                        {
+                                                            show.new
+                                                                ?
+                                                                <VisibilityOff />
+                                                                :
+                                                                <Visibility />
+                                                        }
 
-                                                    ...prev,
+                                                    </IconButton>
 
-                                                    confirm: !prev.confirm
+                                                </InputAdornment>
 
-                                                }))
+                                        }}
 
-                                            }
+                                    />
 
-                                        >
+                                </Grid>
 
-                                            {
 
-                                                show.confirm
+                                {/* CONFIRM PASSWORD */}
 
-                                                    ?
+                                <Grid
+                                    size={{ xs: 12 }}
+                                >
 
-                                                    <VisibilityOff />
+                                    <TextField
 
-                                                    :
+                                        fullWidth
 
-                                                    <Visibility />
+                                        type={
+                                            show.confirm
+                                                ? "text"
+                                                : "password"
+                                        }
 
-                                            }
+                                        label="Confirm Password"
 
-                                        </IconButton>
+                                        name="confirmPassword"
 
-                                    </InputAdornment>
+                                        value={
+                                            form.confirmPassword
+                                        }
 
-                            }}
+                                        onChange={
+                                            handleChange
+                                        }
 
-                        />
+                                        disabled={
+                                            loading
+                                        }
 
-                    </Grid>
+                                        autoComplete="new-password"
 
-                </Grid>
+                                        InputProps={{
+
+                                            endAdornment:
+
+                                                <InputAdornment position="end">
+
+                                                    <IconButton
+
+                                                        disabled={
+                                                            loading
+                                                        }
+
+                                                        onClick={() =>
+
+                                                            setShow(prev => ({
+
+                                                                ...prev,
+
+                                                                confirm:
+                                                                    !prev.confirm
+
+                                                            }))
+
+                                                        }
+
+                                                    >
+
+                                                        {
+                                                            show.confirm
+                                                                ?
+                                                                <VisibilityOff />
+                                                                :
+                                                                <Visibility />
+                                                        }
+
+                                                    </IconButton>
+
+                                                </InputAdornment>
+
+                                        }}
+
+                                    />
+
+                                </Grid>
+
+                            </Grid>
+
+
+                            {/* RESEND */}
+
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    justifyContent: "flex-end",
+                                    mt: 2
+                                }}
+                            >
+
+                                <Button
+                                    size="small"
+                                    disabled={loading}
+                                    onClick={
+                                        handleResendOtp
+                                    }
+                                >
+
+                                    Resend OTP
+
+                                </Button>
+
+                            </Box>
+
+                        </>
+
+                    )
+                }
 
             </DialogContent>
 
-            <DialogActions sx={{ p: 2 }}>
+
+            <DialogActions
+                sx={{ p: 2 }}
+            >
 
                 <Button
-
                     onClick={onClose}
-
+                    disabled={loading}
                 >
 
                     Cancel
 
                 </Button>
 
-                <Button
 
-                    variant="contained"
+                {
+                    step === 1
+                        ? (
 
-                    sx={{
-                        background: "#ff5b84",
-                        "&:hover": {
-                            background: "#ec4f79"
-                        }
-                    }}
+                            <Button
 
-                    onClick={handleSubmit}
+                                variant="contained"
 
-                >
+                                disabled={
+                                    loading ||
+                                    !form.currentPassword
+                                }
 
-                    Update Password
+                                onClick={
+                                    handleSendOtp
+                                }
 
-                </Button>
+                                sx={{
+                                    background: "#ff5b84",
+
+                                    "&:hover": {
+                                        background: "#ec4f79"
+                                    }
+                                }}
+
+                            >
+
+                                {
+                                    loading
+                                        ? (
+                                            <>
+                                                <CircularProgress
+                                                    size={18}
+                                                    sx={{
+                                                        mr: 1
+                                                    }}
+                                                />
+
+                                                Sending...
+                                            </>
+                                        )
+                                        : "Send OTP"
+                                }
+
+                            </Button>
+
+                        )
+                        : (
+
+                            <Button
+
+                                variant="contained"
+
+                                disabled={
+                                    loading
+                                }
+
+                                onClick={
+                                    handleChangePassword
+                                }
+
+                                sx={{
+                                    background: "#ff5b84",
+
+                                    "&:hover": {
+                                        background: "#ec4f79"
+                                    }
+                                }}
+
+                            >
+
+                                {
+                                    loading
+                                        ? (
+                                            <>
+                                                <CircularProgress
+                                                    size={18}
+                                                    sx={{
+                                                        mr: 1
+                                                    }}
+                                                />
+
+                                                Updating...
+                                            </>
+                                        )
+                                        : "Update Password"
+                                }
+
+                            </Button>
+
+                        )
+                }
 
             </DialogActions>
 

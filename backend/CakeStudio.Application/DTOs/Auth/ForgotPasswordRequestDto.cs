@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace CakeStudio.Application.DTOs.Auth
 {
-    public class RefreshTokenResponseDto
+    public class ForgotPasswordRequestDto
     {
-        public string AccessToken { get; set; }
-            = string.Empty;
-
-        public string RefreshToken { get; set; }
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; }
             = string.Empty;
     }
 }

@@ -5,6 +5,7 @@ using CakeStudio.Infrastructure.Services;
 using CakeStudio.Persistence.Entities;
 
 using FluentAssertions;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -35,6 +36,8 @@ namespace CakeStudio.Tests.Unit.Application.Services
             _loggerMock;
 
         private readonly AuthService _authService;
+        private readonly Mock<IPasswordResetTokenRepository> _forgotMock;
+        private readonly Mock<IConfiguration> _configuration;
 
         public AuthServiceTests()
         {
@@ -59,6 +62,9 @@ namespace CakeStudio.Tests.Unit.Application.Services
             _loggerMock =
                 new Mock<ILogger<AuthService>>();
 
+            _forgotMock = new Mock<IPasswordResetTokenRepository>();
+            _configuration = new Mock<IConfiguration>();
+
             _authService = new AuthService(
                 _userRepositoryMock.Object,
                 _refreshTokenRepositoryMock.Object,
@@ -66,7 +72,10 @@ namespace CakeStudio.Tests.Unit.Application.Services
                 _jwtServiceMock.Object,
                 _refreshTokenServiceMock.Object,
                 _emailServiceMock.Object,
-                _loggerMock.Object);
+                _loggerMock.Object,
+                _forgotMock.Object,
+                _configuration.Object
+                );
         }
 
         [Fact]
