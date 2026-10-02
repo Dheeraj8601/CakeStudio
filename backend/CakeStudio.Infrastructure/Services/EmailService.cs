@@ -5,11 +5,6 @@ using MailKit.Security;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MimeKit;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CakeStudio.Infrastructure.Services
 {
@@ -26,20 +21,24 @@ namespace CakeStudio.Infrastructure.Services
 
         public async Task SendEmailAsync(EmailRequestDto request)
         {
-            var settings =
-                _configuration.GetSection("EmailSettings");
+            var settings = _configuration.GetSection("EmailSettings");
 
             var email = new MimeMessage();
+
 
             email.From.Add(
                 new MailboxAddress(
                     settings["FromName"],
                     settings["FromEmail"]));
 
+
+
             email.To.Add(
                 MailboxAddress.Parse(request.To));
 
-            if (request.Cc != null && request.Cc.Any())
+
+            if (request.Cc != null &&
+                request.Cc.Any())
             {
                 foreach (var cc in request.Cc)
                 {
@@ -51,7 +50,9 @@ namespace CakeStudio.Infrastructure.Services
                 }
             }
 
-            if (request.Bcc != null && request.Bcc.Any())
+
+            if (request.Bcc != null &&
+                request.Bcc.Any())
             {
                 foreach (var bcc in request.Bcc)
                 {
@@ -63,26 +64,52 @@ namespace CakeStudio.Infrastructure.Services
                 }
             }
 
+
             email.Subject = request.Subject;
 
-            email.Body =
-                new TextPart("html")
+
+            var bodyBuilder = new BodyBuilder
+            {
+                HtmlBody = request.Body
+            };
+
+
+
+            if (request.Attachments != null &&
+                request.Attachments.Any())
+            {
+                foreach (var attachment in request.Attachments)
                 {
-                    Text = request.Body
-                };
+                    if (attachment.Content == null ||
+                        attachment.Content.Length == 0)
+                    {
+                        continue;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(
+                            attachment.FileName))
+                    {
+                        continue;
+                    }
+
+
+                    var contentType =
+                        GetContentType(
+                            attachment.ContentType);
+
+
+                    bodyBuilder.Attachments.Add(
+                        attachment.FileName,
+                        attachment.Content,
+                        contentType);
+                }
+            }
+
+            email.Body = bodyBuilder.ToMessageBody();
+
+
 
             using var smtp = new SmtpClient();
-
-            //await smtp.ConnectAsync(
-            //    settings["Host"],
-            //    Convert.ToInt32(settings["Port"]),
-            //    MailKit.Security.SecureSocketOptions.StartTls);
-
-            //await smtp.AuthenticateAsync(
-            //    settings["Username"],
-            //    settings["Password"]);
-
-            //await smtp.SendAsync(email);
 
             try
             {
@@ -91,20 +118,66 @@ namespace CakeStudio.Infrastructure.Services
                     Convert.ToInt32(settings["Port"]),
                     SecureSocketOptions.StartTls);
 
+
                 await smtp.AuthenticateAsync(
                     settings["Username"],
                     settings["Password"]);
 
+
                 await smtp.SendAsync(email);
 
+
+                _logger.LogInformation(
+                    "Email sent successfully to {Email}",
+                    request.To);
             }
             catch (Exception ex)
             {
-                _logger.LogInformation("User {Email} logged in successfully", ex.Message);
-                Console.WriteLine(ex.ToString());
+                _logger.LogError(
+                    ex,
+                    "Failed to send email to {Email}",
+                    request.To);
+
+                throw;
+            }
+            finally
+            {
+                if (smtp.IsConnected)
+                {
+                    await smtp.DisconnectAsync(true);
+                }
+            }
+        }
+
+        private static ContentType GetContentType(
+            string? contentType)
+        {
+            if (string.IsNullOrWhiteSpace(contentType))
+            {
+                return new ContentType(
+                    "application",
+                    "octet-stream");
             }
 
-            await smtp.DisconnectAsync(true);
+
+            var parts =
+                contentType.Split(
+                    '/',
+                    2,
+                    StringSplitOptions.RemoveEmptyEntries);
+
+
+            if (parts.Length != 2)
+            {
+                return new ContentType(
+                    "application",
+                    "octet-stream");
+            }
+
+
+            return new ContentType(
+                parts[0],
+                parts[1]);
         }
     }
 }

@@ -52,8 +52,9 @@ namespace CakeStudio.Infrastructure.Repositories
         {
             return await _context.Orders
                 .Include(x => x.Address)
+                .Include(x => x.Payment)
                 .Include(x => x.OrderItems)
-                .ThenInclude(x => x.Cake)
+                    .ThenInclude(x => x.Cake)
                 .FirstOrDefaultAsync(x => x.Id == orderId);
         }
 

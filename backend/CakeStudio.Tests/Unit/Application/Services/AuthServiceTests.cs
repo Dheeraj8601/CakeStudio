@@ -5,6 +5,7 @@ using CakeStudio.Infrastructure.Services;
 using CakeStudio.Persistence.Entities;
 
 using FluentAssertions;
+using Hangfire;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -38,6 +39,7 @@ namespace CakeStudio.Tests.Unit.Application.Services
         private readonly AuthService _authService;
         private readonly Mock<IPasswordResetTokenRepository> _forgotMock;
         private readonly Mock<IConfiguration> _configuration;
+        private readonly Mock<IBackgroundJobClient> _backgroundJobClientMock;
 
         public AuthServiceTests()
         {
@@ -64,6 +66,7 @@ namespace CakeStudio.Tests.Unit.Application.Services
 
             _forgotMock = new Mock<IPasswordResetTokenRepository>();
             _configuration = new Mock<IConfiguration>();
+            _backgroundJobClientMock = new Mock<IBackgroundJobClient>();
 
             _authService = new AuthService(
                 _userRepositoryMock.Object,
@@ -74,7 +77,8 @@ namespace CakeStudio.Tests.Unit.Application.Services
                 _emailServiceMock.Object,
                 _loggerMock.Object,
                 _forgotMock.Object,
-                _configuration.Object
+                _configuration.Object,
+                _backgroundJobClientMock.Object
                 );
         }
 

@@ -9,6 +9,7 @@ namespace CakeStudio.Application.DTOs.Email
     public class EmailRequestDto
     {
         public string To { get; set; } = string.Empty;
+
         public List<string>? Cc { get; set; }
 
         public List<string>? Bcc { get; set; }
@@ -16,5 +17,9 @@ namespace CakeStudio.Application.DTOs.Email
         public string Subject { get; set; } = string.Empty;
 
         public string Body { get; set; } = string.Empty;
+
+        // Optional attachments.
+        // Existing emails can leave this null.
+        public List<EmailAttachmentDto>? Attachments { get; set; }
     }
 }

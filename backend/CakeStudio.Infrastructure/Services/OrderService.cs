@@ -456,46 +456,136 @@ namespace CakeStudio.Infrastructure.Services
                 .ToList();
         }
 
-        public async Task UpdateOrderStatusAsync(UpdateOrderStatusRequestDto request)
+        public async Task UpdateOrderStatusAsync(
+    UpdateOrderStatusRequestDto request)
         {
-            var order = await _orderRepository.GetOrderByIdAsync(request.OrderId);
+            // ---------------------------------------------------------
+            // 1. Get order
+            // ---------------------------------------------------------
+
+            var order = await _orderRepository.GetOrderByIdAsync(
+                request.OrderId);
 
             if (order == null)
             {
-                throw new NotFoundException(
-                    "Order not found.");
+                throw new NotFoundException("Order not found.");
             }
 
+
+            // ---------------------------------------------------------
+            // 2. Validate order status
+            // ---------------------------------------------------------
 
             var validStatuses = new[]
             {
-                "Placed",
-                "Confirmed",
-                "Processing",
-                "Out for Delivery",
-                "Delivered",
-                "Cancelled"
-            };
+        "Placed",
+        "Confirmed",
+        "Processing",
+        "Out for Delivery",
+        "Delivered",
+        "Cancelled"
+    };
 
-            if (!validStatuses.Contains(request.OrderStatus,StringComparer.OrdinalIgnoreCase))
+            if (!validStatuses.Contains(
+                    request.OrderStatus,
+                    StringComparer.OrdinalIgnoreCase))
             {
-                throw new BadRequestException("Invalid order status.");
+                throw new BadRequestException(
+                    "Invalid order status.");
             }
+
+
+            // ---------------------------------------------------------
+            // 3. Remember previous status
+            // ---------------------------------------------------------
+
+            var previousStatus = order.OrderStatus;
+
+            var isTransitioningToDelivered =
+                !previousStatus.Equals(
+                    "Delivered",
+                    StringComparison.OrdinalIgnoreCase)
+                &&
+                request.OrderStatus.Equals(
+                    "Delivered",
+                    StringComparison.OrdinalIgnoreCase);
+
+
+            // ---------------------------------------------------------
+            // 4. Identify COD payment
+            // ---------------------------------------------------------
+
+            var isCashOnDelivery =
+                order.PaymentMethod.Equals(
+                    "cod",
+                    StringComparison.OrdinalIgnoreCase)
+                ||
+                order.PaymentMethod.Equals(
+                    "Cash On Delivery",
+                    StringComparison.OrdinalIgnoreCase);
+
+
+            // ---------------------------------------------------------
+            // 5. Update order status
+            // ---------------------------------------------------------
 
             order.OrderStatus = request.OrderStatus;
 
-            if (request.OrderStatus.Equals("Delivered",StringComparison.OrdinalIgnoreCase))
+
+            // ---------------------------------------------------------
+            // 6. COD becomes Paid when delivered
+            // ---------------------------------------------------------
+
+            if (isTransitioningToDelivered &&
+                isCashOnDelivery)
             {
-                order.PaymentStatus =
-                    order.PaymentMethod.Equals(
-                        "Cash On Delivery",
-                        StringComparison.OrdinalIgnoreCase)
-                    ? "Paid"
-                    : order.PaymentStatus;
+                var paidAt = DateTime.UtcNow;
+
+                // Update Orders table
+                order.PaymentStatus = "Paid";
+
+                // Update Payments table
+                if (order.Payment != null)
+                {
+                    order.Payment.PaymentStatus = "Paid";
+
+                    order.Payment.PaidAt = paidAt;
+
+                    order.Payment.UpdatedAt = paidAt;
+                }
             }
 
+
+            // ---------------------------------------------------------
+            // 7. Save database changes FIRST
+            // ---------------------------------------------------------
+
             await _orderRepository.SaveChangesAsync();
-            await SendOrderStatusUpdateEmailAsync(order);
+
+
+            // ---------------------------------------------------------
+            // 8. Delivered -> queue invoice email through Hangfire
+            // ---------------------------------------------------------
+
+            if (isTransitioningToDelivered)
+            {
+                _backgroundJobClient.Enqueue<IDeliveredOrderEmailJob>(
+                    job => job.SendAsync(order.Id));
+
+                return;
+            }
+
+
+            // ---------------------------------------------------------
+            // 9. Other status changes -> normal status email
+            // ---------------------------------------------------------
+
+            if (!previousStatus.Equals(
+                    request.OrderStatus,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                await SendOrderStatusUpdateEmailAsync(order);
+            }
         }
 
         public async Task<PagedResult<AdminOrderResponseDto>> GetPagedOrdersAsync(OrderPagedRequestDto request)
