@@ -14,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Hangfire;
 using System.Threading.Tasks;
 
 namespace CakeStudio.Infrastructure.Services
@@ -25,13 +26,15 @@ namespace CakeStudio.Infrastructure.Services
         private readonly IEmailService _emailService;
         private readonly ILogger<PaymentService> _logger;
         private readonly IInventoryRepository _inventoryRepository;
+        private readonly IBackgroundJobClient _backgroundJobClient;
 
         public PaymentService(
             CakeStudioDbContext context,
             IConfiguration configuration,
             IEmailService emailService,
             ILogger<PaymentService> logger,
-            IInventoryRepository inventoryRepository
+            IInventoryRepository inventoryRepository,
+            IBackgroundJobClient backgroundJobClient
             )
         {
             _context = context;
@@ -39,6 +42,7 @@ namespace CakeStudio.Infrastructure.Services
             _emailService = emailService;
             _logger = logger;
             _inventoryRepository = inventoryRepository;
+            _backgroundJobClient = backgroundJobClient;
         }
 
         private static string NormalizeRefundStatus(string? stripeStatus)
@@ -913,9 +917,8 @@ namespace CakeStudio.Infrastructure.Services
                             };
                     }
 
-
-                    await _emailService
-                        .SendEmailAsync(emailRequest);
+                    //hangfire job to send email in background
+                    _backgroundJobClient.Enqueue<IEmailBackgroundJob>(job => job.SendEmailAsync(emailRequest));
 
 
                     _logger.LogInformation(
