@@ -17,6 +17,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Google.Apis.Auth;
+using Hangfire;
 
 namespace CakeStudio.Infrastructure.Services
 {
@@ -31,8 +32,9 @@ namespace CakeStudio.Infrastructure.Services
         private readonly ILogger<AuthService> _logger;
         private readonly IPasswordResetTokenRepository _passwordResetTokenRepository;
         private readonly IConfiguration _configuration;
+        private readonly IBackgroundJobClient _backgroundJobClient;
 
-        public AuthService(IUserRepository userRepository, IRefreshTokenRepository refreshTokenRepository, IPasswordService passwordService,IJwtService jwtService,IRefreshTokenService refreshTokenService,IEmailService emailService,ILogger<AuthService> logger, IPasswordResetTokenRepository passwordResetTokenRepository, IConfiguration configuration)
+        public AuthService(IUserRepository userRepository, IRefreshTokenRepository refreshTokenRepository, IPasswordService passwordService,IJwtService jwtService,IRefreshTokenService refreshTokenService,IEmailService emailService,ILogger<AuthService> logger, IPasswordResetTokenRepository passwordResetTokenRepository, IConfiguration configuration, IBackgroundJobClient backgroundJobClient)
         {
             _userRepository = userRepository;
             _passwordService = passwordService;
@@ -43,6 +45,7 @@ namespace CakeStudio.Infrastructure.Services
             _emailService = emailService;
             _logger = logger;
             _configuration = configuration;
+            _backgroundJobClient = backgroundJobClient;
         }
 
         public async Task<RegisterResponseDto> RegisterAsync(RegisterRequestDto request)
@@ -73,14 +76,14 @@ namespace CakeStudio.Infrastructure.Services
 
             await _userRepository.SaveChangesAsync();
 
-            await _emailService.SendEmailAsync(new EmailRequestDto
-            {
-                To = user.Email,
-
-                Subject = "Welcome To CakeStudio 🎂",
-
-                Body = EmailTemplateService.WelcomeTemplate(user.FirstName,user.Email,user.PhoneNumber ?? "Not Provided")
-            });
+            _backgroundJobClient.Enqueue<IEmailBackgroundJob>(job => job.SendEmailAsync(
+                                        new EmailRequestDto
+                                        {
+                                            To = user.Email,
+                                            Subject = "Welcome To CakeStudio 🎂",
+                                            Body = EmailTemplateService.WelcomeTemplate(user.FirstName,user.Email,user.PhoneNumber ?? "Not Provided")
+                                        }
+            ));
 
             _logger.LogInformation("User {Email} registered successfully",request.Email);
 
@@ -366,8 +369,11 @@ namespace CakeStudio.Infrastructure.Services
                     Body = emailBody
                 };
 
-            await _emailService.SendEmailAsync(
-                emailRequest);
+            //await _emailService.SendEmailAsync(
+            //    emailRequest);
+
+            //Hangfire 
+            _backgroundJobClient.Enqueue<IEmailBackgroundJob>(job => job.SendEmailAsync(emailRequest));
 
             _logger.LogInformation(
                 "Password reset email sent for User {UserId}",
@@ -630,24 +636,17 @@ namespace CakeStudio.Infrastructure.Services
                         // WELCOME EMAIL
                         // ==================================
 
-                        await _emailService
-                            .SendEmailAsync(
-                                new EmailRequestDto
-                                {
-                                    To =
-                                        user.Email,
+                        var emailRequest = new EmailRequestDto
+                        {
+                            To = user.Email,
+                            Subject = "Welcome To CakeStudio 🎂",
+                            Body = EmailTemplateService.WelcomeTemplate(
+                                    user.FirstName,
+                                    user.Email,
+                                    user.PhoneNumber ?? "Not Provided")
+                        };
 
-                                    Subject =
-                                        "Welcome To CakeStudio 🎂",
-
-                                    Body =
-                                        EmailTemplateService
-                                            .WelcomeTemplate(
-                                                user.FirstName,
-                                                user.Email,
-                                                user.PhoneNumber ??
-                                                "Not Provided")
-                                });
+                        _backgroundJobClient.Enqueue<IEmailBackgroundJob>(job => job.SendEmailAsync(emailRequest));
 
 
                         _logger.LogInformation(

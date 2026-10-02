@@ -9,6 +9,7 @@ using System.Text;
 using Serilog;
 using Stripe;
 using CakeStudio.Infrastructure.BackgroundServices;
+using Hangfire;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -38,6 +39,15 @@ builder.Services.AddDbContext<CakeStudioDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection"));
 });
+
+// Hangfire
+builder.Services.AddHangfire(configuration =>
+{
+    configuration.UseSqlServerStorage(
+        builder.Configuration.GetConnectionString("DefaultConnection"));
+});
+
+builder.Services.AddHangfireServer();
 
 builder.Services.AddHostedService<RefreshTokenCleanupService>();
 
@@ -130,6 +140,7 @@ app.UseStaticFiles();
 app.UseGlobalExceptionMiddleware();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseHangfireDashboard("/hangfire");
 app.MapControllers();
 
 app.Run();

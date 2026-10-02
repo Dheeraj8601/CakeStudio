@@ -1,5 +1,6 @@
 ﻿using CakeStudio.Application.Interfaces;
 using CakeStudio.Application.Services;
+using CakeStudio.Infrastructure.BackgroundJobs;
 using CakeStudio.Infrastructure.Repositories;
 using CakeStudio.Infrastructure.Security;
 using CakeStudio.Infrastructure.Services;
@@ -53,6 +54,7 @@ namespace CakeStudio.Infrastructure
             services.AddScoped<IPaymentProcessorFactory,PaymentProcessorFactory>();
             services.AddScoped<IPasswordResetTokenRepository,PasswordResetTokenRepository>();
             services.AddScoped<IPasswordChangeOtpRepository,PasswordChangeOtpRepository>();
+            services.AddScoped<IEmailBackgroundJob, EmailBackgroundJob>();
 
             return services;
         }

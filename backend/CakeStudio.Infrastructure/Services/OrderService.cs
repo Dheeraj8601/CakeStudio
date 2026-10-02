@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Hangfire;
 
 namespace CakeStudio.Infrastructure.Services
 {
@@ -26,11 +27,13 @@ namespace CakeStudio.Infrastructure.Services
         private readonly IFileUpload _fileUpload;
         private readonly IEmailService _emailService;
         private readonly IConfiguration _configuration;
-        public OrderService(CakeStudioDbContext context, IUserContext userContext, ICartRepository cartRepository, IOrderRepository orderRepo, IPaymentProcessorFactory paymentFactory, IFileUpload fileUpload, IEmailService emailService,IConfiguration config)
+        private readonly IBackgroundJobClient _backgroundJobClient;
+        public OrderService(CakeStudioDbContext context, IUserContext userContext, ICartRepository cartRepository, IOrderRepository orderRepo, IPaymentProcessorFactory paymentFactory, IFileUpload fileUpload, IEmailService emailService,IConfiguration config, IBackgroundJobClient backgroundJobClient)
         {
             _context = context;
             _userContext = userContext;
             _cartRepository = cartRepository;
+            _backgroundJobClient = backgroundJobClient;
             _orderRepository = orderRepo;
             _paymentProcessorFactory = paymentFactory;
             _fileUpload = fileUpload;
@@ -606,8 +609,8 @@ namespace CakeStudio.Infrastructure.Services
                 }
             }
 
-            await _emailService
-                .SendEmailAsync(emailRequest);
+            // Enqueue the email sending job to Hangfire
+            _backgroundJobClient.Enqueue<IEmailBackgroundJob>(job => job.SendEmailAsync(emailRequest));
         }
 
         private async Task SendOrderStatusUpdateEmailAsync(Order order)
@@ -660,7 +663,8 @@ namespace CakeStudio.Infrastructure.Services
                 emailRequest.To = user.Email;
             }
 
-            await _emailService.SendEmailAsync(emailRequest);
+            // Enqueue the email sending job to Hangfire
+            _backgroundJobClient.Enqueue<IEmailBackgroundJob>(job => job.SendEmailAsync(emailRequest));
         }
     }
 }
