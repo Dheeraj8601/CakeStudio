@@ -609,10 +609,11 @@ namespace CakeStudio.Infrastructure.Services
             // STEP 4:
             // Load order + payment + products.
             var order = await _context.Orders
-                .Include(x => x.User)
-                .Include(x => x.OrderItems)
-                    .ThenInclude(x => x.Cake)
-                .FirstOrDefaultAsync(x => x.Id == orderId);
+                        .Include(x => x.User)
+                        .Include(x => x.Address)
+                        .Include(x => x.OrderItems)
+                            .ThenInclude(x => x.Cake)
+                        .FirstOrDefaultAsync(x => x.Id == orderId);
 
             if (order == null)
             {
@@ -829,45 +830,115 @@ namespace CakeStudio.Infrastructure.Services
             }
 
             // STEP 13:
-            // Send email AFTER DB transaction succeeds.
+            // Send payment-success email AFTER the database
+            // transaction has successfully committed.
             //
-            // Your previous code used order.User.Email directly.
-            // That can fail for guest orders because User may be null.
-            if (order.User != null &&
-                !string.IsNullOrWhiteSpace(order.User.Email))
+            // Email failure must never roll back a successful payment.
+
+            try
             {
-                try
+                string? customerEmail = null;
+                string customerName = "Customer";
+
+                // ------------------------------------------
+                // PREFER SHIPPING ADDRESS EMAIL
+                // ------------------------------------------
+
+                if (order.Address != null &&
+                    !string.IsNullOrWhiteSpace(order.Address.Email))
                 {
-                    await _emailService.SendEmailAsync(
+                    customerEmail = order.Address.Email;
+
+                    if (!string.IsNullOrWhiteSpace(order.Address.FullName))
+                    {
+                        customerName = order.Address.FullName;
+                    }
+                }
+
+                // ------------------------------------------
+                // FALLBACK TO LOGGED-IN USER EMAIL
+                // ------------------------------------------
+
+                if (string.IsNullOrWhiteSpace(customerEmail) &&
+                    order.User != null &&
+                    !string.IsNullOrWhiteSpace(order.User.Email))
+                {
+                    customerEmail = order.User.Email;
+
+                    customerName =
+                        $"{order.User.FirstName} {order.User.LastName}"
+                            .Trim();
+                }
+
+                // ------------------------------------------
+                // SEND EMAIL
+                // ------------------------------------------
+
+                if (!string.IsNullOrWhiteSpace(customerEmail))
+                {
+                    var emailRequest =
                         new EmailRequestDto
                         {
-                            To =
-                                order.User.Email,
+                            To = customerEmail,
 
                             Subject =
-                                "Payment Successful - CakeStudio",
+                                $"CakeStudio - Payment Successful for Order #{order.Id}",
 
                             Body =
                                 EmailTemplateService
                                     .PaymentSuccessTemplate(
-                                        order.User.FirstName,
+                                        customerName,
                                         order.Id,
                                         order.TotalAmount,
                                         order.StripePaymentIntentId,
                                         "Stripe",
                                         DateTime.Now.ToString(
                                             "dd MMM yyyy, hh:mm tt"))
-                        });
+                        };
+
+
+                    // Logged-in customer may have a different
+                    // account email from shipping email.
+                    if (order.User != null &&
+                        !string.IsNullOrWhiteSpace(order.User.Email) &&
+                        !string.Equals(
+                            order.User.Email,
+                            customerEmail,
+                            StringComparison.OrdinalIgnoreCase))
+                    {
+                        emailRequest.Cc =
+                            new List<string>
+                            {
+                    order.User.Email
+                            };
+                    }
+
+
+                    await _emailService
+                        .SendEmailAsync(emailRequest);
+
+
+                    _logger.LogInformation(
+                        "Payment success email sent for OrderId {OrderId} to {Email}",
+                        order.Id,
+                        customerEmail);
                 }
-                catch (Exception ex)
+                else
                 {
-                    // Payment is already successful.
-                    // Email failure must NOT roll back payment.
-                    _logger.LogError(
-                        ex,
-                        "Payment succeeded but confirmation email failed for OrderId {OrderId}",
+                    _logger.LogWarning(
+                        "Payment succeeded for OrderId {OrderId}, but no customer email address was available.",
                         order.Id);
                 }
+            }
+            catch (Exception ex)
+            {
+                // Payment has already succeeded.
+                // Email failure must not change payment status.
+
+                _logger.LogError(
+                    ex,
+                    "Payment succeeded but confirmation email failed for OrderId {OrderId}",
+                    order.Id);
             }
         }
         public async Task CheckoutExpiredAsync(string stripeEventId,string sessionId)
