@@ -27,7 +27,7 @@ public partial class CakeStudioDbContext : DbContext
     public virtual DbSet<CartItem> CartItems { get; set; }
 
     public virtual DbSet<Category> Categories { get; set; }
-
+    public virtual DbSet<EmailDeliveryLog> EmailDeliveryLogs { get; set; }
     public virtual DbSet<InventoryTransaction> InventoryTransactions { get; set; }
 
     public virtual DbSet<Order> Orders { get; set; }
@@ -118,6 +118,17 @@ public partial class CakeStudioDbContext : DbContext
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.CategoryCreatedByNavigations).HasConstraintName("FK_Categories_CreatedBy_Users");
 
             entity.HasOne(d => d.ModifiedByNavigation).WithMany(p => p.CategoryModifiedByNavigations).HasConstraintName("FK_Categories_ModifiedBy_Users");
+        });
+
+        modelBuilder.Entity<EmailDeliveryLog>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__EmailDel__3214EC07EC240E95");
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysutcdatetime())");
+
+            entity.HasOne(d => d.Order).WithMany(p => p.EmailDeliveryLogs)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_EmailDeliveryLogs_Orders");
         });
 
         modelBuilder.Entity<InventoryTransaction>(entity =>

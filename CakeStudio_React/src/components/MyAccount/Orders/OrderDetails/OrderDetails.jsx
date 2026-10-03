@@ -1,23 +1,44 @@
 import { useEffect, useState } from "react";
 import Service from "../../../../services/Service";
-import { Box, Typography, Grid } from "@mui/material";
+
+import {
+    Box,
+    Typography,
+    Grid,
+    Button,
+    CircularProgress
+} from "@mui/material";
+
+import DownloadIcon from "@mui/icons-material/Download";
+
 import OrderHeaderCard from "./OrderHeaderCard";
 import OrderedItemsCard from "./OrderedItemsCard";
-import ShippingAddressCard from "./ShippingAddressCard"
-import PaymentDetailsCard from "./PaymentDetailsCard"
+import ShippingAddressCard from "./ShippingAddressCard";
+import PaymentDetailsCard from "./PaymentDetailsCard";
 import AccountSupportCard from "../../AccountSupportCard";
-import dayjs from "dayjs";
-import OrderTimeline from "../../../Admin/OrderDetails/OrderTimeline"
+import OrderTimeline from "../../../Admin/OrderDetails/OrderTimeline";
 import ReviewSection from "./ReviewSection";
+
+import dayjs from "dayjs";
+import { toast } from "react-toastify";
+
+import "./OrderDetails.css";
+
+
 export default function OrderDetails(props) {
 
     const [order, setOrder] = useState(null);
+
+    const [downloadingInvoice, setDownloadingInvoice] =
+        useState(false);
+
 
     useEffect(() => {
 
         loadOrder();
 
-    }, []);
+    }, [props.id]);
+
 
     const loadOrder = async () => {
 
@@ -25,7 +46,7 @@ export default function OrderDetails(props) {
 
             const response =
                 await Service.getOrderDetails(props.id);
-console.log(response.data,"44")
+
             setOrder(response.data);
 
         }
@@ -37,87 +58,326 @@ console.log(response.data,"44")
 
     };
 
+
+    // =========================================================
+    // Download Invoice
+    // =========================================================
+
+    const handleDownloadInvoice = async () => {
+
+        if (downloadingInvoice) {
+            return;
+        }
+
+        try {
+
+            setDownloadingInvoice(true);
+
+            const response =
+                await Service.downloadInvoice(
+                    order.orderId
+                );
+
+
+            const blob = new Blob(
+                [response.data],
+                {
+                    type: "application/pdf"
+                }
+            );
+
+
+            const url =
+                window.URL.createObjectURL(blob);
+
+
+            const link =
+                document.createElement("a");
+
+
+            link.href = url;
+
+            link.download =
+                `CakeStudio_Invoice_${order.orderId}.pdf`;
+
+
+            document.body.appendChild(link);
+
+            link.click();
+
+            link.remove();
+
+
+            window.URL.revokeObjectURL(url);
+
+        }
+        catch (error) {
+
+            console.error(
+                "Invoice download failed:",
+                error
+            );
+
+
+            let message =
+                "Unable to download invoice.";
+
+
+            if (
+                error.response?.data instanceof Blob
+            ) {
+
+                try {
+
+                    const text =
+                        await error.response.data.text();
+
+
+                    const data =
+                        JSON.parse(text);
+
+
+                    if (data.message) {
+
+                        message =
+                            data.message;
+
+                    }
+
+                }
+                catch {
+
+                    // Keep default message
+
+                }
+
+            }
+
+
+            toast.error(message);
+
+        }
+        finally {
+
+            setDownloadingInvoice(false);
+
+        }
+
+    };
+
+
     if (!order) {
 
-        return null;
+        return (
+
+            <Box className="customer-order-loading">
+
+                <CircularProgress size={30} />
+
+            </Box>
+
+        );
 
     }
 
+
+    const isDelivered =
+        order.orderStatus?.toLowerCase() ===
+        "delivered";
+
+
     return (
 
-        <Box>
+        <Box className="customer-order-page">
 
-            <Typography className="page-title">
+            <Box className="customer-order-container">
 
-                Order #{order.orderId}
 
-            </Typography>
+                {/* =================================================
+                    PAGE HEADER
+                ================================================= */}
 
-            <Typography className="page-subtitle">
+                <Box className="customer-order-page-header">
 
-                Placed on {dayjs(order.createdAt).format("dddd, DD MMMM YYYY")}
+                    <Box>
 
-            </Typography>
+                        <Typography className="page-title">
 
-            <OrderHeaderCard
-                order={order}
-            />
+                            Order #{order.orderId}
 
-            <OrderedItemsCard
-                items={order.items}
-            />
+                        </Typography>
 
-            {/*
 
-            <OrderTrackingCard
-                tracking={tracking}
-            />
+                        <Typography className="page-subtitle">
 
-            */}
+                            Placed on{" "}
 
-            <OrderTimeline order={order} />
+                            {dayjs(order.createdAt).format(
+                                "dddd, DD MMMM YYYY"
+                            )}
 
-            <Grid
-                container
-                spacing={3}
-                sx={{ mt: 1 }}
-            >
+                        </Typography>
 
-                <Grid size={{ xs: 12, md: 6 }}>
+                    </Box>
 
-                    <ShippingAddressCard
-                        shipping={order.shippingAddress}
-                    />
 
-                </Grid>
+                    {
+                        isDelivered && (
 
-                <Grid size={{ xs: 12, md: 6 }}>
+                            <Button
+                                className="customer-invoice-button"
+                                variant="outlined"
+                                startIcon={
+                                    downloadingInvoice
+                                        ? (
+                                            <CircularProgress
+                                                size={17}
+                                            />
+                                        )
+                                        : (
+                                            <DownloadIcon />
+                                        )
+                                }
+                                disabled={
+                                    downloadingInvoice
+                                }
+                                onClick={
+                                    handleDownloadInvoice
+                                }
+                            >
 
-                    <PaymentDetailsCard
+                                {
+                                    downloadingInvoice
+                                        ? "Generating..."
+                                        : "Download Invoice"
+                                }
+
+                            </Button>
+
+                        )
+                    }
+
+                </Box>
+
+
+                {/* =================================================
+                    ORDER HEADER CARD
+                ================================================= */}
+
+                <Box className="customer-order-section">
+
+                    <OrderHeaderCard
                         order={order}
                     />
 
+                </Box>
 
+
+                {/* =================================================
+                    ORDERED ITEMS
+                ================================================= */}
+
+                <Box className="customer-order-section">
+
+                    <OrderedItemsCard
+                        items={order.items}
+                    />
+
+                </Box>
+
+
+                {/* =================================================
+                    ORDER TIMELINE
+                ================================================= */}
+
+                <Box className="customer-order-section">
+
+                    <OrderTimeline
+                        order={order}
+                    />
+
+                </Box>
+
+
+                {/* =================================================
+                    ADDRESS + PAYMENT
+                ================================================= */}
+
+                <Grid
+                    container
+                    spacing={2.5}
+                    alignItems="stretch"
+                >
+
+                    <Grid
+                        size={{
+                            xs: 12,
+                            md: 6
+                        }}
+                    >
+
+                        <Box className="customer-order-grid-card">
+
+                            <ShippingAddressCard
+                                shipping={
+                                    order.shippingAddress
+                                }
+                            />
+
+                        </Box>
+
+                    </Grid>
+
+
+                    <Grid
+                        size={{
+                            xs: 12,
+                            md: 6
+                        }}
+                    >
+
+                        <Box className="customer-order-grid-card">
+
+                            <PaymentDetailsCard
+                                order={order}
+                            />
+
+                        </Box>
+
+                    </Grid>
 
                 </Grid>
 
+
+                {/* =================================================
+                    REVIEW
+                ================================================= */}
+
                 {
-                    order.orderStatus === "Delivered" &&
+                    isDelivered && (
 
-                    <Box mt={4}>
+                        <Box className="customer-order-section">
 
-                        <ReviewSection
-                            items={order.items}
-                        />
+                            <ReviewSection
+                                items={order.items}
+                            />
 
-                    </Box>
+                        </Box>
+
+                    )
                 }
 
-            </Grid>
 
-            <Box mt={4}>
+                {/* =================================================
+                    SUPPORT
+                ================================================= */}
 
-                <AccountSupportCard />
+                <Box className="customer-order-support">
+
+                    <AccountSupportCard />
+
+                </Box>
+
 
             </Box>
 

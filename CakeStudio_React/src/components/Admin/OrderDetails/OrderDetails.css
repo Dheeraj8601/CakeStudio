@@ -1,9 +1,180 @@
-.admin-order-details{
+/* ============================================================
+   PAGE
+============================================================ */
 
-    display:flex;
+.admin-order-page {
+    width: 100%;
+    min-height: 100%;
+    padding: 24px;
+    box-sizing: border-box;
+}
 
-    flex-direction:column;
+.admin-order-container {
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
 
-    gap:24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+
+/* ============================================================
+   HEADER
+============================================================ */
+
+.admin-order-header-section {
+    width: 100%;
+}
+
+
+/* ============================================================
+   ORDER ACTIONS
+============================================================ */
+
+.admin-order-actions {
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 24px;
+
+    padding: 16px 20px;
+
+    background: #ffffff;
+
+    border: 1px solid #eeeeee;
+    border-radius: 10px;
+
+    box-sizing: border-box;
+}
+
+.admin-order-actions-title.MuiTypography-root {
+    margin: 0 0 3px;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    color: #202020;
+}
+
+.admin-order-actions-description.MuiTypography-root {
+    font-size: 12px;
+
+    color: #777777;
+}
+
+
+/* ============================================================
+   DOWNLOAD BUTTON
+============================================================ */
+
+.admin-download-invoice-btn.MuiButton-root {
+    min-width: 175px;
+    height: 40px;
+
+    padding: 7px 18px;
+
+    border-radius: 7px;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    text-transform: none;
+
+    white-space: nowrap;
+
+    box-shadow: none;
+}
+
+.admin-download-invoice-btn.MuiButton-root:hover {
+    box-shadow: none;
+}
+
+
+/* ============================================================
+   CARDS
+============================================================ */
+
+.admin-order-card {
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    flex-direction: column;
+
+    box-sizing: border-box;
+}
+
+.admin-order-card > * {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+
+/* ============================================================
+   LOADING
+============================================================ */
+
+.admin-order-loading {
+    min-height: 350px;
+
+    display: flex;
+    flex-direction: column;
+
+    justify-content: center;
+    align-items: center;
+
+    gap: 12px;
+}
+
+
+/* ============================================================
+   TABLET
+============================================================ */
+
+@media (max-width: 1200px) {
+
+    .admin-order-page {
+        padding: 20px;
+    }
+
+    .admin-order-container {
+        gap: 18px;
+    }
+
+}
+
+
+/* ============================================================
+   MOBILE
+============================================================ */
+
+@media (max-width: 600px) {
+
+    .admin-order-page {
+        padding: 12px;
+    }
+
+    .admin-order-container {
+        gap: 14px;
+    }
+
+    .admin-order-actions {
+        flex-direction: column;
+        align-items: flex-start;
+
+        padding: 14px;
+
+        gap: 14px;
+    }
+
+    .admin-download-invoice-btn.MuiButton-root {
+        width: 100%;
+    }
 
 }

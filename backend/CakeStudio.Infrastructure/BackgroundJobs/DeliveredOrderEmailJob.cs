@@ -2,6 +2,7 @@
 using CakeStudio.Application.Common.Exceptions;
 using CakeStudio.Application.DTOs.Email;
 using CakeStudio.Application.Interfaces;
+using CakeStudio.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -32,9 +33,34 @@ namespace CakeStudio.Infrastructure.BackgroundJobs
 
         public async Task SendAsync(int orderId)
         {
+            const string emailType = "DeliveredInvoice";
+
             _logger.LogInformation(
                 "Delivered invoice email job started for Order {OrderId}",
                 orderId);
+
+            // ---------------------------------------------------------
+            // 1. Check whether email was already successfully sent
+            // ---------------------------------------------------------
+
+            var existingLog = await _context.EmailDeliveryLogs
+                .FirstOrDefaultAsync(x =>
+                    x.OrderId == orderId &&
+                    x.EmailType == emailType);
+
+            if (existingLog?.SentAt != null)
+            {
+                _logger.LogInformation(
+                    "Delivered invoice email already sent for Order {OrderId}. Skipping.",
+                    orderId);
+
+                return;
+            }
+
+
+            // ---------------------------------------------------------
+            // 2. Load order
+            // ---------------------------------------------------------
 
             var order = await _context.Orders
                 .AsNoTracking()
@@ -53,8 +79,11 @@ namespace CakeStudio.Infrastructure.BackgroundJobs
                     "Order does not have a delivery address.");
             }
 
-            // Safety check:
-            // Invoice email should only be generated for delivered orders.
+
+            // ---------------------------------------------------------
+            // 3. Ensure order is Delivered
+            // ---------------------------------------------------------
+
             if (!order.OrderStatus.Equals(
                     "Delivered",
                     StringComparison.OrdinalIgnoreCase))
@@ -62,6 +91,11 @@ namespace CakeStudio.Infrastructure.BackgroundJobs
                 throw new BadRequestException(
                     "Invoice email can only be sent for a delivered order.");
             }
+
+
+            // ---------------------------------------------------------
+            // 4. Determine recipient
+            // ---------------------------------------------------------
 
             var recipientEmail = order.Address.Email;
 
@@ -76,9 +110,39 @@ namespace CakeStudio.Infrastructure.BackgroundJobs
                     "Customer email address is not available.");
             }
 
-            // Generate PDF inside the Hangfire worker.
+
+            // ---------------------------------------------------------
+            // 5. Create delivery log if this is first attempt
+            // ---------------------------------------------------------
+
+            if (existingLog == null)
+            {
+                existingLog = new EmailDeliveryLog
+                {
+                    OrderId = orderId,
+                    EmailType = emailType,
+                    RecipientEmail = recipientEmail,
+                    CreatedAt = DateTime.UtcNow,
+                    SentAt = null
+                };
+
+                _context.EmailDeliveryLogs.Add(existingLog);
+
+                await _context.SaveChangesAsync();
+            }
+
+
+            // ---------------------------------------------------------
+            // 6. Generate invoice PDF
+            // ---------------------------------------------------------
+
             var pdfBytes =
                 await _invoiceService.GenerateInvoiceAsync(orderId);
+
+
+            // ---------------------------------------------------------
+            // 7. Build delivered email
+            // ---------------------------------------------------------
 
             var frontendBaseUrl =
                 _configuration.GetValue<string>("Frontend:BaseUrl");
@@ -100,20 +164,22 @@ namespace CakeStudio.Infrastructure.BackgroundJobs
                 Attachments =
                 [
                     new EmailAttachmentDto
-                    {
-                        FileName =
-                            $"CakeStudio_Invoice_{order.Id}.pdf",
+            {
+                FileName =
+                    $"CakeStudio_Invoice_{order.Id}.pdf",
 
-                        Content = pdfBytes,
+                Content = pdfBytes,
 
-                        ContentType = "application/pdf"
-                    }
+                ContentType = "application/pdf"
+            }
                 ]
             };
 
-            // Same CC behavior you already use:
-            // if delivery email differs from account email,
-            // also send a copy to account email.
+
+            // ---------------------------------------------------------
+            // 8. Add account email as CC when different
+            // ---------------------------------------------------------
+
             if (order.User != null &&
                 !string.IsNullOrWhiteSpace(order.User.Email) &&
                 !string.Equals(
@@ -127,7 +193,22 @@ namespace CakeStudio.Infrastructure.BackgroundJobs
                 ];
             }
 
+
+            // ---------------------------------------------------------
+            // 9. Send email
+            // ---------------------------------------------------------
+
             await _emailService.SendEmailAsync(emailRequest);
+
+
+            // ---------------------------------------------------------
+            // 10. Mark email as successfully sent
+            // ---------------------------------------------------------
+
+            existingLog.SentAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
 
             _logger.LogInformation(
                 "Delivered invoice email job completed for Order {OrderId}",

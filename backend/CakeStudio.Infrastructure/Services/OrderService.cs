@@ -455,9 +455,40 @@ namespace CakeStudio.Infrastructure.Services
                 .Select(MapOrder)
                 .ToList();
         }
+        private static bool IsValidStatusTransition(string currentStatus,string newStatus)
+        {
+            if (currentStatus.Equals(
+                    newStatus,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
 
-        public async Task UpdateOrderStatusAsync(
-    UpdateOrderStatusRequestDto request)
+            return currentStatus.ToLowerInvariant() switch
+            {
+                "placed" =>
+                    newStatus.Equals("Confirmed", StringComparison.OrdinalIgnoreCase) ||
+                    newStatus.Equals("Cancelled", StringComparison.OrdinalIgnoreCase),
+
+                "confirmed" =>
+                    newStatus.Equals("Processing", StringComparison.OrdinalIgnoreCase) ||
+                    newStatus.Equals("Cancelled", StringComparison.OrdinalIgnoreCase),
+
+                "processing" =>
+                    newStatus.Equals("Out for Delivery", StringComparison.OrdinalIgnoreCase) ||
+                    newStatus.Equals("Cancelled", StringComparison.OrdinalIgnoreCase),
+
+                "out for delivery" =>
+                    newStatus.Equals("Delivered", StringComparison.OrdinalIgnoreCase),
+
+                "delivered" => false,
+
+                "cancelled" => false,
+
+                _ => false
+            };
+        }
+        public async Task UpdateOrderStatusAsync(UpdateOrderStatusRequestDto request)
         {
             // ---------------------------------------------------------
             // 1. Get order
@@ -478,20 +509,17 @@ namespace CakeStudio.Infrastructure.Services
 
             var validStatuses = new[]
             {
-        "Placed",
-        "Confirmed",
-        "Processing",
-        "Out for Delivery",
-        "Delivered",
-        "Cancelled"
-    };
+                "Placed",
+                "Confirmed",
+                "Processing",
+                "Out for Delivery",
+                "Delivered",
+                "Cancelled"
+            };
 
-            if (!validStatuses.Contains(
-                    request.OrderStatus,
-                    StringComparer.OrdinalIgnoreCase))
+            if (!validStatuses.Contains(request.OrderStatus,StringComparer.OrdinalIgnoreCase))
             {
-                throw new BadRequestException(
-                    "Invalid order status.");
+                throw new BadRequestException("Invalid order status.");
             }
 
 
@@ -500,6 +528,18 @@ namespace CakeStudio.Infrastructure.Services
             // ---------------------------------------------------------
 
             var previousStatus = order.OrderStatus;
+
+            if (previousStatus.Equals(request.OrderStatus,StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            if (!IsValidStatusTransition(previousStatus,request.OrderStatus))
+            {
+                throw new BadRequestException(
+                    $"Order status cannot be changed from " +
+                    $"'{previousStatus}' to '{request.OrderStatus}'.");
+            }
 
             var isTransitioningToDelivered =
                 !previousStatus.Equals(
@@ -536,8 +576,7 @@ namespace CakeStudio.Infrastructure.Services
             // 6. COD becomes Paid when delivered
             // ---------------------------------------------------------
 
-            if (isTransitioningToDelivered &&
-                isCashOnDelivery)
+            if (isTransitioningToDelivered && isCashOnDelivery)
             {
                 var paidAt = DateTime.UtcNow;
 
@@ -569,8 +608,7 @@ namespace CakeStudio.Infrastructure.Services
 
             if (isTransitioningToDelivered)
             {
-                _backgroundJobClient.Enqueue<IDeliveredOrderEmailJob>(
-                    job => job.SendAsync(order.Id));
+                _backgroundJobClient.Enqueue<IDeliveredOrderEmailJob>(job => job.SendAsync(order.Id));
 
                 return;
             }
@@ -580,9 +618,7 @@ namespace CakeStudio.Infrastructure.Services
             // 9. Other status changes -> normal status email
             // ---------------------------------------------------------
 
-            if (!previousStatus.Equals(
-                    request.OrderStatus,
-                    StringComparison.OrdinalIgnoreCase))
+            if (!previousStatus.Equals(request.OrderStatus,StringComparison.OrdinalIgnoreCase))
             {
                 await SendOrderStatusUpdateEmailAsync(order);
             }

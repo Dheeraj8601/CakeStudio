@@ -537,6 +537,20 @@ class Service {
   getFeaturedCakes() {
     return api.get("/cake-catalog/featured");
   }
+
+  //------ download invoice --------
+  async downloadInvoice(orderId) {
+    try {
+      const response = await api.get(`/Invoice/${orderId}/download`, {
+        responseType: "blob",
+      });
+
+      return response;
+    } catch (error) {
+      console.error("Download invoice failed:", error);
+      throw error;
+    }
+  }
 }
 
 export default new Service();

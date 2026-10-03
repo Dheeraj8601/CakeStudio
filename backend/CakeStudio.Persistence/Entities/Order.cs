@@ -38,6 +38,8 @@ public partial class Order
     [ForeignKey("AddressId")]
     [InverseProperty("Orders")]
     public virtual Address? Address { get; set; }
+    [InverseProperty("Order")]
+    public virtual ICollection<EmailDeliveryLog> EmailDeliveryLogs { get; set; } = new List<EmailDeliveryLog>();
 
     [InverseProperty("Order")]
     public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
