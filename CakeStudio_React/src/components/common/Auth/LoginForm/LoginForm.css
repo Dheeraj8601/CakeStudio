@@ -1,28 +1,145 @@
+/* ============================================================
+   FORM
+============================================================ */
+
 .login-form {
-  display: flex;
-  flex-direction: column;
+    width: 100%;
+
+    display: flex;
+
+    flex-direction: column;
 }
 
+
+/* ============================================================
+   FIELDS
+============================================================ */
+
+.login-field {
+    width: 100%;
+
+    margin-bottom: 16px;
+}
+
+
+/* ============================================================
+   LOGIN OPTIONS
+============================================================ */
 
 .login-options {
-  display: flex;
-  justify-content: flex-start;
-  margin-bottom: 20px;
+    width: 100%;
+
+    min-height: 36px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 16px;
+
+    margin: 2px 0 20px;
 }
 
-.login-options .MuiFormControlLabel-label {
-  font-size: 14px;
+
+.remember-me.MuiFormControlLabel-root {
+    margin: 0;
 }
 
-.register-text {
-  margin-top: 24px !important;
-  text-align: center;
-  color: #666;
-  font-size: 15px !important;
+
+.remember-me .MuiCheckbox-root {
+    padding: 5px 7px 5px 0;
 }
 
-.register-link {
-  color: #f05c78 !important;
-  font-weight: 600;
-  cursor: pointer;
+
+.remember-me .MuiFormControlLabel-label {
+    font-size: 13px;
+
+    color: #4c4c4c;
+}
+
+
+.forgot-password-link.MuiLink-root {
+    flex-shrink: 0;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    color: #e95270;
+
+    transition: color 0.2s ease;
+}
+
+
+.forgot-password-link.MuiLink-root:hover {
+    color: #cf405d;
+}
+
+
+/* ============================================================
+   SUBMIT
+============================================================ */
+
+.login-submit {
+    width: 100%;
+}
+
+
+.login-submit > * {
+    width: 100%;
+}
+
+
+/* ============================================================
+   REGISTER
+============================================================ */
+
+.register-text.MuiTypography-root {
+    margin-top: 22px;
+
+    text-align: center;
+
+    font-size: 14px;
+
+    color: #777777;
+}
+
+
+.register-link.MuiLink-root {
+    color: #ed5875;
+
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+
+.register-link.MuiLink-root:hover {
+    color: #d94361;
+}
+
+
+/* ============================================================
+   MOBILE
+============================================================ */
+
+@media (max-width: 480px) {
+
+    .login-options {
+        gap: 10px;
+    }
+
+
+    .remember-me .MuiFormControlLabel-label,
+    .forgot-password-link.MuiLink-root {
+        font-size: 12px;
+    }
+
+
+    .register-text.MuiTypography-root {
+        font-size: 13px;
+    }
+
 }

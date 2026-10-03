@@ -1,20 +1,127 @@
-.auth-form-container {
-    height: 100vh;
+/* ============================================================
+   LOGIN PAGE
+============================================================ */
+
+.login-page {
+    width: 100%;
+    min-height: 100vh;
+    background: #ffffff;
+}
+
+
+.login-layout {
+    width: 100%;
+    min-height: 100vh;
+}
+
+
+/* ============================================================
+   LEFT COLUMN
+============================================================ */
+
+.login-banner-column {
+    min-height: 100vh;
+}
+
+
+/* ============================================================
+   RIGHT COLUMN
+============================================================ */
+
+.login-form-column {
+    min-height: 100vh;
 
     display: flex;
-    justify-content: center;
+
     align-items: center;
 
-    background: #fff;
-    padding: 40px;
+    justify-content: center;
+
+    background: #ffffff;
 }
+
+
+.auth-form-container {
+    width: 100%;
+    min-height: 100vh;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 48px 56px;
+
+    box-sizing: border-box;
+}
+
 
 .auth-form-content {
     width: 100%;
-    max-width: 520px;
-    padding: 24px 36px;
+
+    max-width: 480px;
+
+    margin: 0 auto;
 }
 
-.auth-form-content>*+* {
-    margin-top: 20px;
+
+.auth-social-section {
+    margin-top: 30px;
+}
+
+
+/* ============================================================
+   TABLET
+============================================================ */
+
+@media (max-width: 1100px) {
+
+    .auth-form-container {
+        padding: 40px;
+    }
+
+}
+
+
+/* ============================================================
+   MOBILE
+============================================================ */
+
+@media (max-width: 899px) {
+
+    .login-banner-column {
+        display: none;
+    }
+
+
+    .login-form-column {
+        min-height: 100vh;
+    }
+
+
+    .auth-form-container {
+        min-height: 100vh;
+
+        padding: 40px 24px;
+    }
+
+}
+
+
+/* ============================================================
+   SMALL MOBILE
+============================================================ */
+
+@media (max-width: 480px) {
+
+    .login-banner-column {
+        min-height: 260px;
+    }
+
+
+    .auth-form-container {
+        padding: 34px 18px 42px;
+    }
+
 }

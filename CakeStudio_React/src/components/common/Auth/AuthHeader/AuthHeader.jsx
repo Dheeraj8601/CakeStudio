@@ -1,23 +1,53 @@
-import { Box, Typography } from "@mui/material";
-import FavoriteIcon from "@mui/icons-material/Favorite";
+import {
+    Box,
+    Typography
+} from "@mui/material";
+
+import FavoriteRoundedIcon
+    from "@mui/icons-material/FavoriteRounded";
+
 import "./AuthHeader.css";
 
-const AuthHeader = ({ title, subtitle }) => {
-  return (
-    <Box className="auth-header">
-      <Box className="auth-title-container">
-        <Typography variant="h4" className="auth-title">
-          {title}
-        </Typography>
 
-        <FavoriteIcon className="auth-title-icon" />
-      </Box>
+const AuthHeader = ({
+    title,
+    subtitle
+}) => {
 
-      <Typography variant="body1" className="auth-subtitle">
-        {subtitle}
-      </Typography>
-    </Box>
-  );
+    return (
+
+        <Box className="auth-header">
+
+            <Box className="auth-title-container">
+
+                <Typography
+                    component="h1"
+                    className="auth-title"
+                >
+
+                    {title}
+
+                </Typography>
+
+
+                <FavoriteRoundedIcon
+                    className="auth-title-icon"
+                />
+
+            </Box>
+
+
+            <Typography className="auth-subtitle">
+
+                {subtitle}
+
+            </Typography>
+
+        </Box>
+
+    );
+
 };
+
 
 export default AuthHeader;

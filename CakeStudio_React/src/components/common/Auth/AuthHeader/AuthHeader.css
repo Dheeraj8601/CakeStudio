@@ -1,29 +1,67 @@
 .auth-header {
-  text-align: center;
-  margin-bottom: 32px;
+    width: 100%;
+
+    text-align: center;
 }
+
 
 .auth-title-container {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 6px;
+    display: flex;
+
+    align-items: flex-start;
+
+    justify-content: center;
+
+    gap: 7px;
 }
 
-.auth-title {
-  font-size: 40px !important;
-  font-weight: 700 !important;
-  color: #222;
+
+.auth-title.MuiTypography-root {
+    margin: 0;
+
+    font-size: 38px;
+
+    line-height: 1.2;
+
+    font-weight: 700;
+
+    letter-spacing: -0.7px;
+
+    color: #242424;
 }
 
-.auth-title-icon {
-  color: #ff5b84;
-  font-size: 18px !important;
-  margin-top: 6px;
+
+.auth-title-icon.MuiSvgIcon-root {
+    margin-top: 4px;
+
+    font-size: 18px;
+
+    color: #f45b79;
+
+    transform: rotate(8deg);
 }
 
-.auth-subtitle {
-  margin-top: 8px !important;
-  color: #7a7a7a;
-  font-size: 16px !important;
+
+.auth-subtitle.MuiTypography-root {
+    margin-top: 9px;
+
+    font-size: 15px;
+
+    line-height: 1.5;
+
+    color: #7a7a7a;
+}
+
+
+@media (max-width: 480px) {
+
+    .auth-title.MuiTypography-root {
+        font-size: 31px;
+    }
+
+
+    .auth-subtitle.MuiTypography-root {
+        font-size: 14px;
+    }
+
 }
