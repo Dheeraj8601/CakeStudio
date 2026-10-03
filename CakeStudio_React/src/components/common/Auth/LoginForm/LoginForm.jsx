@@ -1,5 +1,3 @@
-import { useState } from "react";
-
 import {
     Box,
     Checkbox,
@@ -13,7 +11,13 @@ import {
     useNavigate
 } from "react-router-dom";
 
-import { toast } from "react-toastify";
+import {
+    useState
+} from "react";
+
+import {
+    toast
+} from "react-toastify";
 
 import SessionManage
     from "../../../../Session/SessionManage";
@@ -35,20 +39,27 @@ import "./LoginForm.css";
 
 const LoginForm = () => {
 
-    const navigate = useNavigate();
+    const navigate =
+        useNavigate();
 
-    const [form, setForm] = useState({
-        email: "",
-        password: ""
-    });
+
+    const [form, setForm] =
+        useState({
+
+            email: "",
+
+            password: ""
+
+        });
+
 
     const [loading, setLoading] =
         useState(false);
 
 
-    // ==========================================
+    // =========================================================
     // INPUT CHANGE
-    // ==========================================
+    // =========================================================
 
     const handleChange = (e) => {
 
@@ -57,20 +68,26 @@ const LoginForm = () => {
             value
         } = e.target;
 
+
         setForm(prev => ({
+
             ...prev,
+
             [name]: value
+
         }));
+
     };
 
 
-    // ==========================================
+    // =========================================================
     // LOGIN
-    // ==========================================
+    // =========================================================
 
     const handleLogin = async (e) => {
 
         e.preventDefault();
+
 
         if (!form.email.trim()) {
 
@@ -79,7 +96,9 @@ const LoginForm = () => {
             );
 
             return;
+
         }
+
 
         if (!form.password) {
 
@@ -88,7 +107,9 @@ const LoginForm = () => {
             );
 
             return;
+
         }
+
 
         const request = {
 
@@ -97,11 +118,14 @@ const LoginForm = () => {
 
             Password:
                 form.password
+
         };
+
 
         try {
 
             setLoading(true);
+
 
             const response =
                 await Service.login(
@@ -109,8 +133,10 @@ const LoginForm = () => {
                     request
                 );
 
+
             const data =
                 response.data;
+
 
             if (!data?.accessToken) {
 
@@ -119,12 +145,13 @@ const LoginForm = () => {
                 );
 
                 return;
+
             }
 
 
-            // ==================================
+            // =============================================
             // STORE SESSION
-            // ==================================
+            // =============================================
 
             await SessionManage.setTokenId(
                 data.accessToken
@@ -148,14 +175,15 @@ const LoginForm = () => {
             );
 
 
-            // ==================================
-            // ROLE BASED REDIRECT
-            // ==================================
+            // =============================================
+            // ROLE REDIRECT
+            // =============================================
 
             const role =
                 data.role
                     ?.trim()
                     ?.toLowerCase();
+
 
             if (role === "admin") {
 
@@ -167,7 +195,9 @@ const LoginForm = () => {
                 );
 
                 return;
+
             }
+
 
             navigate(
                 "/",
@@ -184,74 +214,78 @@ const LoginForm = () => {
                 error
             );
 
+
             toast.error(
+
                 error.response?.data?.message ||
+
                 error.response?.data?.Message ||
+
                 "Invalid email or password."
+
             );
 
         }
         finally {
 
             setLoading(false);
+
         }
+
     };
 
 
     return (
 
-        <form
+        <Box
+            component="form"
             className="login-form"
             onSubmit={handleLogin}
+            noValidate
         >
 
-            {/* EMAIL */}
+            {/* =============================================
+                EMAIL
+            ============================================== */}
 
-            <CustomTextField
+            <Box className="login-field">
 
-                label="Email Address"
+                <CustomTextField
+                    label="Email Address"
+                    placeholder="Enter your email"
+                    name="email"
+                    value={form.email}
+                    onChange={handleChange}
+                />
 
-                placeholder="Enter your email"
-
-                name="email"
-
-                value={form.email}
-
-                onChange={handleChange}
-
-            />
-
-
-            {/* PASSWORD */}
-
-            <CustomPasswordField
-
-                label="Password"
-
-                placeholder="Enter your password"
-
-                name="password"
-
-                value={form.password}
-
-                onChange={handleChange}
-
-            />
+            </Box>
 
 
-            {/* LOGIN OPTIONS */}
+            {/* =============================================
+                PASSWORD
+            ============================================== */}
 
-            <Box
-                className="login-options"
-                sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center"
-                }}
-            >
+            <Box className="login-field">
+
+                <CustomPasswordField
+                    label="Password"
+                    placeholder="Enter your password"
+                    name="password"
+                    value={form.password}
+                    onChange={handleChange}
+                />
+
+            </Box>
+
+
+            {/* =============================================
+                LOGIN OPTIONS
+            ============================================== */}
+
+            <Box className="login-options">
 
                 <FormControlLabel
-
+                    className="remember-me"
                     control={
 
                         <Checkbox
@@ -260,70 +294,72 @@ const LoginForm = () => {
                         />
 
                     }
-
-                    label="Remember Me"
-
+                    label="Remember me"
                 />
 
-
-                {/* FORGOT PASSWORD */}
 
                 <Link
                     component={RouterLink}
                     to="/forgot-password"
-                    underline="hover"
-                    sx={{
-                        fontSize: "14px",
-                        fontWeight: 500
-                    }}
+                    underline="none"
+                    className="forgot-password-link"
                 >
 
-                    Forgot Password?
+                    Forgot password?
 
                 </Link>
 
             </Box>
 
 
-            {/* LOGIN BUTTON */}
+            {/* =============================================
+                LOGIN
+            ============================================== */}
 
-            <PrimaryButton
-                type="submit"
-                disabled={loading}
-            >
+            <Box className="login-submit">
 
-                {
-                    loading
-                        ? "Logging in..."
-                        : "Login"
-                }
+                <PrimaryButton
+                    type="submit"
+                    disabled={loading}
+                >
 
-            </PrimaryButton>
+                    {
+                        loading
+                            ? "Logging in..."
+                            : "Login"
+                    }
+
+                </PrimaryButton>
+
+            </Box>
 
 
-            {/* REGISTER */}
+            {/* =============================================
+                REGISTER
+            ============================================== */}
 
-            <Typography
-                className="register-text"
-            >
+            <Typography className="register-text">
 
                 Don't have an account?{" "}
 
                 <Link
                     component={RouterLink}
                     to="/register"
-                    underline="hover"
+                    underline="none"
                     className="register-link"
                 >
 
-                    Register here
+                    Create account
 
                 </Link>
 
             </Typography>
 
-        </form>
+        </Box>
+
     );
+
 };
+
 
 export default LoginForm;

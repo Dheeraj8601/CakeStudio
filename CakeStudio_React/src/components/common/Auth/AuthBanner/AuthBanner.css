@@ -1,56 +1,356 @@
+/* ============================================================
+   AUTH BANNER
+============================================================ */
+
 .auth-banner {
-  position: relative;
-  width: 500px;
-  overflow: hidden;
+    position: relative;
+
+    width: 100%;
+    height: 100vh;
+    min-height: 620px;
+
+    overflow: hidden;
+
+    background: #f5d7dc;
 }
+
+
+/* ============================================================
+   IMAGE
+============================================================ */
 
 .auth-banner-image {
-  width: 100%;
-  display: block;
-  object-fit: cover;
+    position: absolute;
+
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    /*
+       Keeps the cake as the visual focus.
+    */
+    object-position: center center;
+
+    display: block;
+
+    transform: scale(1.01);
 }
 
-.auth-banner-overlay {
-  position: absolute;
-  top: 10%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 100%;
-  text-align: center;
+
+/* ============================================================
+   CINEMATIC GRADIENT
+
+   Top stays mostly clean.
+   Bottom becomes darker for readable text.
+============================================================ */
+
+.auth-banner-gradient {
+    position: absolute;
+
+    inset: 0;
+
+    z-index: 1;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(22, 12, 14, 0.04) 0%,
+            rgba(22, 12, 14, 0.01) 32%,
+            rgba(22, 12, 14, 0.08) 58%,
+            rgba(22, 12, 14, 0.55) 100%
+        );
+
+    pointer-events: none;
 }
 
-.auth-banner-logo {
-  margin: 0;
-  font-size: 42px;
-  font-family: Georgia, serif;
-  font-weight: 700;
+
+/* ============================================================
+   BRAND BADGE
+============================================================ */
+
+.auth-brand-badge {
+    position: absolute;
+
+    top: 30px;
+    left: 30px;
+
+    z-index: 3;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    padding: 9px 14px 9px 10px;
+
+    border-radius: 100px;
+
+    background: rgba(255, 255, 255, 0.82);
+
+    border: 1px solid rgba(255, 255, 255, 0.75);
+
+    box-shadow:
+        0 8px 30px rgba(52, 24, 30, 0.10);
+
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
 }
 
-.cake-text {
-  color: #f05c78;
-  font-style: italic;
+
+/* ============================================================
+   BRAND ICON
+============================================================ */
+
+.auth-brand-mark {
+    width: 32px;
+    height: 32px;
+
+    border-radius: 50%;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    background: #f25b78;
 }
 
-.studio-text {
-  color: #3a3a3a;
-  font-style: italic;
-  font-weight: 500;
+
+.auth-brand-mark .MuiSvgIcon-root {
+    font-size: 16px;
+
+    color: #ffffff;
 }
 
-.auth-banner-tagline {
-  margin-top: 8px;
-  font-size: 13px;
-  color: #393131;
-  font-family: Arial, Helvetica, sans-serif;
-  letter-spacing: 0.3px;
+
+/* ============================================================
+   BRAND NAME
+============================================================ */
+
+.auth-brand-name.MuiTypography-root {
+    display: flex;
+
+    align-items: baseline;
+
+    margin: 0;
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    font-size: 21px;
+
+    line-height: 1;
+
+    letter-spacing: -0.7px;
 }
 
-.auth-banner-description {
-  margin-top: 18px;
-  width: 70%;
-  margin-left: auto;
-  margin-right: auto;
-  font-size: 15px;
-  line-height: 1.6;
-  color: #4f4f4f;
+
+.auth-brand-cake {
+    color: #ee5574;
+
+    font-style: italic;
+
+    font-weight: 600;
+}
+
+
+.auth-brand-studio {
+    color: #2d292a;
+
+    font-style: italic;
+
+    font-weight: 500;
+}
+
+
+/* ============================================================
+   BOTTOM CONTENT
+============================================================ */
+
+.auth-banner-content {
+    position: absolute;
+
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    z-index: 2;
+
+    padding: 40px;
+
+    box-sizing: border-box;
+}
+
+
+.auth-banner-content-inner {
+    max-width: 440px;
+}
+
+
+/* ============================================================
+   SMALL LABEL
+============================================================ */
+
+.auth-banner-small-label {
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 7px;
+
+    margin-bottom: 14px;
+}
+
+
+.auth-banner-small-label .MuiSvgIcon-root {
+    font-size: 13px;
+
+    color: #ff839a;
+}
+
+
+.auth-banner-small-label .MuiTypography-root {
+    font-size: 11px;
+
+    font-weight: 600;
+
+    text-transform: uppercase;
+
+    letter-spacing: 1.8px;
+
+    color: rgba(255, 255, 255, 0.82);
+}
+
+
+/* ============================================================
+   HERO HEADING
+============================================================ */
+
+.auth-banner-heading.MuiTypography-root {
+    margin: 0;
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    font-size: clamp(35px, 3.2vw, 51px);
+
+    line-height: 1.05;
+
+    letter-spacing: -1.4px;
+
+    font-weight: 500;
+
+    color: #ffffff;
+
+    text-shadow:
+        0 2px 18px rgba(0, 0, 0, 0.16);
+}
+
+
+.auth-banner-heading-accent {
+    color: #ff91a6;
+
+    font-style: italic;
+}
+
+
+/* ============================================================
+   DESCRIPTION
+============================================================ */
+
+.auth-banner-description.MuiTypography-root {
+    max-width: 390px;
+
+    margin-top: 14px;
+
+    font-size: 13px;
+
+    line-height: 1.65;
+
+    color: rgba(255, 255, 255, 0.78);
+}
+
+
+/* ============================================================
+   BOTTOM MINI BRAND
+============================================================ */
+
+.auth-banner-footer {
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    margin-top: 22px;
+}
+
+
+.auth-banner-line {
+    width: 28px;
+
+    height: 1px;
+
+    background: rgba(255, 255, 255, 0.5);
+}
+
+
+.auth-banner-footer .MuiTypography-root {
+    font-size: 10px;
+
+    font-weight: 600;
+
+    text-transform: uppercase;
+
+    letter-spacing: 2px;
+
+    color: rgba(255, 255, 255, 0.65);
+}
+
+
+/* ============================================================
+   MEDIUM DESKTOP
+============================================================ */
+
+@media (max-width: 1200px) {
+
+    .auth-brand-badge {
+        top: 24px;
+        left: 24px;
+    }
+
+
+    .auth-banner-content {
+        padding: 30px;
+    }
+
+
+    .auth-banner-heading.MuiTypography-root {
+        font-size: 38px;
+    }
+
+}
+
+
+/* ============================================================
+   TABLET / MOBILE
+
+   Login form becomes the complete page.
+============================================================ */
+
+@media (max-width: 899px) {
+
+    .auth-banner {
+        display: none;
+    }
+
 }
