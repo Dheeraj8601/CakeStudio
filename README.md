@@ -547,10 +547,15 @@ Suggested screenshots:
 
 Example:
 
-```markdown
+# 📸 Screenshots
+
+## 🏠 Home / Cake Catalog
+
 ![CakeStudio Home](docs/screenshots/home.png)
-![CakeStudio Login](docs/screenshots/login.png)
-```
+
+## 🔐 Login
+
+![CakeStudio Login](docs/screenshots/loginn.png)
 
 ---
 
