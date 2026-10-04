@@ -1,160 +1,280 @@
-import SessionManage from "../Session/SessionManage";
 import qs from "qs";
+
 import axios from "axios";
 
+// =========================================================
+// BASE URLS
+// =========================================================
+
 const CS_API_BASE_URL = window.appConfig.CS_API_BASE_URL;
+
 const CS_BASE_URL = window.appConfig.CS_BASE_URL;
+
+// =========================================================
+// AXIOS INSTANCE
+// =========================================================
 
 const api = axios.create({
   baseURL: CS_API_BASE_URL,
+
+  // Required for HttpOnly authentication cookies
+  withCredentials: true,
 });
 
-api.interceptors.request.use((config) => {
-  if (!config.headers.skipAuth) {
-    const token = SessionManage.getTokenId();
-    const userId = SessionManage.getUserId();
+// =========================================================
+// CSRF TOKEN
+// =========================================================
 
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+let csrfToken = null;
+
+let csrfTokenPromise = null;
+
+
+const getCsrfToken = async () => {
+
+    // Reuse token if already fetched.
+    if (csrfToken) {
+        return csrfToken;
     }
 
-    if (userId) {
-      config.headers.loggedInUser = userId;
+
+    // Prevent multiple simultaneous requests from
+    // requesting multiple CSRF tokens.
+    if (!csrfTokenPromise) {
+
+        csrfTokenPromise = api
+            .get("Csrf/token", {
+                skipCsrf: true
+            })
+            .then((response) => {
+
+                csrfToken = response.data.token;
+
+                return csrfToken;
+            })
+            .finally(() => {
+
+                csrfTokenPromise = null;
+
+            });
     }
-  }
 
-  if (config.headers?.skipAuth) {
-    delete config.headers.skipAuth;
-  }
 
-  return config;
-});
+    return csrfTokenPromise;
+};
+
+// =========================================================
+// REQUEST INTERCEPTOR
+// =========================================================
+
+api.interceptors.request.use(
+    async (config) => {
+
+        // -------------------------------------------------
+        // Remove internal skipAuth flag
+        // -------------------------------------------------
+
+        if (config.headers?.skipAuth) {
+            delete config.headers.skipAuth;
+        }
+
+
+        // -------------------------------------------------
+        // Skip CSRF token for the CSRF-token request itself
+        // -------------------------------------------------
+
+        if (config.skipCsrf) {
+
+            delete config.skipCsrf;
+
+            return config;
+        }
+
+
+        // -------------------------------------------------
+        // CSRF required only for state-changing requests
+        // -------------------------------------------------
+
+        const method =
+            config.method?.toLowerCase();
+
+
+        const requiresCsrf =
+            method === "post" ||
+            method === "put" ||
+            method === "patch" ||
+            method === "delete";
+
+
+        if (requiresCsrf) {
+
+            const token =
+                await getCsrfToken();
+
+
+            config.headers =
+                config.headers || {};
+
+
+            config.headers["X-CSRF-TOKEN"] =
+                token;
+        }
+
+
+        return config;
+    },
+
+    (error) => Promise.reject(error)
+);
+
+// =========================================================
+// RESPONSE INTERCEPTOR
+// =========================================================
+//
+// If access_token expires:
+//
+// API
+//   ↓ 401
+// refresh-token endpoint
+//   ↓
+// refresh_token HttpOnly cookie
+//   ↓
+// backend rotates tokens
+//   ↓
+// new access_token cookie
+//   ↓
+// retry original request
+//
+// =========================================================
 
 api.interceptors.response.use(
+  // -----------------------------------------------------
+  // SUCCESS
+  // -----------------------------------------------------
+
   (response) => response,
+
+  // -----------------------------------------------------
+  // ERROR
+  // -----------------------------------------------------
 
   async (error) => {
     const originalRequest = error.config;
 
-    // Access token expired / unauthorized
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
+    // =================================================
+    // NOT 401
+    // =================================================
 
-      const refreshToken = SessionManage.getRefreshToken();
-
-      // No refresh token available
-      if (!refreshToken) {
-        SessionManage.clearSession();
-
-        window.location.href = "/login";
-
-        return Promise.reject(error);
-      }
-
-      try {
-        const response = await axios.post(`${BASE_URL}Auth/refresh-token`, {
-          refreshToken: refreshToken,
-        });
-
-        const newAccessToken = response.data.accessToken;
-
-        const newRefreshToken = response.data.refreshToken;
-
-        // Save new tokens
-        await SessionManage.setTokenId(newAccessToken);
-
-        await SessionManage.setRefreshToken(newRefreshToken);
-
-        // Retry original API request
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-
-        return api(originalRequest);
-      } catch (refreshError) {
-        // Refresh token expired / revoked / deleted
-        SessionManage.clearSession();
-
-        window.location.href = "/login";
-
-        return Promise.reject(refreshError);
-      }
+    if (error.response?.status !== 401 || originalRequest?._retry) {
+      return Promise.reject(error);
     }
 
-    return Promise.reject(error);
+    // =================================================
+    // ENDPOINTS THAT MUST NOT TRIGGER REFRESH
+    // =================================================
+    //
+    // Otherwise:
+    //
+    // login 401
+    //    ↓
+    // refresh
+    //    ↓
+    // refresh 401
+    //    ↓
+    // loop
+    //
+    // =================================================
+
+    const requestUrl = originalRequest?.url || "";
+
+    const skipRefresh =
+      requestUrl.includes("Auth/login") ||
+      requestUrl.includes("Auth/refresh-token") ||
+      requestUrl.includes("Auth/google") ||
+      requestUrl.includes("Auth/logout");
+
+    if (skipRefresh) {
+      return Promise.reject(error);
+    }
+
+    // =================================================
+    // PREVENT MULTIPLE RETRIES
+    // =================================================
+
+    originalRequest._retry = true;
+
+    try {
+      // =============================================
+      // REFRESH ACCESS TOKEN
+      // =============================================
+      //
+      // NO refresh token is sent from JavaScript.
+      //
+      // Browser sends:
+      //
+      // refresh_token=<HttpOnly cookie>
+      //
+      // =============================================
+
+      await api.post(
+        "Auth/refresh-token",
+
+        null,
+
+        {
+          headers: {
+            skipAuth: true,
+          },
+        },
+      );
+
+      // =============================================
+      // RETRY ORIGINAL REQUEST
+      // =============================================
+      //
+      // Backend has now issued a new access_token
+      // cookie.
+      //
+      // Axios/browser automatically sends it.
+      //
+      // =============================================
+
+      return api(originalRequest);
+    } catch (refreshError) {
+      // if (window.location.pathname !== "/login") {
+      //   window.location.href = "/login";
+      // }
+
+      return Promise.reject(refreshError);
+    }
   },
 );
 
-// api.interceptors.response.use(
-
-//     (response) => response,
-
-//     async (error) => {
-
-//         const originalRequest = error.config;
-//         if (!originalRequest) {
-//             return Promise.reject(error);
-//         }
-//         if (
-//             error.response?.status === 401 &&
-//             !originalRequest._retry &&
-//             !originalRequest.url.includes("Auth/login") &&
-//             !originalRequest.url.includes("Auth/refresh-token")
-//         ) {
-
-//             originalRequest._retry = true;
-
-//             try {
-
-//                 const refreshToken = SessionManage.getRefreshToken();
-//                 console.log(refreshToken, "refreshToken")
-//                 //alert(refreshToken)
-//                 const response = await axios.post(
-//                     CS_API_BASE_URL + "Auth/refresh-token",
-//                     {
-//                         refreshToken: refreshToken
-//                     }
-//                 );
-
-//                 const newAccessToken = response.data.accessToken;
-//                 const newRefreshToken = response.data.refreshToken;
-
-//                 SessionManage.setTokenId(newAccessToken);
-//                 SessionManage.setRefreshToken(newRefreshToken);
-
-//                 originalRequest.headers.Authorization =
-//                     `Bearer ${newAccessToken}`;
-
-//                 return api(originalRequest);
-
-//             }
-//             catch (err) {
-
-//                 SessionManage.clearSession();
-
-//                 window.location.href = "/login";
-
-//                 return Promise.reject(err);
-//             }
-//         }
-
-//         return Promise.reject(error);
-//     }
-// );
+// =========================================================
+// SERVICE
+// =========================================================
 
 class Service {
   login(method, value) {
-    return api.post(method, value, {
-      headers: {
-        skipAuth: true,
+    return api.post(
+      method,
+
+      value,
+
+      {
+        headers: {
+          skipAuth: true,
+        },
       },
-    });
+    );
   }
 
-  logout(refreshToken) {
+  logout() {
     return api.post(
       "Auth/logout",
-      {
-        refreshToken,
-      },
+
+      null,
+
       {
         headers: {
           skipAuth: true,
@@ -164,17 +284,27 @@ class Service {
   }
 
   register(method, value) {
-    return api.post(method, value, {
-      headers: {
-        skipAuth: true,
+    return api.post(
+      method,
+
+      value,
+
+      {
+        headers: {
+          skipAuth: true,
+        },
       },
-    });
+    );
   }
 
   forgotPassword(email) {
     return api.post(
       "Auth/forgot-password",
-      { email },
+
+      {
+        email,
+      },
+
       {
         headers: {
           skipAuth: true,
@@ -186,11 +316,13 @@ class Service {
   resetPassword(token, newPassword, confirmPassword) {
     return api.post(
       "Auth/reset-password",
+
       {
         token,
         newPassword,
         confirmPassword,
       },
+
       {
         headers: {
           skipAuth: true,
@@ -202,15 +334,25 @@ class Service {
   googleLogin(credential) {
     return api.post(
       "Auth/google-login",
+
       {
         credential,
       },
+
       {
         headers: {
           skipAuth: true,
         },
       },
     );
+  }
+
+  // =====================================================
+  // CURRENT AUTHENTICATED USER
+  // =====================================================
+
+  getCurrentUser() {
+    return api.get("Auth/me");
   }
 
   // ---------------- Category ----------------
@@ -255,7 +397,7 @@ class Service {
     });
   }
 
-  //------- User ------
+  // ---------------- User ----------------
 
   getUsers(params) {
     return api.get("/users/getUsers", {
@@ -293,7 +435,8 @@ class Service {
     return api.put("/users/change-password", data);
   }
 
-  //----- Cake---------
+  // ---------------- Cake ----------------
+
   getCakes(params) {
     return api.get("/Cake/getCakes", {
       params,
@@ -328,10 +471,12 @@ class Service {
     return api.delete(`/Cake/${id}`);
   }
 
-  //------ cake catalog ----
+  // ---------------- Cake Catalog ----------------
+
   getCakeCatalog(params) {
     return api.get("/cake-catalog", {
       params,
+
       paramsSerializer: {
         serialize: (params) =>
           qs.stringify(params, {
@@ -351,7 +496,8 @@ class Service {
     });
   }
 
-  //------ Cart ----
+  // ---------------- Cart ----------------
+
   addToCart(data) {
     return api.post("/cart/add", data);
   }
@@ -368,7 +514,7 @@ class Service {
     return api.get("/cart");
   }
 
-  //------ Addresses ------
+  // ---------------- Addresses ----------------
 
   createAddress(data) {
     return api.post("/address", data);
@@ -390,7 +536,8 @@ class Service {
     return api.get("/address");
   }
 
-  //------ wishlist --------------
+  // ---------------- Wishlist ----------------
+
   addToWishlist(data) {
     return api.post("/wishlist", data);
   }
@@ -404,7 +551,7 @@ class Service {
   }
 
   moveWishlistToCart() {
-    return api.post(`/wishlist/move-all-to-cart`);
+    return api.post("/wishlist/move-all-to-cart");
   }
 
   getWishlist(params) {
@@ -425,12 +572,14 @@ class Service {
     });
   }
 
-  //------ contact ----
+  // ---------------- Contact ----------------
+
   sendContactMessage(data) {
     return api.post("/contact", data);
   }
 
-  //------- order -----
+  // ---------------- Orders ----------------
+
   checkout(order) {
     return api.post("/orders/checkout", order);
   }
@@ -463,21 +612,7 @@ class Service {
     });
   }
 
-  //------- Payment -----
-
-  //   createPaymentSession(orderId) {
-  //     return api.post(
-  //         "/payment/create-session",
-  //         {
-  //             orderId
-  //         },
-  //         {
-  //             headers: {
-  //                 skipAuth: true
-  //             }
-  //         }
-  //     );
-  // }
+  // ---------------- Payment ----------------
 
   createPaymentSession(orderId) {
     return api.post("/payment/create-session", {
@@ -496,7 +631,7 @@ class Service {
     return api.post(`/payment/order/${orderId}/refund`, data);
   }
 
-  //------- Reviews ------
+  // ---------------- Reviews ----------------
 
   createReview(data) {
     return api.post("/reviews", data);
@@ -532,13 +667,14 @@ class Service {
     return api.post("/reviews/reply", data);
   }
 
-  //------ home -----
+  // ---------------- Home ----------------
 
   getFeaturedCakes() {
     return api.get("/cake-catalog/featured");
   }
 
-  //------ download invoice --------
+  // ---------------- Invoice ----------------
+
   async downloadInvoice(orderId) {
     try {
       const response = await api.get(`/Invoice/${orderId}/download`, {
@@ -548,6 +684,7 @@ class Service {
       return response;
     } catch (error) {
       console.error("Download invoice failed:", error);
+
       throw error;
     }
   }

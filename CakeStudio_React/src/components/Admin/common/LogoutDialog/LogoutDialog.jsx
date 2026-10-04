@@ -73,7 +73,9 @@ export default function LogoutDialog({
 
                     className="logout-confirm-btn"
 
-                    onClick={onConfirm}
+                    onClick={() => {
+                        onConfirm?.();
+                    }}
 
                 >
 

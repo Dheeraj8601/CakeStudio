@@ -12,31 +12,64 @@ namespace CakeStudio.API.Controllers
     {
         private readonly IPaymentService _paymentService;
 
+
         public PaymentController(
             IPaymentService paymentService)
         {
             _paymentService = paymentService;
         }
 
+
+        // =========================================================
+        // CREATE STRIPE CHECKOUT SESSION
+        // =========================================================
+        //
+        // CSRF PROTECTION:
+        // Do NOT add [IgnoreAntiforgeryToken] here.
+        //
+        // This endpoint is called by our React application.
+        // Axios will send X-CSRF-TOKEN automatically.
+        //
+        // [AllowAnonymous] only means authentication is not required.
+        // It does NOT mean CSRF protection should be disabled.
+        // =========================================================
+
         [AllowAnonymous]
         [HttpPost("create-session")]
-        public async Task<IActionResult> CreateSession(CreatePaymentRequestDto request)
+        public async Task<IActionResult> CreateSession(
+            CreatePaymentRequestDto request)
         {
-            
-
             var result =
-                await _paymentService.CreateSessionAsync(request.OrderId);
+                await _paymentService
+                    .CreateSessionAsync(
+                        request.OrderId);
 
             return Ok(result);
         }
 
+
+        // =========================================================
+        // ADMIN REFUND
+        // =========================================================
+        //
+        // CSRF protection is important here because this is an
+        // authenticated POST request that performs a sensitive
+        // operation.
+        //
+        // The global AutoValidateAntiforgeryTokenAttribute will
+        // validate X-CSRF-TOKEN automatically.
+        // =========================================================
+
         [Authorize(Roles = "Admin")]
         [HttpPost("order/{orderId:int}/refund")]
-        public async Task<IActionResult> RefundPayment(int orderId,[FromBody] RefundPaymentRequestDto request)
+        public async Task<IActionResult> RefundPayment(
+            int orderId,
+            [FromBody] RefundPaymentRequestDto request)
         {
             var userIdValue =
                 User.FindFirstValue(
                     ClaimTypes.NameIdentifier);
+
 
             if (!int.TryParse(
                     userIdValue,
@@ -50,7 +83,14 @@ namespace CakeStudio.API.Controllers
                     });
             }
 
-            await _paymentService.RefundAsync(orderId,request.Amount,adminUserId,request.Reason);
+
+            await _paymentService
+                .RefundAsync(
+                    orderId,
+                    request.Amount,
+                    adminUserId,
+                    request.Reason);
+
 
             return Ok(
                 new
@@ -60,13 +100,24 @@ namespace CakeStudio.API.Controllers
                 });
         }
 
+
+        // =========================================================
+        // GET PAYMENT
+        // =========================================================
+        //
+        // GET requests do not modify server state, so automatic
+        // antiforgery validation is not required here.
+        // =========================================================
+
         [Authorize(Roles = "Customer,Admin")]
         [HttpGet("order/{orderId:int}")]
-        public async Task<IActionResult> GetPaymentByOrder(int orderId)
+        public async Task<IActionResult> GetPaymentByOrder(
+            int orderId)
         {
             var userIdValue =
                 User.FindFirstValue(
                     ClaimTypes.NameIdentifier);
+
 
             if (!int.TryParse(
                     userIdValue,
@@ -80,8 +131,10 @@ namespace CakeStudio.API.Controllers
                     });
             }
 
+
             var isAdmin =
                 User.IsInRole("Admin");
+
 
             var payment =
                 await _paymentService
@@ -89,6 +142,7 @@ namespace CakeStudio.API.Controllers
                         orderId,
                         userId,
                         isAdmin);
+
 
             if (payment == null)
             {
@@ -100,17 +154,32 @@ namespace CakeStudio.API.Controllers
                     });
             }
 
+
             return Ok(payment);
         }
 
+
+        // =========================================================
+        // VERIFY PAYMENT
+        // =========================================================
+        //
+        // This request comes from our React application.
+        // Therefore CSRF protection should remain enabled.
+        //
+        // Axios automatically sends X-CSRF-TOKEN.
+        // =========================================================
+
         [AllowAnonymous]
         [HttpPost("verify")]
-        public async Task<IActionResult> VerifyPayment([FromBody] VerifyPaymentRequestDto request)
+        public async Task<IActionResult> VerifyPayment(
+            [FromBody] VerifyPaymentRequestDto request)
         {
             var result =
-                await _paymentService.VerifyPaymentAsync(
-                    request.OrderId,
-                    request.SessionId);
+                await _paymentService
+                    .VerifyPaymentAsync(
+                        request.OrderId,
+                        request.SessionId);
+
 
             return Ok(result);
         }

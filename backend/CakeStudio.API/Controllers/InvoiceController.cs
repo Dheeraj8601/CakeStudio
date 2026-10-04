@@ -29,11 +29,9 @@ namespace CakeStudio.API.Controllers
             // 1. Read authenticated user from JWT
             // -----------------------------------------------------
 
-            var userIdClaim =
-                User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            var role =
-                User.FindFirstValue(ClaimTypes.Role);
+            var role = User.FindFirstValue(ClaimTypes.Role);
 
             if (!int.TryParse(userIdClaim, out var userId))
             {
@@ -62,11 +60,7 @@ namespace CakeStudio.API.Controllers
             }
 
 
-            var isAdmin =
-                string.Equals(
-                    role,
-                    "Admin",
-                    StringComparison.OrdinalIgnoreCase);
+            var isAdmin =  string.Equals(role,"Admin",StringComparison.OrdinalIgnoreCase);
 
             if (!isAdmin)
             {
@@ -78,26 +72,19 @@ namespace CakeStudio.API.Controllers
             }
 
 
-            if (!order.OrderStatus.Equals(
-                    "Delivered",
-                    StringComparison.OrdinalIgnoreCase))
+            if (!order.OrderStatus.Equals("Delivered",StringComparison.OrdinalIgnoreCase))
             {
                 return BadRequest(new
                 {
-                    message =
-                        "Invoice is available only after the order is delivered."
+                    message = "Invoice is available only after the order is delivered."
                 });
             }
 
 
-            var pdfBytes =
-                await _invoiceService.GenerateInvoiceAsync(orderId);
+            var pdfBytes = await _invoiceService.GenerateInvoiceAsync(orderId);
 
 
-            return File(
-                pdfBytes,
-                "application/pdf",
-                $"CakeStudio_Invoice_{orderId}.pdf");
+            return File(pdfBytes,"application/pdf",$"CakeStudio_Invoice_{orderId}.pdf");
         }
     }
 }

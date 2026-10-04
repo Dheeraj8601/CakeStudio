@@ -8,23 +8,57 @@ import {
     Typography
 } from "@mui/material";
 
-import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
-import CakeOutlinedIcon from "@mui/icons-material/CakeOutlined";
-import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
-import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
-import PeopleOutlineOutlinedIcon from "@mui/icons-material/PeopleOutlineOutlined";
-import ReviewsOutlinedIcon from "@mui/icons-material/ReviewsOutlined";
-import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
-import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
-import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
+import DashboardOutlinedIcon
+    from "@mui/icons-material/DashboardOutlined";
 
-import { useLocation, useNavigate } from "react-router-dom";
+import CakeOutlinedIcon
+    from "@mui/icons-material/CakeOutlined";
+
+import ShoppingBagOutlinedIcon
+    from "@mui/icons-material/ShoppingBagOutlined";
+
+import CategoryOutlinedIcon
+    from "@mui/icons-material/CategoryOutlined";
+
+import PeopleOutlineOutlinedIcon
+    from "@mui/icons-material/PeopleOutlineOutlined";
+
+import ReviewsOutlinedIcon
+    from "@mui/icons-material/ReviewsOutlined";
+
+import LocalOfferOutlinedIcon
+    from "@mui/icons-material/LocalOfferOutlined";
+
+import SettingsOutlinedIcon
+    from "@mui/icons-material/SettingsOutlined";
+
+import LogoutOutlinedIcon
+    from "@mui/icons-material/LogoutOutlined";
+
+import {
+    useLocation,
+    useNavigate
+} from "react-router-dom";
+
+import {
+    useState
+} from "react";
 
 import "./AdminSidebar.css";
 
-import logo from "../../../../assets/images/logo/logo_.png"
-import { useState } from "react";
-import LogoutDialog from "../../../../components/Admin/common/LogoutDialog/LogoutDialog";
+import LogoutDialog
+    from "../../../../components/Admin/common/LogoutDialog/LogoutDialog";
+
+import Service
+    from "../../../../services/Service";
+
+import SessionManage
+    from "../../../../Session/SessionManage";
+
+import {
+    useAuth
+} from "../../../../context/AuthContext";
+
 
 export default function AdminSidebar({
 
@@ -32,9 +66,28 @@ export default function AdminSidebar({
 
 }) {
 
-    const navigate = useNavigate();
-    const [openLogout, setOpenLogout] = useState(false);
-    const location = useLocation();
+    const navigate =
+        useNavigate();
+
+
+    const location =
+        useLocation();
+
+
+    const {
+        clearUser
+    } = useAuth();
+
+
+    const [
+        openLogout,
+        setOpenLogout
+    ] = useState(false);
+
+
+    // =========================================================
+    // MENU ITEMS
+    // =========================================================
 
     const menuItems = [
 
@@ -88,95 +141,188 @@ export default function AdminSidebar({
 
     ];
 
+
+    // =========================================================
+    // LOGOUT
+    // =========================================================
+
+    const handleLogout = async () => {
+
+        try {
+
+            // Browser automatically sends
+            // refresh_token HttpOnly cookie.
+            await Service.logout();
+
+        }
+        catch (error) {
+
+            console.error(
+                "Backend logout failed:",
+                error
+            );
+
+        }
+        finally {
+
+            // ---------------------------------------------
+            // TEMPORARY MIGRATION CLEANUP
+            // ---------------------------------------------
+
+            SessionManage.clearSession();
+
+
+            // ---------------------------------------------
+            // CLEAR AUTH CONTEXT
+            // ---------------------------------------------
+
+            clearUser();
+
+
+            // ---------------------------------------------
+            // CLOSE DIALOG
+            // ---------------------------------------------
+
+            setOpenLogout(false);
+
+
+            // ---------------------------------------------
+            // REDIRECT
+            // ---------------------------------------------
+
+            navigate(
+                "/login",
+                {
+                    replace: true
+                }
+            );
+
+        }
+
+    };
+
+
+    // =========================================================
+    // UI
+    // =========================================================
+
     return (
+
         <>
+
             <Box
 
-                className={`admin-sidebar ${open ? "expanded" : "collapsed"}`}
+                className={
+                    `admin-sidebar ${
+                        open
+                            ? "expanded"
+                            : "collapsed"
+                    }`
+                }
 
             >
 
+                {/* ========================================= */}
+                {/* LOGO */}
+                {/* ========================================= */}
+
                 <Box className="admin-logo">
 
-                    {/* <img
-
-                    src={logo}
-
-                    alt="CakeStudio"
-
-                /> */}
-
                     {
-
                         open &&
 
                         <Box>
 
-                            <Typography className="logo-title">
+                            <Typography
+                                className="logo-title"
+                            >
 
                                 CakeStudio
 
                             </Typography>
 
-                            <Typography className="logo-subtitle">
+                            <Typography
+                                className="logo-subtitle"
+                            >
 
                                 ADMIN PANEL
 
                             </Typography>
 
                         </Box>
-
                     }
 
                 </Box>
 
+
                 <Divider />
+
+
+                {/* ========================================= */}
+                {/* NAVIGATION */}
+                {/* ========================================= */}
 
                 <List>
 
                     {
+                        menuItems.map(
+                            item => (
 
-                        menuItems.map(item => (
+                                <ListItemButton
 
-                            <ListItemButton
+                                    key={
+                                        item.label
+                                    }
 
-                                key={item.label}
+                                    selected={
+                                        location.pathname ===
+                                        item.path
+                                    }
 
-                                selected={location.pathname === item.path}
+                                    className="admin-menu-item"
 
-                                className="admin-menu-item"
+                                    onClick={() =>
+                                        navigate(
+                                            item.path
+                                        )
+                                    }
 
-                                onClick={() => navigate(item.path)}
+                                >
 
-                            >
+                                    <ListItemIcon>
 
-                                <ListItemIcon>
+                                        {item.icon}
 
-                                    {item.icon}
+                                    </ListItemIcon>
 
-                                </ListItemIcon>
 
-                                {
+                                    {
+                                        open &&
 
-                                    open &&
+                                        <ListItemText
 
-                                    <ListItemText
+                                            primary={
+                                                item.label
+                                            }
 
-                                        primary={item.label}
+                                        />
+                                    }
 
-                                    />
+                                </ListItemButton>
 
-                                }
-
-                            </ListItemButton>
-
-                        ))
-
+                            )
+                        )
                     }
 
                 </List>
 
+
                 <Divider />
+
+
+                {/* ========================================= */}
+                {/* LOGOUT */}
+                {/* ========================================= */}
 
                 <List>
 
@@ -184,7 +330,9 @@ export default function AdminSidebar({
 
                         className="admin-menu-item"
 
-                        onClick={() => setOpenLogout(true)}
+                        onClick={() =>
+                            setOpenLogout(true)
+                        }
 
                     >
 
@@ -194,8 +342,8 @@ export default function AdminSidebar({
 
                         </ListItemIcon>
 
-                        {
 
+                        {
                             open &&
 
                             <ListItemText
@@ -203,7 +351,6 @@ export default function AdminSidebar({
                                 primary="Logout"
 
                             />
-
                         }
 
                     </ListItemButton>
@@ -211,24 +358,26 @@ export default function AdminSidebar({
                 </List>
 
             </Box>
+
+
             <LogoutDialog
 
-                open={openLogout}
+                open={
+                    openLogout
+                }
 
-                onClose={() => setOpenLogout(false)}
+                onClose={() =>
+                    setOpenLogout(false)
+                }
 
-                onConfirm={() => {
-
-                    setOpenLogout(false);
-
-                    // Clear token, logout API, etc.
-
-                    navigate("/login");
-
-                }}
+                onConfirm={
+                    handleLogout
+                }
 
             />
+
         </>
+
     );
 
 }

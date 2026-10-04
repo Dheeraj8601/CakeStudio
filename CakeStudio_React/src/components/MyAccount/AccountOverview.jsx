@@ -1,16 +1,47 @@
-import { Grid } from "@mui/material";
+import {
+    Grid
+} from "@mui/material";
 
-import UserInformationCard from "./UserInformationCard";
-import RecentOrdersCard from "./RecentOrdersCard";
-import AccountSupportCard from "./AccountSupportCard";
-import SessionManage from "../../Session/SessionManage";
-import { useEffect, useState } from "react";
-import Service from "../../services/Service";
+import {
+    useEffect,
+    useState
+} from "react";
+
+import UserInformationCard
+    from "./UserInformationCard";
+
+import RecentOrdersCard
+    from "./RecentOrdersCard";
+
+import AccountSupportCard
+    from "./AccountSupportCard";
+
+import Service
+    from "../../services/Service";
+
+import {
+    useAuth
+} from "../../context/AuthContext";
+
 
 export default function AccountOverview() {
-    const [recentOrders, setRecentOrders] = useState([]);
-    const UserId = SessionManage.getUserId();
-    const [user, setUser] = useState({
+
+    const {
+        user: authUser,
+        loading: authLoading
+    } = useAuth();
+
+
+    const [
+        recentOrders,
+        setRecentOrders
+    ] = useState([]);
+
+
+    const [
+        user,
+        setUser
+    ] = useState({
 
         fullName: "",
 
@@ -24,46 +55,121 @@ export default function AccountOverview() {
 
     });
 
+
+    // =========================================================
+    // LOAD ACCOUNT DATA
+    // =========================================================
+
     useEffect(() => {
-        loadUserDetails();
+
+        // Wait until /Auth/me finishes.
+        if (authLoading) {
+            return;
+        }
+
+
+        // No authenticated user.
+        if (!authUser?.userId) {
+            return;
+        }
+
+
+        loadUserDetails(
+            authUser.userId
+        );
+
         loadRecentOrders();
-    }, [])
 
-    const loadUserDetails = async () => {
-        try {
-            const res = await Service.getUserById(UserId);
-            console.log(res, "user Info");
-            setUser(() => {
-                return {
-                    ...res.data,
-                    fullName: res.data.firstName + " " + res.data.lastName,
-                    emailVerified: true,
-                    mobileVerified: true,
-                    mobile: "+91 9876543210",
-                }
-            })
-        } catch (err) {
-
-        }
-    }
+    }, [
+        authLoading,
+        authUser?.userId
+    ]);
 
 
-    const loadRecentOrders = async () => {
+    // =========================================================
+    // LOAD USER DETAILS
+    // =========================================================
 
-        try {
+    const loadUserDetails =
+        async (userId) => {
 
-            const res = await Service.getRecentOrders();
+            try {
 
-            setRecentOrders(res.data);
+                const res =
+                    await Service.getUserById(
+                        userId
+                    );
 
-        }
-        catch (err) {
 
-            console.error(err);
+                const userData =
+                    res.data;
 
-        }
 
-    };
+                setUser({
+
+                    ...userData,
+
+                    fullName:
+                        `${userData.firstName ?? ""} ${userData.lastName ?? ""}`
+                            .trim(),
+
+                    emailVerified:
+                        true,
+
+                    mobileVerified:
+                        true,
+
+                    mobile:
+                        userData.phoneNumber ?? ""
+
+                });
+
+            }
+            catch (error) {
+
+                console.error(
+                    "Unable to load user details:",
+                    error
+                );
+
+            }
+
+        };
+
+
+    // =========================================================
+    // LOAD RECENT ORDERS
+    // =========================================================
+
+    const loadRecentOrders =
+        async () => {
+
+            try {
+
+                const res =
+                    await Service.getRecentOrders();
+
+
+                setRecentOrders(
+                    res.data
+                );
+
+            }
+            catch (error) {
+
+                console.error(
+                    "Unable to load recent orders:",
+                    error
+                );
+
+            }
+
+        };
+
+
+    // =========================================================
+    // UI
+    // =========================================================
 
     return (
 
@@ -72,7 +178,11 @@ export default function AccountOverview() {
             spacing={3}
         >
 
-            <Grid size={{ xs: 12 }}>
+            <Grid
+                size={{
+                    xs: 12
+                }}
+            >
 
                 <UserInformationCard
                     user={user}
@@ -80,7 +190,12 @@ export default function AccountOverview() {
 
             </Grid>
 
-            <Grid size={{ xs: 12 }}>
+
+            <Grid
+                size={{
+                    xs: 12
+                }}
+            >
 
                 <RecentOrdersCard
                     orders={recentOrders}
@@ -88,7 +203,12 @@ export default function AccountOverview() {
 
             </Grid>
 
-            <Grid size={{ xs: 12 }}>
+
+            <Grid
+                size={{
+                    xs: 12
+                }}
+            >
 
                 <AccountSupportCard />
 

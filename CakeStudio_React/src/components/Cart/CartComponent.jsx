@@ -1,32 +1,84 @@
-import { Box, Grid } from "@mui/material";
-import SessionManage from "../../Session/SessionManage";
+import {
+    Box,
+    Grid
+} from "@mui/material";
 
-
-import { cakes } from "../Cakes/cakeData";
+import {
+    useEffect,
+    useMemo,
+    useState
+} from "react";
 
 import "./cart.css";
-import Breadcrumb from "../common/Breadcrumb/Breadcrumb";
-import CartTable from "../common/Cart/CartTable";
-import CartSummary from "../common/Cart/CartSummary";
-import { useEffect, useMemo, useState } from "react";
-import useCart from "../../hooks/useCart";
-import Service from "../../services/Service"
 
+import Breadcrumb
+    from "../common/Breadcrumb/Breadcrumb";
+
+import CartTable
+    from "../common/Cart/CartTable";
+
+import CartSummary
+    from "../common/Cart/CartSummary";
+
+import useCart
+    from "../../hooks/useCart";
+
+import Service
+    from "../../services/Service";
+
+import {
+    useAuth
+} from "../../context/AuthContext";
 
 
 export default function CartComponent() {
-    const [cartItems, setCartItems] = useState([]);
-    const { cart, increaseQuantity, decreaseQuantity, removeItem } = useCart();
+
+    const [
+        cartItems,
+        setCartItems
+    ] = useState([]);
+
+
+    const {
+        cart,
+        increaseQuantity,
+        decreaseQuantity,
+        removeItem
+    } = useCart();
+
+
+    const {
+        user,
+        loading: authLoading
+    } = useAuth();
+
+
+    const isLoggedIn =
+        !!user;
+
+
+    // =========================================================
+    // LOAD CART PRODUCTS
+    // =========================================================
 
     useEffect(() => {
+
+        if (authLoading) {
+            return;
+        }
+
         loadCartItems();
-    }, [cart]);
+
+    }, [
+        cart,
+        authLoading,
+        isLoggedIn
+    ]);
+
 
     const loadCartItems = async () => {
 
         try {
-
-            // Guest user
 
             if (cart.length === 0) {
 
@@ -36,84 +88,173 @@ export default function CartComponent() {
 
             }
 
-            const response = await Service.getCartItems(
-                cart.map(item => item.productId)
-            );
 
-            const items = response.data.map(product => {
+            const response =
+                await Service.getCartItems(
 
-                const cartItem = cart.find(
-                    x => x.productId === product.id
+                    cart.map(
+                        item =>
+                            item.productId
+                    )
+
                 );
 
-                return {
 
-                    ...product,
+            const items =
+                response.data.map(
+                    product => {
 
-                    quantity: cartItem.quantity,
-                    cartItemId: cartItem.cartItemId
-                };
+                        const cartItem =
+                            cart.find(
+                                x =>
+                                    x.productId ===
+                                    product.id
+                            );
 
-            });
-            console.log(items, "item")
-            setCartItems(items);
+
+                        return {
+
+                            ...product,
+
+                            quantity:
+                                cartItem?.quantity ?? 0,
+
+                            cartItemId:
+                                cartItem?.cartItemId
+
+                        };
+
+                    }
+                );
+
+
+            setCartItems(
+                items
+            );
 
         }
         catch (error) {
 
-            console.error(error);
+            console.error(
+                "Unable to load cart items:",
+                error
+            );
 
         }
 
     };
 
-    const subtotal = useMemo(() => {
-        console.log(cartItems, "cart total")
-        if (!cartItems) {
-            return 0;
-        }
-        return cartItems.reduce(
-            (sum, item) => sum + item.price * item.quantity,
-            0
+
+    // =========================================================
+    // SUBTOTAL
+    // =========================================================
+
+    const subtotal =
+        useMemo(
+            () => {
+
+                if (!cartItems) {
+                    return 0;
+                }
+
+
+                return cartItems.reduce(
+
+                    (sum, item) =>
+                        sum +
+                        item.price *
+                        item.quantity,
+
+                    0
+
+                );
+
+            },
+            [cartItems]
         );
 
-    }, [cartItems]);
 
-    const handleIncrease = async (item) => {
+    // =========================================================
+    // INCREASE
+    // =========================================================
 
-        await increaseQuantity(item);
+    const handleIncrease =
+        async (item) => {
 
-        if (SessionManage.getTokenId()) {
+            if (authLoading) {
+                return;
+            }
 
-            await loadCartItems();
 
-        }
+            await increaseQuantity(
+                item
+            );
 
-    };
 
-    const handleDecrease = async (item) => {
+            if (isLoggedIn) {
 
-        await decreaseQuantity(item);
+                await loadCartItems();
 
-        if (SessionManage.getTokenId()) {
+            }
 
-            await loadCartItems();
+        };
 
-        }
 
-    };
+    // =========================================================
+    // DECREASE
+    // =========================================================
 
-    const handleRemove = async (item) => {
+    const handleDecrease =
+        async (item) => {
 
-        await removeItem(item);
+            if (authLoading) {
+                return;
+            }
 
-        if (SessionManage.getTokenId()) {
 
-            await loadCartItems();
+            await decreaseQuantity(
+                item
+            );
 
-        }
 
-    };
+            if (isLoggedIn) {
+
+                await loadCartItems();
+
+            }
+
+        };
+
+
+    // =========================================================
+    // REMOVE
+    // =========================================================
+
+    const handleRemove =
+        async (item) => {
+
+            if (authLoading) {
+                return;
+            }
+
+
+            await removeItem(
+                item
+            );
+
+
+            if (isLoggedIn) {
+
+                await loadCartItems();
+
+            }
+
+        };
+
+
+    // =========================================================
+    // UI
+    // =========================================================
 
     return (
 
@@ -121,18 +262,35 @@ export default function CartComponent() {
 
             <Breadcrumb
                 items={[
-                    { label: "Home", path: "/" },
-                    { label: "Cart" }
+                    {
+                        label: "Home",
+                        path: "/"
+                    },
+                    {
+                        label: "Cart"
+                    }
                 ]}
             />
 
+
             <h1 className="cart-title">
+
                 My Cart
+
             </h1>
 
-            <Grid container spacing={4}>
 
-                <Grid size={{ xs: 12, lg: 9 }}>
+            <Grid
+                container
+                spacing={4}
+            >
+
+                <Grid
+                    size={{
+                        xs: 12,
+                        lg: 9
+                    }}
+                >
 
                     <CartTable
                         cartItems={cartItems}
@@ -143,7 +301,13 @@ export default function CartComponent() {
 
                 </Grid>
 
-                <Grid size={{ xs: 12, lg: 3 }}>
+
+                <Grid
+                    size={{
+                        xs: 12,
+                        lg: 3
+                    }}
+                >
 
                     <CartSummary
                         subtotal={subtotal}

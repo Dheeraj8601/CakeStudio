@@ -19,9 +19,6 @@ import {
     toast
 } from "react-toastify";
 
-import SessionManage
-    from "../../../../Session/SessionManage";
-
 import CustomTextField
     from "../../CustomFields/CustomTextField/CustomTextField";
 
@@ -34,6 +31,10 @@ import PrimaryButton
 import Service
     from "../../../../services/Service";
 
+import {
+    useAuth
+} from "../../../../context/AuthContext";
+
 import "./LoginForm.css";
 
 
@@ -43,18 +44,27 @@ const LoginForm = () => {
         useNavigate();
 
 
-    const [form, setForm] =
-        useState({
-
-            email: "",
-
-            password: ""
-
-        });
+    const {
+        refreshUser
+    } = useAuth();
 
 
-    const [loading, setLoading] =
-        useState(false);
+    const [
+        form,
+        setForm
+    ] = useState({
+
+        email: "",
+
+        password: ""
+
+    });
+
+
+    const [
+        loading,
+        setLoading
+    ] = useState(false);
 
 
     // =========================================================
@@ -88,6 +98,10 @@ const LoginForm = () => {
 
         e.preventDefault();
 
+
+        // -----------------------------------------------------
+        // VALIDATION
+        // -----------------------------------------------------
 
         if (!form.email.trim()) {
 
@@ -124,24 +138,39 @@ const LoginForm = () => {
 
         try {
 
-            setLoading(true);
+            setLoading(
+                true
+            );
 
 
-            const response =
-                await Service.login(
-                    "Auth/login",
-                    request
-                );
+            // =================================================
+            // LOGIN
+            //
+            // Backend creates:
+            //
+            // access_token  HttpOnly cookie
+            // refresh_token HttpOnly cookie
+            //
+            // =================================================
+
+            await Service.login(
+                "Auth/login",
+                request
+            );
 
 
-            const data =
-                response.data;
+            // =================================================
+            // LOAD AUTHENTICATED USER FROM /Auth/me
+            // =================================================
+
+            const currentUser =
+                await refreshUser();
 
 
-            if (!data?.accessToken) {
+            if (!currentUser) {
 
                 toast.error(
-                    "Invalid login response."
+                    "Unable to load authenticated user."
                 );
 
                 return;
@@ -149,38 +178,17 @@ const LoginForm = () => {
             }
 
 
-            // =============================================
-            // STORE SESSION
-            // =============================================
-
-            await SessionManage.setTokenId(
-                data.accessToken
-            );
-
-            await SessionManage.setRefreshToken(
-                data.refreshToken
-            );
-
-            await SessionManage.setUserId(
-                data.userId
-            );
-
-            await SessionManage.setUserRole(
-                data.role
-            );
-
-
             toast.success(
                 "Login successful."
             );
 
 
-            // =============================================
+            // =================================================
             // ROLE REDIRECT
-            // =============================================
+            // =================================================
 
             const role =
-                data.role
+                currentUser.role
                     ?.trim()
                     ?.toLowerCase();
 
@@ -193,6 +201,7 @@ const LoginForm = () => {
                         replace: true
                     }
                 );
+
 
                 return;
 
@@ -217,9 +226,13 @@ const LoginForm = () => {
 
             toast.error(
 
-                error.response?.data?.message ||
+                error.response?.data?.message
 
-                error.response?.data?.Message ||
+                ||
+
+                error.response?.data?.Message
+
+                ||
 
                 "Invalid email or password."
 
@@ -228,12 +241,18 @@ const LoginForm = () => {
         }
         finally {
 
-            setLoading(false);
+            setLoading(
+                false
+            );
 
         }
 
     };
 
+
+    // =========================================================
+    // UI
+    // =========================================================
 
     return (
 
@@ -313,7 +332,7 @@ const LoginForm = () => {
 
 
             {/* =============================================
-                LOGIN
+                LOGIN BUTTON
             ============================================== */}
 
             <Box className="login-submit">

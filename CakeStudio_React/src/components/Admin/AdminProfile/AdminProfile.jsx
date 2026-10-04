@@ -16,18 +16,35 @@ import {
     useState
 } from "react";
 
-import { toast }
-    from "react-toastify";
+import {
+    toast
+} from "react-toastify";
 
 import "./AdminProfile.css";
-
-import SessionManage
-    from "../../../Session/SessionManage";
 
 import Service
     from "../../../services/Service";
 
+import {
+    useAuth
+} from "../../../context/AuthContext";
+
+
 export default function AdminProfile() {
+
+    // =========================================================
+    // AUTH
+    // =========================================================
+
+    const {
+        user: authUser,
+        loading: authLoading
+    } = useAuth();
+
+
+    // =========================================================
+    // PROFILE STATE
+    // =========================================================
 
     const [
         profile,
@@ -48,46 +65,80 @@ export default function AdminProfile() {
 
     });
 
+
     const [
         loading,
         setLoading
     ] = useState(true);
 
-    // ==========================================
+
+    // =========================================================
     // LOAD ADMIN PROFILE
-    // ==========================================
+    // =========================================================
 
     useEffect(() => {
 
-        loadProfile();
+        // Wait until /Auth/me finishes.
+        if (authLoading) {
+            return;
+        }
 
-    }, []);
 
-    const loadProfile = async () => {
+        // No authenticated user.
+        if (!authUser?.userId) {
+
+            setLoading(false);
+
+            return;
+
+        }
+
+
+        loadProfile(
+            authUser.userId
+        );
+
+    }, [
+        authLoading,
+        authUser?.userId
+    ]);
+
+
+    // =========================================================
+    // GET PROFILE
+    // =========================================================
+
+    const loadProfile = async (
+        userId = authUser?.userId
+    ) => {
+
+        if (!userId) {
+
+            toast.error(
+                "Unable to identify logged-in user."
+            );
+
+            setLoading(false);
+
+            return;
+
+        }
+
 
         try {
 
             setLoading(true);
 
-            const userId =
-                SessionManage.getUserId();
-
-            if (!userId) {
-
-                toast.error(
-                    "Unable to identify logged-in user."
-                );
-
-                return;
-            }
 
             const response =
                 await Service.getUserById(
                     userId
                 );
 
+
             const user =
                 response.data;
+
 
             setProfile({
 
@@ -119,21 +170,32 @@ export default function AdminProfile() {
                 error
             );
 
+
             toast.error(
-                error.response?.data?.message ||
+
+                error.response
+                    ?.data
+                    ?.message
+
+                ||
+
                 "Unable to load profile."
+
             );
 
         }
         finally {
 
             setLoading(false);
+
         }
+
     };
 
-    // ==========================================
+
+    // =========================================================
     // INPUT CHANGE
-    // ==========================================
+    // =========================================================
 
     const handleChange = (
         event
@@ -144,95 +206,123 @@ export default function AdminProfile() {
             value
         } = event.target;
 
+
         setProfile(
             previous => ({
+
                 ...previous,
 
                 [name]:
                     value
+
             })
         );
+
     };
 
-    // ==========================================
+
+    // =========================================================
     // SAVE PROFILE
-    // ==========================================
+    // =========================================================
 
-    const handleSave = async () => {
+    const handleSave =
+        async () => {
 
-        try {
+            try {
 
-            const data = {
+                const data = {
 
-                id:
-                    profile.id,
+                    id:
+                        profile.id,
 
-                firstName:
-                    profile.firstName,
+                    firstName:
+                        profile.firstName,
 
-                lastName:
-                    profile.lastName,
+                    lastName:
+                        profile.lastName,
 
-                email:
-                    profile.email,
+                    email:
+                        profile.email,
 
-                phoneNumber:
-                    profile.phoneNumber
+                    phoneNumber:
+                        profile.phoneNumber
 
-            };
+                };
 
-            await Service.updateUser(
-                data
-            );
 
-            toast.success(
-                "Profile updated successfully."
-            );
+                await Service.updateUser(
+                    data
+                );
 
-            await loadProfile();
 
-        }
-        catch (error) {
+                toast.success(
+                    "Profile updated successfully."
+                );
 
-            console.error(
-                "Unable to update profile:",
-                error
-            );
 
-            toast.error(
-                error.response?.data?.message ||
-                "Unable to update profile."
-            );
-        }
-    };
+                await loadProfile();
 
-    // ==========================================
+            }
+            catch (error) {
+
+                console.error(
+                    "Unable to update profile:",
+                    error
+                );
+
+
+                toast.error(
+
+                    error.response
+                        ?.data
+                        ?.message
+
+                    ||
+
+                    "Unable to update profile."
+
+                );
+
+            }
+
+        };
+
+
+    // =========================================================
     // DISPLAY VALUES
-    // ==========================================
+    // =========================================================
 
     const fullName =
         `${profile.firstName} ${profile.lastName}`
             .trim();
 
+
     const avatarLetter =
         profile.firstName
             ?.charAt(0)
             ?.toUpperCase()
+
         || "A";
 
-    // ==========================================
-    // LOADING
-    // ==========================================
 
-    if (loading) {
+    // =========================================================
+    // LOADING
+    // =========================================================
+
+    if (
+        authLoading ||
+        loading
+    ) {
 
         return (
 
             <Box
                 sx={{
-                    minHeight: "300px",
+                    minHeight:
+                        "300px",
 
-                    display: "flex",
+                    display:
+                        "flex",
 
                     justifyContent:
                         "center",
@@ -245,8 +335,15 @@ export default function AdminProfile() {
                 <CircularProgress />
 
             </Box>
+
         );
+
     }
+
+
+    // =========================================================
+    // UI
+    // =========================================================
 
     return (
 
@@ -262,6 +359,7 @@ export default function AdminProfile() {
 
             </Typography>
 
+
             <Typography
                 className="profile-subtitle"
             >
@@ -270,11 +368,16 @@ export default function AdminProfile() {
 
             </Typography>
 
+
             <Card
                 className="profile-card"
             >
 
                 <CardContent>
+
+                    {/* =========================================
+                        PROFILE HEADER
+                    ========================================== */}
 
                     <Box
                         className="profile-header"
@@ -288,6 +391,7 @@ export default function AdminProfile() {
 
                         </Avatar>
 
+
                         <Box>
 
                             <Typography
@@ -297,6 +401,7 @@ export default function AdminProfile() {
                                 {fullName}
 
                             </Typography>
+
 
                             <Typography
                                 className="profile-role"
@@ -310,17 +415,25 @@ export default function AdminProfile() {
 
                     </Box>
 
+
                     <Divider
                         sx={{
                             my: 4
                         }}
                     />
 
+
+                    {/* =========================================
+                        PROFILE FORM
+                    ========================================== */}
+
                     <Grid
                         container
                         spacing={3}
                     >
 
+                        {/* FIRST NAME */}
+
                         <Grid
                             size={{
                                 xs: 12,
@@ -329,24 +442,21 @@ export default function AdminProfile() {
                         >
 
                             <TextField
-
                                 fullWidth
-
                                 label="First Name"
-
                                 name="firstName"
-
                                 value={
                                     profile.firstName
                                 }
-
                                 onChange={
                                     handleChange
                                 }
-
                             />
 
                         </Grid>
+
+
+                        {/* LAST NAME */}
 
                         <Grid
                             size={{
@@ -356,24 +466,21 @@ export default function AdminProfile() {
                         >
 
                             <TextField
-
                                 fullWidth
-
                                 label="Last Name"
-
                                 name="lastName"
-
                                 value={
                                     profile.lastName
                                 }
-
                                 onChange={
                                     handleChange
                                 }
-
                             />
 
                         </Grid>
+
+
+                        {/* EMAIL */}
 
                         <Grid
                             size={{
@@ -383,24 +490,21 @@ export default function AdminProfile() {
                         >
 
                             <TextField
-
                                 fullWidth
-
                                 label="Email"
-
                                 name="email"
-
                                 value={
                                     profile.email
                                 }
-
                                 onChange={
                                     handleChange
                                 }
-
                             />
 
                         </Grid>
+
+
+                        {/* PHONE */}
 
                         <Grid
                             size={{
@@ -410,24 +514,21 @@ export default function AdminProfile() {
                         >
 
                             <TextField
-
                                 fullWidth
-
                                 label="Phone"
-
                                 name="phoneNumber"
-
                                 value={
                                     profile.phoneNumber
                                 }
-
                                 onChange={
                                     handleChange
                                 }
-
                             />
 
                         </Grid>
+
+
+                        {/* ROLE */}
 
                         <Grid
                             size={{
@@ -437,37 +538,33 @@ export default function AdminProfile() {
                         >
 
                             <TextField
-
                                 fullWidth
-
                                 label="Role"
-
                                 value={
                                     profile.role
                                 }
-
                                 disabled
-
                             />
 
                         </Grid>
 
                     </Grid>
 
+
+                    {/* =========================================
+                        ACTIONS
+                    ========================================== */}
+
                     <Box
                         className="profile-actions"
                     >
 
                         <Button
-
                             variant="contained"
-
                             className="profile-save-btn"
-
                             onClick={
                                 handleSave
                             }
-
                         >
 
                             Save Changes
@@ -481,5 +578,7 @@ export default function AdminProfile() {
             </Card>
 
         </Box>
+
     );
+
 }

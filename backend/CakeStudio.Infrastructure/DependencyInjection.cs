@@ -57,6 +57,7 @@ namespace CakeStudio.Infrastructure
             services.AddScoped<IEmailBackgroundJob, EmailBackgroundJob>();
             services.AddScoped<IInvoiceService, InvoiceService>();
             services.AddScoped<IDeliveredOrderEmailJob, DeliveredOrderEmailJob>();
+            services.AddScoped<IAuthCookieService,AuthCookieService>();
 
             return services;
         }

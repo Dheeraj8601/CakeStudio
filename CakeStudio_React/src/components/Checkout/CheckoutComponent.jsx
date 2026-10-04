@@ -3,159 +3,251 @@ import {
     Grid
 } from "@mui/material";
 
-import Breadcrumb from "../common/Breadcrumb/Breadcrumb";
-
 import {
     useNavigate,
     useSearchParams
 } from "react-router-dom";
 
-import { toast } from "react-toastify";
+import {
+    toast
+} from "react-toastify";
+
+import {
+    useEffect,
+    useState
+} from "react";
 
 import "./checkout.css";
 
+import Breadcrumb
+    from "../common/Breadcrumb/Breadcrumb";
+
+import PaymentMethods
+    from "./PaymentMethods";
+
+import OrderSummary
+    from "./OrderSummary";
+
+import ShippingAddressSection
+    from "./ShippingAddressSection";
+
+import Service
+    from "../../services/Service";
+
+import useCart
+    from "../../hooks/useCart";
+
 import {
-    useState,
-    useEffect
-} from "react";
+    useAuth
+} from "../../context/AuthContext";
 
-import PaymentMethods from "./PaymentMethods";
-import OrderSummary from "./OrderSummary";
-import ShippingAddressSection from "./ShippingAddressSection";
-
-import SessionManage from "../../Session/SessionManage";
-import Service from "../../services/Service";
-import useCart from "../../hooks/useCart";
 
 export default function CheckoutComponent() {
 
-    const navigate = useNavigate();
+    const navigate =
+        useNavigate();
 
-    const [searchParams] =
-        useSearchParams();
 
-    // Existing order that needs another Stripe attempt
+    const [
+        searchParams
+    ] = useSearchParams();
+
+
     const retryOrderId =
-        searchParams.get("retryOrderId");
+        searchParams.get(
+            "retryOrderId"
+        );
+
 
     const {
         cart,
         clearCart
     } = useCart();
 
+
+    const {
+        user,
+        loading: authLoading
+    } = useAuth();
+
+
+    const isLoggedIn =
+        !!user;
+
+
     const [
         selectedAddressId,
         setSelectedAddressId
     ] = useState(null);
+
 
     const [
         addresses,
         setAddresses
     ] = useState([]);
 
+
     const [
         shipping,
         setShipping
     ] = useState({
+
         fullName: "",
+
         mobile: "",
+
         email: "",
+
         address: "",
+
         landmark: "",
+
         city: "",
+
         state: "",
+
         pincode: "",
+
         saveAddress: true
+
     });
+
 
     const [
         errors,
         setErrors
     ] = useState({});
 
+
     const [
         paymentMethod,
         setPaymentMethod
     ] = useState("cod");
+
 
     const [
         processing,
         setProcessing
     ] = useState(false);
 
-    // --------------------------------------------
+
+    // =========================================================
     // LOAD ADDRESSES
-    // --------------------------------------------
+    // =========================================================
 
     useEffect(() => {
 
-        if (SessionManage.getTokenId()) {
-            loadAddresses();
+        if (authLoading) {
+            return;
         }
 
-    }, []);
 
-    // --------------------------------------------
-    // RETRY MODE
-    // --------------------------------------------
+        if (isLoggedIn) {
+
+            loadAddresses();
+
+        }
+        else {
+
+            setAddresses([]);
+
+            setSelectedAddressId(
+                null
+            );
+
+        }
+
+    }, [
+        authLoading,
+        isLoggedIn
+    ]);
+
+
+    // =========================================================
+    // RETRY PAYMENT MODE
+    // =========================================================
 
     useEffect(() => {
 
         if (retryOrderId) {
 
-            // A retry is specifically for the existing
-            // Stripe card order.
-            setPaymentMethod("card");
+            setPaymentMethod(
+                "card"
+            );
+
         }
 
     }, [retryOrderId]);
 
-    // --------------------------------------------
+
+    // =========================================================
     // LOAD SAVED ADDRESSES
-    // --------------------------------------------
+    // =========================================================
 
-    const loadAddresses = async () => {
+    const loadAddresses =
+        async () => {
 
-        try {
+            try {
 
-            const response =
-                await Service.getMyAddresses();
+                const response =
+                    await Service.getMyAddresses();
 
-            setAddresses(
-                response.data
-            );
 
-            const defaultAddress =
-                response.data.find(
-                    x => x.isDefault
+                setAddresses(
+                    response.data
                 );
 
-            if (defaultAddress) {
 
-                setSelectedAddressId(
-                    defaultAddress.addressId
+                const defaultAddress =
+                    response.data.find(
+                        x =>
+                            x.isDefault
+                    );
+
+
+                if (defaultAddress) {
+
+                    setSelectedAddressId(
+                        defaultAddress.addressId
+                    );
+
+                }
+
+            }
+            catch (error) {
+
+                console.error(
+                    "Unable to load addresses:",
+                    error
                 );
+
             }
 
-        }
-        catch (error) {
+        };
 
-            console.error(
-                "Unable to load addresses:",
-                error
-            );
-        }
-    };
 
-    // --------------------------------------------
+    // =========================================================
     // VALIDATE SHIPPING
-    // --------------------------------------------
+    // =========================================================
 
     const validateShipping = () => {
 
-        // Logged-in customer
+        // -----------------------------------------------------
+        // AUTH STATE IS STILL LOADING
+        // -----------------------------------------------------
 
-        if (SessionManage.getTokenId()) {
+        if (authLoading) {
+
+            return false;
+
+        }
+
+
+        // -----------------------------------------------------
+        // LOGGED-IN CUSTOMER
+        // -----------------------------------------------------
+
+        if (isLoggedIn) {
 
             if (!selectedAddressId) {
 
@@ -164,25 +256,39 @@ export default function CheckoutComponent() {
                 );
 
                 return false;
+
             }
 
+
             return true;
+
         }
 
-        // Guest checkout
+
+        // -----------------------------------------------------
+        // GUEST CHECKOUT
+        // -----------------------------------------------------
 
         const newErrors = {};
 
-        if (!shipping.fullName?.trim()) {
+
+        if (
+            !shipping.fullName?.trim()
+        ) {
 
             newErrors.fullName =
                 "Full name is required";
+
         }
 
-        if (!shipping.mobile?.trim()) {
+
+        if (
+            !shipping.mobile?.trim()
+        ) {
 
             newErrors.mobile =
                 "Mobile number is required";
+
         }
         else if (
             !/^[6-9]\d{9}$/.test(
@@ -192,10 +298,13 @@ export default function CheckoutComponent() {
 
             newErrors.mobile =
                 "Enter a valid 10-digit mobile number";
+
         }
 
+
         if (
-            shipping.email?.trim() &&
+            shipping.email?.trim()
+            &&
             !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
                 shipping.email.trim()
             )
@@ -203,30 +312,47 @@ export default function CheckoutComponent() {
 
             newErrors.email =
                 "Enter a valid email address";
+
         }
 
-        if (!shipping.address?.trim()) {
+
+        if (
+            !shipping.address?.trim()
+        ) {
 
             newErrors.address =
                 "Address is required";
+
         }
 
-        if (!shipping.city?.trim()) {
+
+        if (
+            !shipping.city?.trim()
+        ) {
 
             newErrors.city =
                 "City is required";
+
         }
 
-        if (!shipping.state?.trim()) {
+
+        if (
+            !shipping.state?.trim()
+        ) {
 
             newErrors.state =
                 "State is required";
+
         }
 
-        if (!shipping.pincode?.trim()) {
+
+        if (
+            !shipping.pincode?.trim()
+        ) {
 
             newErrors.pincode =
                 "Pincode is required";
+
         }
         else if (
             !/^\d{6}$/.test(
@@ -236,18 +362,27 @@ export default function CheckoutComponent() {
 
             newErrors.pincode =
                 "Enter a valid 6-digit pincode";
+
         }
 
-        setErrors(newErrors);
+
+        setErrors(
+            newErrors
+        );
+
 
         return (
-            Object.keys(newErrors).length === 0
+            Object.keys(
+                newErrors
+            ).length === 0
         );
+
     };
 
-    // --------------------------------------------
+
+    // =========================================================
     // START STRIPE PAYMENT
-    // --------------------------------------------
+    // =========================================================
 
     const startStripePayment =
         async (orderId) => {
@@ -257,223 +392,296 @@ export default function CheckoutComponent() {
                     orderId
                 );
 
+
             const checkoutUrl =
                 paymentResponse.data.checkoutUrl;
+
 
             if (!checkoutUrl) {
 
                 throw new Error(
                     "Unable to start payment."
                 );
+
             }
 
-            // Redirect to Stripe Checkout
 
             window.location.href =
                 checkoutUrl;
+
         };
 
-    // --------------------------------------------
+
+    // =========================================================
     // CHECKOUT
-    // --------------------------------------------
+    // =========================================================
 
-    const handleCheckout = async () => {
+    const handleCheckout =
+        async () => {
 
-        if (processing) {
-            return;
-        }
+            if (
+                processing ||
+                authLoading
+            ) {
 
-        try {
+                return;
 
-            setProcessing(true);
+            }
 
-            // ====================================
-            // RETRY EXISTING STRIPE ORDER
-            // ====================================
 
-            if (retryOrderId) {
+            try {
 
-                const parsedOrderId =
-                    Number(retryOrderId);
+                setProcessing(
+                    true
+                );
 
-                if (
-                    !Number.isInteger(
+
+                // =============================================
+                // RETRY EXISTING STRIPE ORDER
+                // =============================================
+
+                if (retryOrderId) {
+
+                    const parsedOrderId =
+                        Number(
+                            retryOrderId
+                        );
+
+
+                    if (
+                        !Number.isInteger(
+                            parsedOrderId
+                        )
+                        ||
+                        parsedOrderId <= 0
+                    ) {
+
+                        toast.error(
+                            "Invalid order reference."
+                        );
+
+                        return;
+
+                    }
+
+
+                    await startStripePayment(
                         parsedOrderId
-                    ) ||
-                    parsedOrderId <= 0
-                ) {
-
-                    toast.error(
-                        "Invalid order reference."
                     );
 
+
                     return;
+
                 }
 
-                await startStripePayment(
-                    parsedOrderId
+
+                // =============================================
+                // NORMAL CHECKOUT
+                // =============================================
+
+                if (
+                    !validateShipping()
+                ) {
+
+                    return;
+
+                }
+
+
+                let order;
+
+
+                // =============================================
+                // LOGGED-IN CUSTOMER
+                // =============================================
+
+                if (isLoggedIn) {
+
+                    order = {
+
+                        addressId:
+                            selectedAddressId,
+
+                        paymentMethod
+
+                    };
+
+                }
+
+
+                // =============================================
+                // GUEST CUSTOMER
+                // =============================================
+
+                else {
+
+                    order = {
+
+                        guestAddress: {
+
+                            fullName:
+                                shipping.fullName,
+
+                            mobile:
+                                shipping.mobile,
+
+                            email:
+                                shipping.email,
+
+                            addressLine1:
+                                shipping.address,
+
+                            addressLine2:
+                                shipping.landmark,
+
+                            city:
+                                shipping.city,
+
+                            state:
+                                shipping.state,
+
+                            postalCode:
+                                shipping.pincode,
+
+                            country:
+                                "India"
+
+                        },
+
+
+                        items:
+                            cart.map(
+                                x => ({
+
+                                    cakeId:
+                                        x.productId,
+
+                                    quantity:
+                                        x.quantity
+
+                                })
+                            ),
+
+
+                        paymentMethod
+
+                    };
+
+                }
+
+
+                // =============================================
+                // CREATE ORDER
+                // =============================================
+
+                const response =
+                    await Service.checkout(
+                        order
+                    );
+
+
+                const orderId =
+                    response.data.orderId;
+
+
+                // =============================================
+                // CASH ON DELIVERY
+                // =============================================
+
+                if (
+                    paymentMethod ===
+                    "cod"
+                ) {
+
+                    toast.success(
+                        "Order placed successfully."
+                    );
+
+
+                    clearCart();
+
+
+                    navigate(
+                        `/ordersuccess/${orderId}`
+                    );
+
+
+                    return;
+
+                }
+
+
+                // =============================================
+                // STRIPE CARD PAYMENT
+                // =============================================
+
+                if (
+                    paymentMethod ===
+                    "card"
+                ) {
+
+                    await startStripePayment(
+                        orderId
+                    );
+
+
+                    return;
+
+                }
+
+            }
+            catch (error) {
+
+                console.error(
+                    "Checkout failed:",
+                    error
                 );
 
-                return;
-            }
 
-            // ====================================
-            // NORMAL CHECKOUT
-            // ====================================
+                toast.error(
 
-            if (!validateShipping()) {
-                return;
-            }
+                    error.response
+                        ?.data
+                        ?.message
 
-            let order;
+                    ||
 
-            // ====================================
-            // LOGGED-IN CUSTOMER
-            // ====================================
+                    error.response
+                        ?.data
+                        ?.Message
 
-            if (
-                SessionManage.getTokenId()
-            ) {
+                    ||
 
-                order = {
+                    error.message
 
-                    addressId:
-                        selectedAddressId,
+                    ||
 
-                    paymentMethod
-                };
-            }
+                    "Unable to process checkout."
 
-            // ====================================
-            // GUEST CUSTOMER
-            // ====================================
-
-            else {
-
-                order = {
-
-                    guestAddress: {
-
-                        fullName:
-                            shipping.fullName,
-
-                        mobile:
-                            shipping.mobile,
-
-                        email:
-                            shipping.email,
-
-                        addressLine1:
-                            shipping.address,
-
-                        addressLine2:
-                            shipping.landmark,
-
-                        city:
-                            shipping.city,
-
-                        state:
-                            shipping.state,
-
-                        postalCode:
-                            shipping.pincode,
-
-                        country:
-                            "India"
-                    },
-
-                    items: cart.map(
-                        x => ({
-                            cakeId:
-                                x.productId,
-
-                            quantity:
-                                x.quantity
-                        })
-                    ),
-
-                    paymentMethod
-                };
-            }
-
-            // ====================================
-            // CREATE ORDER
-            // ====================================
-
-            const response =
-                await Service.checkout(
-                    order
                 );
 
-            const orderId =
-                response.data.orderId;
+            }
+            finally {
 
-            // ====================================
-            // CASH ON DELIVERY
-            // ====================================
-
-            if (
-                paymentMethod === "cod"
-            ) {
-
-                toast.success(
-                    "Order placed successfully."
+                setProcessing(
+                    false
                 );
 
-                clearCart();
-
-                navigate(
-                    `/ordersuccess/${orderId}`
-                );
-
-                return;
             }
 
-            // ====================================
-            // STRIPE CARD PAYMENT
-            // ====================================
+        };
 
-            if (
-                paymentMethod === "card"
-            ) {
 
-                await startStripePayment(
-                    orderId
-                );
-
-                return;
-            }
-
-        }
-        catch (error) {
-
-            console.error(
-                "Checkout failed:",
-                error
-            );
-
-            toast.error(
-                error.response?.data?.message ||
-                error.response?.data?.Message ||
-                error.message ||
-                "Unable to process checkout."
-            );
-        }
-        finally {
-
-            setProcessing(false);
-        }
-    };
-
-    // --------------------------------------------
+    // =========================================================
     // UI
-    // --------------------------------------------
+    // =========================================================
 
     return (
 
         <Box className="checkout-page">
 
             <Breadcrumb
+
                 items={[
                     {
                         label: "Home",
@@ -484,66 +692,80 @@ export default function CheckoutComponent() {
                         path: "/cart"
                     },
                     {
-                        label: retryOrderId
-                            ? "Retry Payment"
-                            : "Checkout"
+                        label:
+                            retryOrderId
+                                ? "Retry Payment"
+                                : "Checkout"
                     }
                 ]}
+
             />
 
+
+            {/* ============================================= */}
             {/* RETRY PAYMENT INFORMATION */}
+            {/* ============================================= */}
 
-            {retryOrderId && (
-
-                <div
-                    style={{
-                        backgroundColor:
-                            "#fff8e1",
-
-                        border:
-                            "1px solid #ffe082",
-
-                        borderRadius:
-                            "8px",
-
-                        padding:
-                            "14px 18px",
-
-                        marginBottom:
-                            "24px"
-                    }}
-                >
+            {
+                retryOrderId && (
 
                     <div
                         style={{
-                            fontWeight:
-                                "600",
+                            backgroundColor:
+                                "#fff8e1",
+
+                            border:
+                                "1px solid #ffe082",
+
+                            borderRadius:
+                                "8px",
+
+                            padding:
+                                "14px 18px",
 
                             marginBottom:
-                                "4px"
+                                "24px"
                         }}
                     >
-                        Retry Payment
+
+                        <div
+                            style={{
+                                fontWeight:
+                                    "600",
+
+                                marginBottom:
+                                    "4px"
+                            }}
+                        >
+
+                            Retry Payment
+
+                        </div>
+
+
+                        <div
+                            style={{
+                                fontSize:
+                                    "14px",
+
+                                color:
+                                    "#6c757d"
+                            }}
+                        >
+
+                            You are retrying payment for Order #
+
+                            {retryOrderId}.
+
+                            A new order will not be created.
+
+                        </div>
+
                     </div>
 
-                    <div
-                        style={{
-                            fontSize:
-                                "14px",
+                )
+            }
 
-                            color:
-                                "#6c757d"
-                        }}
-                    >
-                        You are retrying
-                        payment for Order #
-                        {retryOrderId}.
-                        A new order will not
-                        be created.
-                    </div>
-
-                </div>
-            )}
 
             <Grid
                 container
@@ -588,7 +810,9 @@ export default function CheckoutComponent() {
                         onReload={
                             loadAddresses
                         }
+
                     />
+
 
                     <PaymentMethods
 
@@ -599,9 +823,11 @@ export default function CheckoutComponent() {
                         setPaymentMethod={
                             setPaymentMethod
                         }
+
                     />
 
                 </Grid>
+
 
                 {/* RIGHT */}
 
@@ -623,8 +849,10 @@ export default function CheckoutComponent() {
                         }
 
                         processing={
-                            processing
+                            processing ||
+                            authLoading
                         }
+
                     />
 
                 </Grid>
@@ -632,5 +860,7 @@ export default function CheckoutComponent() {
             </Grid>
 
         </Box>
+
     );
+
 }

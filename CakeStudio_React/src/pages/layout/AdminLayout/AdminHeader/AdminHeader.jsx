@@ -23,8 +23,9 @@ import {
     useState
 } from "react";
 
-import { useNavigate }
-    from "react-router-dom";
+import {
+    useNavigate
+} from "react-router-dom";
 
 import "./AdminHeader.css";
 
@@ -37,6 +38,10 @@ import SessionManage
 import Service
     from "../../../../services/Service";
 
+import {
+    useAuth
+} from "../../../../context/AuthContext";
+
 
 export default function AdminHeader({
 
@@ -46,51 +51,63 @@ export default function AdminHeader({
 
 }) {
 
-    const navigate = useNavigate();
+    const navigate =
+        useNavigate();
+
+
+    const {
+        user,
+        clearUser
+    } = useAuth();
+
 
     const [
         openLogout,
         setOpenLogout
     ] = useState(false);
 
+
     const [
         anchorEl,
         setAnchorEl
     ] = useState(null);
+
 
     const [
         admin,
         setAdmin
     ] = useState(null);
 
+
     const open =
         Boolean(anchorEl);
 
-    // ==========================================
-    // LOAD LOGGED-IN ADMIN
-    // ==========================================
+
+    // =========================================================
+    // LOAD LOGGED-IN ADMIN PROFILE
+    // =========================================================
 
     useEffect(() => {
 
+        if (!user?.userId) {
+            return;
+        }
+
+
         loadAdmin();
 
-    }, []);
+    }, [user?.userId]);
+
 
     const loadAdmin = async () => {
 
         try {
 
-            const userId =
-                SessionManage.getUserId();
-
-            if (!userId) {
-                return;
-            }
-
             const response =
                 await Service.getUserById(
-                    userId
+                    user.userId
                 );
+
 
             setAdmin(
                 response.data
@@ -103,91 +120,128 @@ export default function AdminHeader({
                 "Unable to load admin profile:",
                 error
             );
+
         }
+
     };
 
-    // ==========================================
+
+    // =========================================================
     // PROFILE MENU
-    // ==========================================
+    // =========================================================
 
     const handleOpen = (event) => {
 
         setAnchorEl(
             event.currentTarget
         );
+
     };
+
 
     const handleClose = () => {
 
         setAnchorEl(null);
+
     };
 
-    // ==========================================
+
+    // =========================================================
     // LOGOUT
-    // ==========================================
+    // =========================================================
 
     const handleLogout = async () => {
+        try {
 
-    const refreshToken =
-        SessionManage.getRefreshToken();
+            // No refresh token is passed.
+            // Browser sends refresh_token HttpOnly cookie.
+            await Service.logout();
 
-    try {
+        }
+        catch (error) {
 
-        if (refreshToken) {
-
-            await Service.logout(
-                refreshToken
+            console.error(
+                "Backend logout failed:",
+                error
             );
+
+        }
+        finally {
+
+            SessionManage.clearSession();
+
+
+            // -------------------------------------------------
+            // CLEAR REACT AUTH STATE
+            // -------------------------------------------------
+
+            clearUser();
+
+
+            // -------------------------------------------------
+            // CLOSE UI
+            // -------------------------------------------------
+
+            setAdmin(null);
+
+            setOpenLogout(false);
+
+            handleClose();
+
+
+            // -------------------------------------------------
+            // REDIRECT TO LOGIN
+            // -------------------------------------------------
+
+            navigate(
+                "/login",
+                {
+                    replace: true
+                }
+            );
+
         }
 
-    }
-    catch (error) {
+    };
 
-        console.error(
-            "Backend logout failed:",
-            error
-        );
 
-    }
-    finally {
-
-        // Always remove local credentials,
-        // even if backend logout request fails.
-
-        SessionManage.clearSession();
-
-        setOpenLogout(false);
-
-        handleClose();
-
-        navigate(
-            "/login",
-            {
-                replace: true
-            }
-        );
-    }
-};
-
-    // ==========================================
+    // =========================================================
     // DISPLAY VALUES
-    // ==========================================
+    // =========================================================
 
-    const fullName = admin
-        ? `${admin.firstName ?? ""} ${admin.lastName ?? ""}`.trim()
-        : "";
+    const fullName =
+        admin
+            ? `${admin.firstName ?? ""} ${admin.lastName ?? ""}`.trim()
+            : "";
+
 
     const displayName =
-        fullName || "Admin";
+        fullName ||
+        user?.name ||
+        "Admin";
+
 
     const email =
-        admin?.email || "";
+        admin?.email ||
+        user?.email ||
+        "";
+
 
     const avatarLetter =
         admin?.firstName
             ?.charAt(0)
             ?.toUpperCase()
-        || "A";
+        ||
+        user?.name
+            ?.charAt(0)
+            ?.toUpperCase()
+        ||
+        "A";
+
+
+    // =========================================================
+    // UI
+    // =========================================================
 
     return (
 
@@ -203,6 +257,10 @@ export default function AdminHeader({
 
             <Toolbar>
 
+                {/* ========================================= */}
+                {/* MENU BUTTON */}
+                {/* ========================================= */}
+
                 <IconButton
                     onClick={
                         onMenuClick
@@ -213,6 +271,11 @@ export default function AdminHeader({
 
                 </IconButton>
 
+
+                {/* ========================================= */}
+                {/* PAGE TITLE */}
+                {/* ========================================= */}
+
                 <Typography
                     className="admin-page-title"
                 >
@@ -221,17 +284,28 @@ export default function AdminHeader({
 
                 </Typography>
 
+
                 <Box
                     sx={{
                         flexGrow: 1
                     }}
                 />
 
+
+                {/* ========================================= */}
+                {/* NOTIFICATION */}
+                {/* ========================================= */}
+
                 <IconButton>
 
                     <NotificationsNoneOutlinedIcon />
 
                 </IconButton>
+
+
+                {/* ========================================= */}
+                {/* ADMIN PROFILE */}
+                {/* ========================================= */}
 
                 <Box
 
@@ -251,6 +325,7 @@ export default function AdminHeader({
 
                     </Avatar>
 
+
                     <Box>
 
                         <Typography
@@ -260,6 +335,7 @@ export default function AdminHeader({
                             {displayName}
 
                         </Typography>
+
 
                         <Typography
                             className="admin-email"
@@ -271,9 +347,15 @@ export default function AdminHeader({
 
                     </Box>
 
+
                     <KeyboardArrowDownOutlinedIcon />
 
                 </Box>
+
+
+                {/* ========================================= */}
+                {/* PROFILE MENU */}
+                {/* ========================================= */}
 
                 <Menu
 
@@ -300,6 +382,7 @@ export default function AdminHeader({
                             navigate(
                                 "/admin/profile"
                             );
+
                         }}
 
                     >
@@ -307,6 +390,7 @@ export default function AdminHeader({
                         Profile
 
                     </MenuItem>
+
 
                     <MenuItem
 
@@ -317,6 +401,7 @@ export default function AdminHeader({
                             setOpenLogout(
                                 true
                             );
+
                         }}
 
                     >
@@ -328,6 +413,11 @@ export default function AdminHeader({
                 </Menu>
 
             </Toolbar>
+
+
+            {/* ============================================= */}
+            {/* LOGOUT CONFIRMATION */}
+            {/* ============================================= */}
 
             <LogoutDialog
 
@@ -346,5 +436,7 @@ export default function AdminHeader({
             />
 
         </AppBar>
+
     );
+
 }
