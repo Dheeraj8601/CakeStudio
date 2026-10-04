@@ -23,6 +23,27 @@ namespace CakeStudio.API.Controllers
             _logger = logger;
         }
 
+
+        // =========================================================
+        // CSRF EXCEPTION - STRIPE WEBHOOK
+        // =========================================================
+        //
+        // ADDED FOR CSRF:
+        //
+        // Stripe calls this endpoint directly from Stripe's server.
+        // It is NOT a request coming from our React application.
+        //
+        // Therefore Stripe cannot obtain or send our
+        // X-CSRF-TOKEN header.
+        //
+        // We exclude ONLY this webhook endpoint from ASP.NET Core
+        // antiforgery validation.
+        //
+        // This endpoint is still protected by Stripe's webhook
+        // signature verification using EventUtility.ConstructEvent().
+        // =========================================================
+
+        [IgnoreAntiforgeryToken] // <-- ADDED FOR STRIPE WEBHOOK
         [HttpPost]
         public async Task<IActionResult> Webhook()
         {
@@ -38,6 +59,18 @@ namespace CakeStudio.API.Controllers
                 var webhookSecret =
                     _configuration[
                         "StripeSettings:WebhookSecret"];
+
+
+                // =================================================
+                // STRIPE WEBHOOK SECURITY
+                // =================================================
+                //
+                // Verifies that this request was signed using the
+                // configured Stripe webhook secret.
+                //
+                // This remains required even though CSRF validation
+                // is disabled for this endpoint.
+                // =================================================
 
                 stripeEvent =
                     EventUtility.ConstructEvent(
@@ -55,33 +88,51 @@ namespace CakeStudio.API.Controllers
                 return BadRequest();
             }
 
+
             try
             {
                 switch (stripeEvent.Type)
                 {
                     case EventTypes.CheckoutSessionCompleted:
                         {
-                            var session = stripeEvent.Data.Object as Session;
+                            var session =
+                                stripeEvent.Data.Object
+                                    as Session;
 
-                            if (session != null && session.PaymentStatus == "paid")
+                            if (
+                                session != null &&
+                                session.PaymentStatus == "paid"
+                            )
                             {
-                                await _paymentService.PaymentSuccessAsync(stripeEvent.Id,session.Id);
+                                await _paymentService
+                                    .PaymentSuccessAsync(
+                                        stripeEvent.Id,
+                                        session.Id);
                             }
 
                             break;
                         }
+
 
                     case EventTypes.PaymentIntentPaymentFailed:
                         {
-                            var intent = stripeEvent.Data.Object as PaymentIntent;
+                            var intent =
+                                stripeEvent.Data.Object
+                                    as PaymentIntent;
 
                             if (intent != null)
                             {
-                                await _paymentService.PaymentFailedAsync(stripeEvent.Id, intent.Id, intent.LastPaymentError?.Message);
+                                await _paymentService
+                                    .PaymentFailedAsync(
+                                        stripeEvent.Id,
+                                        intent.Id,
+                                        intent.LastPaymentError
+                                            ?.Message);
                             }
 
                             break;
                         }
+
 
                     case EventTypes.CheckoutSessionExpired:
                         {
@@ -99,6 +150,7 @@ namespace CakeStudio.API.Controllers
 
                             break;
                         }
+
 
                     case EventTypes.RefundUpdated:
                         {
@@ -119,6 +171,7 @@ namespace CakeStudio.API.Controllers
                         }
                 }
 
+
                 return Ok();
             }
             catch (Exception ex)
@@ -128,10 +181,19 @@ namespace CakeStudio.API.Controllers
                     "Stripe webhook processing failed. Event {EventId}",
                     stripeEvent.Id);
 
-                Console.WriteLine("=================================");
-                Console.WriteLine("STRIPE WEBHOOK ERROR");
-                Console.WriteLine(ex.ToString());
-                Console.WriteLine("=================================");
+
+                Console.WriteLine(
+                    "=================================");
+
+                Console.WriteLine(
+                    "STRIPE WEBHOOK ERROR");
+
+                Console.WriteLine(
+                    ex.ToString());
+
+                Console.WriteLine(
+                    "=================================");
+
 
                 return StatusCode(500);
             }

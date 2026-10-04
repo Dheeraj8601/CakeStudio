@@ -1,35 +1,79 @@
 /* ============================================================
-   FORM
+   LOGIN FORM
 ============================================================ */
 
 .login-form {
     width: 100%;
 
     display: flex;
-
     flex-direction: column;
+
+    box-sizing: border-box;
 }
 
 
 /* ============================================================
-   FIELDS
+   FORM FIELDS
 ============================================================ */
 
 .login-field {
     width: 100%;
 
-    margin-bottom: 16px;
+    margin-bottom: 14px;
+}
+
+
+/* Make MUI/custom inputs feel more modern */
+.login-field .MuiOutlinedInput-root {
+    min-height: 50px;
+
+    border-radius: 10px;
+
+    background: #ffffff;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background-color 0.2s ease;
+}
+
+
+.login-field .MuiOutlinedInput-root:hover {
+    background: #fdfdfd;
+}
+
+
+.login-field .MuiOutlinedInput-root.Mui-focused {
+    box-shadow:
+        0 0 0 3px rgba(240, 92, 120, 0.08);
+}
+
+
+.login-field .MuiOutlinedInput-notchedOutline {
+    border-color: #dddddd;
+}
+
+
+.login-field .MuiOutlinedInput-root:hover
+.MuiOutlinedInput-notchedOutline {
+    border-color: #cfcfcf;
+}
+
+
+.login-field .MuiOutlinedInput-root.Mui-focused
+.MuiOutlinedInput-notchedOutline {
+    border-width: 1px;
+
+    border-color: #f05c78;
 }
 
 
 /* ============================================================
-   LOGIN OPTIONS
+   REMEMBER / FORGOT PASSWORD
 ============================================================ */
 
 .login-options {
     width: 100%;
-
-    min-height: 36px;
 
     display: flex;
 
@@ -39,7 +83,9 @@
 
     gap: 16px;
 
-    margin: 2px 0 20px;
+    margin: 0 0 18px;
+
+    min-height: 32px;
 }
 
 
@@ -49,37 +95,50 @@
 
 
 .remember-me .MuiCheckbox-root {
-    padding: 5px 7px 5px 0;
+    padding: 4px 7px 4px 0;
+
+    color: #b4b4b4;
+}
+
+
+.remember-me .MuiCheckbox-root.Mui-checked {
+    color: #f05c78;
 }
 
 
 .remember-me .MuiFormControlLabel-label {
     font-size: 13px;
 
-    color: #4c4c4c;
+    font-weight: 500;
+
+    color: #555555;
 }
 
 
 .forgot-password-link.MuiLink-root {
+    position: relative;
+
     flex-shrink: 0;
 
     font-size: 13px;
 
     font-weight: 600;
 
-    color: #e95270;
+    color: #e65370;
+
+    text-decoration: none;
 
     transition: color 0.2s ease;
 }
 
 
 .forgot-password-link.MuiLink-root:hover {
-    color: #cf405d;
+    color: #c93f5a;
 }
 
 
 /* ============================================================
-   SUBMIT
+   LOGIN BUTTON
 ============================================================ */
 
 .login-submit {
@@ -92,18 +151,49 @@
 }
 
 
+/*
+   If PrimaryButton ultimately renders a MUI Button,
+   this will improve its appearance.
+*/
+.login-submit .MuiButton-root {
+    min-height: 48px;
+
+    border-radius: 9px;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    text-transform: none;
+
+    box-shadow: none;
+
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.2s ease;
+}
+
+
+.login-submit .MuiButton-root:hover {
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 6px 18px rgba(240, 92, 120, 0.18);
+}
+
+
 /* ============================================================
    REGISTER
 ============================================================ */
 
 .register-text.MuiTypography-root {
-    margin-top: 22px;
+    margin-top: 18px;
 
     text-align: center;
 
-    font-size: 14px;
+    font-size: 13px;
 
-    color: #777777;
+    color: #7b7b7b;
 }
 
 
@@ -113,11 +203,13 @@
     font-weight: 600;
 
     cursor: pointer;
+
+    text-decoration: none;
 }
 
 
 .register-link.MuiLink-root:hover {
-    color: #d94361;
+    color: #ce405c;
 }
 
 
@@ -127,8 +219,15 @@
 
 @media (max-width: 480px) {
 
+    .login-field {
+        margin-bottom: 12px;
+    }
+
+
     .login-options {
-        gap: 10px;
+        gap: 8px;
+
+        margin-bottom: 16px;
     }
 
 
@@ -139,6 +238,8 @@
 
 
     .register-text.MuiTypography-root {
+        margin-top: 16px;
+
         font-size: 13px;
     }
 

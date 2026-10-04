@@ -1,8 +1,13 @@
-import SessionManage from "../../Session/SessionManage";
-import AddressSelector from "./AddressSelector";
+import AddressSelector
+    from "./AddressSelector";
 
+import ShippingForm
+    from "./ShippingForm";
 
-import ShippingForm from "./ShippingForm";
+import {
+    useAuth
+} from "../../context/AuthContext";
+
 
 export default function ShippingAddressSection({
 
@@ -17,11 +22,33 @@ export default function ShippingAddressSection({
     setShipping,
 
     onReload,
+
     errors = {}
 
 }) {
 
-    if(!SessionManage.getTokenId()){
+    const {
+        user,
+        loading: authLoading
+    } = useAuth();
+
+
+    // =========================================================
+    // WAIT FOR AUTH CHECK
+    // =========================================================
+
+    if (authLoading) {
+
+        return null;
+
+    }
+
+
+    // =========================================================
+    // GUEST CUSTOMER
+    // =========================================================
+
+    if (!user) {
 
         return (
 
@@ -35,17 +62,28 @@ export default function ShippingAddressSection({
 
     }
 
+
+    // =========================================================
+    // LOGGED-IN CUSTOMER
+    // =========================================================
+
     return (
 
         <AddressSelector
 
             addresses={addresses}
 
-            selectedAddressId={selectedAddressId}
+            selectedAddressId={
+                selectedAddressId
+            }
 
-            setSelectedAddressId={setSelectedAddressId}
+            setSelectedAddressId={
+                setSelectedAddressId
+            }
 
-            onReload={onReload}
+            onReload={
+                onReload
+            }
 
         />
 

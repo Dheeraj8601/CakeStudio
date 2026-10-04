@@ -19,8 +19,9 @@ import {
 import Service
     from "../../../../services/Service";
 
-import SessionManage
-    from "../../../../Session/SessionManage";
+import {
+    useAuth
+} from "../../../../context/AuthContext";
 
 import "./SocialLogin.css";
 
@@ -30,31 +31,51 @@ const SocialLogin = () => {
     const navigate =
         useNavigate();
 
+
     const googleButtonRef =
         useRef(null);
 
-    const [googleLoaded, setGoogleLoaded] =
-        useState(false);
+
+    const [
+        googleLoaded,
+        setGoogleLoaded
+    ] = useState(false);
 
 
-    // ==========================================
+    const {
+        refreshUser
+    } = useAuth();
+
+
+    // =========================================================
     // GOOGLE LOGIN SUCCESS
-    // ==========================================
+    // =========================================================
 
     const handleGoogleResponse =
         async (credentialResponse) => {
 
-            if (!credentialResponse?.credential) {
+            if (
+                !credentialResponse?.credential
+            ) {
 
                 toast.error(
                     "Google login failed."
                 );
 
+
                 return;
+
             }
 
 
             try {
+
+                // =============================================
+                // GOOGLE LOGIN
+                //
+                // Backend validates Google credential and
+                // creates HttpOnly authentication cookies.
+                // =============================================
 
                 const response =
                     await Service.googleLogin(
@@ -65,10 +86,8 @@ const SocialLogin = () => {
                 const data =
                     response.data;
 
-
                 if (
-                    !data?.success ||
-                    !data?.accessToken
+                    data?.success === false
                 ) {
 
                     toast.error(
@@ -76,29 +95,30 @@ const SocialLogin = () => {
                         "Google login failed."
                     );
 
+
                     return;
+
                 }
 
 
-                // ==================================
-                // STORE CAKESTUDIO SESSION
-                // ==================================
+                // =============================================
+                // LOAD AUTHENTICATED USER FROM /Auth/me
+                // =============================================
 
-                await SessionManage.setTokenId(
-                    data.accessToken
-                );
+                const currentUser =
+                    await refreshUser();
 
-                await SessionManage.setRefreshToken(
-                    data.refreshToken
-                );
 
-                await SessionManage.setUserId(
-                    data.userId
-                );
+                if (!currentUser) {
 
-                await SessionManage.setUserRole(
-                    data.role
-                );
+                    toast.error(
+                        "Unable to load authenticated user."
+                    );
+
+
+                    return;
+
+                }
 
 
                 toast.success(
@@ -106,12 +126,12 @@ const SocialLogin = () => {
                 );
 
 
-                // ==================================
+                // =============================================
                 // ROLE BASED REDIRECT
-                // ==================================
+                // =============================================
 
                 const role =
-                    data.role
+                    currentUser.role
                         ?.trim()
                         ?.toLowerCase();
 
@@ -125,7 +145,9 @@ const SocialLogin = () => {
                         }
                     );
 
+
                     return;
+
                 }
 
 
@@ -146,22 +168,32 @@ const SocialLogin = () => {
 
 
                 toast.error(
-                    error.response?.data?.message ||
-                    error.response?.data?.Message ||
+
+                    error.response?.data?.message
+
+                    ||
+
+                    error.response?.data?.Message
+
+                    ||
+
                     "Google login failed."
+
                 );
 
             }
+
         };
 
 
-    // ==========================================
+    // =========================================================
     // INITIALIZE GOOGLE
-    // ==========================================
+    // =========================================================
 
     useEffect(() => {
 
         let attempts = 0;
+
 
         const initializeGoogle = () => {
 
@@ -172,6 +204,7 @@ const SocialLogin = () => {
 
                 attempts++;
 
+
                 if (attempts < 50) {
 
                     setTimeout(
@@ -181,7 +214,9 @@ const SocialLogin = () => {
 
                 }
 
+
                 return;
+
             }
 
 
@@ -196,7 +231,9 @@ const SocialLogin = () => {
                     "GOOGLE_CLIENT_ID is missing from config.js"
                 );
 
+
                 return;
+
             }
 
 
@@ -220,28 +257,43 @@ const SocialLogin = () => {
                 googleButtonRef.current,
 
                 {
-                    theme: "outline",
 
-                    size: "large",
+                    theme:
+                        "outline",
 
-                    text: "continue_with",
+                    size:
+                        "large",
 
-                    shape: "rectangular",
+                    text:
+                        "continue_with",
 
-                    width: 400
+                    shape:
+                        "rectangular",
+
+                    width:
+                        400
+
                 }
 
             );
 
 
-            setGoogleLoaded(true);
+            setGoogleLoaded(
+                true
+            );
+
         };
 
 
         initializeGoogle();
 
+
     }, []);
 
+
+    // =========================================================
+    // UI
+    // =========================================================
 
     return (
 
@@ -255,21 +307,31 @@ const SocialLogin = () => {
             <Box
                 ref={googleButtonRef}
                 sx={{
-                    width: "100%",
-                    display: "flex",
-                    justifyContent: "center",
+
+                    width:
+                        "100%",
+
+                    display:
+                        "flex",
+
+                    justifyContent:
+                        "center",
 
                     opacity:
                         googleLoaded
                             ? 1
                             : 0,
 
-                    minHeight: "44px"
+                    minHeight:
+                        "44px"
+
                 }}
             />
 
         </Box>
+
     );
+
 };
 
 

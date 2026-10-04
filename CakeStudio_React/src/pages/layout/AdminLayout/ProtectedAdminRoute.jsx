@@ -1,22 +1,75 @@
-import { Navigate } from "react-router-dom";
+import {
+    Navigate
+} from "react-router-dom";
 
-export default function ProtectedAdminRoute({ children }) {
+import {
+    Box,
+    CircularProgress
+} from "@mui/material";
 
-    const token = localStorage.getItem("token");
+import {
+    useAuth
+} from "../../../context/AuthContext";
 
-    const role = localStorage.getItem("role");
 
-    if (!token) {
+export default function ProtectedAdminRoute({
+    children
+}) {
 
-        return <Navigate to="/login" replace />;
+    const {user,loading} = useAuth();
+
+    if (loading) {
+
+        return (
+
+            <Box
+                sx={{
+                    minHeight: "100vh",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center"
+                }}
+            >
+
+                <CircularProgress
+                    size={32}
+                />
+
+            </Box>
+
+        );
 
     }
 
-    if (role !== "Admin") {
 
-        return <Navigate to="/403" replace />;
+    if (!user) {
+
+        return (
+            <Navigate
+                to="/login"
+                replace
+            />
+        );
 
     }
+
+
+    if (
+        user.role
+            ?.trim()
+            ?.toLowerCase()
+        !== "admin"
+    ) {
+
+        return (
+            <Navigate
+                to="/403"
+                replace
+            />
+        );
+
+    }
+
 
     return children;
 

@@ -2,15 +2,17 @@
     width: 100%;
 
     text-align: center;
+
+    margin: 0;
 }
 
 
 .auth-title-container {
     display: flex;
 
-    align-items: flex-start;
-
     justify-content: center;
+
+    align-items: flex-start;
 
     gap: 7px;
 }
@@ -19,37 +21,35 @@
 .auth-title.MuiTypography-root {
     margin: 0;
 
-    font-size: 38px;
+    font-size: 36px;
 
-    line-height: 1.2;
+    line-height: 1.15;
 
     font-weight: 700;
 
-    letter-spacing: -0.7px;
+    letter-spacing: -0.8px;
 
-    color: #242424;
+    color: #252525;
 }
 
 
 .auth-title-icon.MuiSvgIcon-root {
-    margin-top: 4px;
+    margin-top: 3px;
 
-    font-size: 18px;
+    font-size: 17px;
 
-    color: #f45b79;
-
-    transform: rotate(8deg);
+    color: #f05c78;
 }
 
 
 .auth-subtitle.MuiTypography-root {
-    margin-top: 9px;
+    margin-top: 7px;
 
-    font-size: 15px;
+    font-size: 14px;
 
     line-height: 1.5;
 
-    color: #7a7a7a;
+    color: #858585;
 }
 
 

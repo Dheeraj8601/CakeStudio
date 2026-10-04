@@ -24,7 +24,7 @@ export default function AdminLayout() {
 
     return (
         <>
-            {/* <ProtectedAdminRoute> */}
+            <ProtectedAdminRoute>
             <Box className="admin-layout">
 
                 <AdminSidebar
@@ -51,7 +51,7 @@ export default function AdminLayout() {
                 </Box>
 
             </Box>
-            {/* </ProtectedAdminRoute> */}
+            </ProtectedAdminRoute>
         </>
     );
 
