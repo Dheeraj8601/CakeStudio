@@ -20,6 +20,12 @@ export const AuthProvider = ({ children }) => {
         useState(true);
 
 
+    const hasSessionCookie = () => {
+        return document.cookie
+            .split("; ")
+            .some(cookie => cookie.startsWith("has_session="));
+    };
+
     // =========================================================
     // LOAD CURRENT AUTHENTICATED USER
     // =========================================================
@@ -46,15 +52,13 @@ export const AuthProvider = ({ children }) => {
         }
         catch (error) {
 
-            // 401 simply means there is no valid
-            // authenticated session.
-            setUser(
-                null
-            );
+            setUser(null);
 
+            if (error.response?.status === 401) {
+                document.cookie = "has_session=; Max-Age=0; Path=/; Secure; SameSite=Lax";
+            }
 
             return null;
-
         }
         finally {
 
@@ -72,9 +76,13 @@ export const AuthProvider = ({ children }) => {
     // =========================================================
 
     useEffect(() => {
+        if (!hasSessionCookie()) {
+            setUser(null);
+            setLoading(false);
+            return;
+        }
 
         loadCurrentUser();
-
     }, []);
 
 

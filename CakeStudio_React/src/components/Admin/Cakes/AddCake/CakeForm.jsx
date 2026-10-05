@@ -115,7 +115,6 @@ export default function CakeForm({
 
                 const res = await Service.updateCake(formData);
 
-                console.log("Cake updated successfully.",res);
             }
             else {
 
@@ -124,7 +123,6 @@ export default function CakeForm({
 
                 const res =  await Service.createCake(formData);
 
-                console.log("Cake created successfully.",res);
                 navigate(`/admin/cakes`)
             }
 

@@ -26,7 +26,7 @@ export default function Orders() {
 
             const response =
                 await Service.getMyOrders();
-console.log(response,"response order")
+
             setOrders(response.data);
 
         }

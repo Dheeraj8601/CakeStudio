@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 
 const useCakeFilters = (cakes, initialCategory = null) => {
-   console.log("11",initialCategory , cakes)
+
     const [sortBy, setSortBy] = useState("popular");
     const [showCount, setShowCount] = useState(12);
     const [view, setView] = useState("grid");

@@ -51,9 +51,8 @@ export default function useCakeCatalog(initialCategory = null) {
                 maxPrice: priceRange[1]
             };
 
-            //console.log("params", paramsSerializer)
+
             const response = await Service.getCakeCatalog(params);
-            console.log(response, "response", params)
             setCakes(response.data.data);
 
             setTotalPages(response.data.totalPages);
@@ -75,7 +74,7 @@ export default function useCakeCatalog(initialCategory = null) {
             prev.includes(id)
                 ? prev.filter(x => x !== id)
                 : [...prev, id]);
-        console.log(selectedCategories,"19-5")
+
         setPage(1);
 
     };

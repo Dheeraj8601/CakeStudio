@@ -67,7 +67,7 @@ export default function Addresses() {
     };
 
     const handleSave = async (address) => {
-        console.log(address, "address")
+
         try {
 
             if (address.addressId) {
@@ -113,7 +113,6 @@ export default function Addresses() {
         }
         catch (error) {
 
-            console.log(error.response,"19-5");
 
             toast.error(
                 error.response?.data?.Message ||

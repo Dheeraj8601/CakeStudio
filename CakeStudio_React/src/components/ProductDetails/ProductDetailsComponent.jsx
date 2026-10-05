@@ -29,7 +29,6 @@ export default function ProductDetailsComponent(props) {
     const loadProduct = async (id) => {
         try {
             const res = await Service.getCakeDetails(id);
-            console.log(res.data, "product")
             const data = res.data;
             setProduct(prev => {
                 return {

@@ -22,29 +22,18 @@ namespace CakeStudio.Infrastructure.Services
         // SET AUTH COOKIES
         // =====================================================
 
-        public void SetAuthCookies(
-            string accessToken,
-            string refreshToken)
+        public void SetAuthCookies(string accessToken,string refreshToken)
         {
-            var response =
-                _httpContextAccessor
-                    .HttpContext!
-                    .Response;
+            var response = _httpContextAccessor.HttpContext!.Response;
 
 
-            var accessTokenExpiryMinutes =
-                _configuration.GetValue<int>(
-                    "JwtSettings:ExpiryMinutes"
-                );
-
+            var accessTokenExpiryMinutes = _configuration.GetValue<int>("JwtSettings:ExpiryMinutes");
 
             // =================================================
             // ACCESS TOKEN
             // =================================================
 
-            response.Cookies.Append(
-                "access_token",
-                accessToken,
+            response.Cookies.Append("access_token",accessToken,
                 new CookieOptions
                 {
                     HttpOnly = true,
@@ -79,9 +68,7 @@ namespace CakeStudio.Infrastructure.Services
             // REFRESH TOKEN
             // =================================================
 
-            response.Cookies.Append(
-                "refresh_token",
-                refreshToken,
+            response.Cookies.Append("refresh_token",refreshToken,
                 new CookieOptions
                 {
                     HttpOnly = true,
@@ -99,6 +86,15 @@ namespace CakeStudio.Infrastructure.Services
                     IsEssential = true
                 }
             );
+
+            response.Cookies.Append("has_session","1",
+                new CookieOptions
+                {
+                    HttpOnly = false,
+                    Secure = true,
+                    SameSite = SameSiteMode.Lax,
+                    Path = "/"
+                });
         }
 
 
@@ -140,6 +136,14 @@ namespace CakeStudio.Infrastructure.Services
                     Path = "/"
                 }
             );
+
+            response.Cookies.Delete("has_session",
+                new CookieOptions
+                {
+                    Secure = true,
+                    SameSite = SameSiteMode.Lax,
+                    Path = "/"
+                });
         }
     }
 }

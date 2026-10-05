@@ -44,7 +44,6 @@ export default function Users() {
                 }),
                 status: item.isActive
             }));
-            console.log(data, response.data.data)
             setUsers(data);
         }
         catch (error) {

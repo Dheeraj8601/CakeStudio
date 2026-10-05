@@ -60,7 +60,6 @@ export default function Categories() {
             }));
 
             setCategories(data);
-            console.log(data[0].image)
         }
         catch (error) {
             console.error(error);
@@ -76,7 +75,6 @@ export default function Categories() {
     };
 
     const handleEdit = (category) => {
-        console.log(category, "ppp 1")
         setSelectedCategory(category);
 
         setOpenDialog(true);
@@ -84,7 +82,6 @@ export default function Categories() {
     };
 
     const handleDelete = (category) => {
-        console.log(category, "ppp 1")
         setSelectedCategory(category);
         setOpenDeleteDialog(true);
     };

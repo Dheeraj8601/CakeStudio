@@ -26,7 +26,6 @@ export default function UpdateOrderStatus({
     onReload
 
 }) {
-    console.log(order, "19-5")
     const [status, setStatus] = useState(order.orderStatus);
 
     const [notes, setNotes] = useState("");

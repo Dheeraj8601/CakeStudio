@@ -60,7 +60,6 @@ export default function Reviews() {
                 });
 
                 const data = response.data.data
-                console.log(data,"data ll")
 
             setReviews(data);
 
