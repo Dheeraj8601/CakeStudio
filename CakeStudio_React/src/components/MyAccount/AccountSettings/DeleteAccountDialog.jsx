@@ -37,7 +37,6 @@ export default function DeleteAccountDialog({
 
     const handleDelete = () => {
 
-        console.log("Delete Account");
 
         onDelete?.();
 

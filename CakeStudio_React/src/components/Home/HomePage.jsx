@@ -21,18 +21,27 @@ import Service from "../../services/Service";
 import { features } from "../../constants/featureData";
 
 import "./homepage.css";
+import { useAuth } from "../../context/AuthContext";
 
 export default function HomePage() {
 
     const [wishlistCakeIds, setWishlistCakeIds] = useState([])
     const [categories, setCategories] = useState([]);
     const [cakes, setCakes] = useState([]);
-
+    const { user, loading: authLoading } = useAuth();
     const sliderRef = useRef(null);
 
     useEffect(() => {
         loadCategories();
         loadFeaturedCakes();
+        if (authLoading) {
+            return;
+        }
+
+        if (!user) {
+            setWishlistCakeIds([]);
+            return;
+        }
         loadWishlistIds();
     }, []);
 
@@ -72,6 +81,7 @@ export default function HomePage() {
     };
 
     const loadWishlistIds = async () => {
+
         try {
             const res = await Service.getWishlistCakeIds();
             setWishlistCakeIds(res.data)

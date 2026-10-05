@@ -3,16 +3,24 @@ import CakeCard from "../CakeCard/CakeCard";
 import "./CakeGrid.css";
 import Service from "../../../services/Service";
 import { useEffect, useState } from "react";
+import { useAuth } from "../../../context/AuthContext";
 
-const CakeGrid = ({
-    cakes,
-    view
-}) => {
+const CakeGrid = ({cakes,view}) => {
     const [wishlistCakeIds, setWishlistCakeIds] = useState([])
+    const { user, loading: authLoading } = useAuth();
 
     useEffect(() => {
+        if (authLoading) {
+            return;
+        }
+
+        if (!user) {
+            setWishlistCakeIds([]);
+            return;
+        }
         loadWishlistIds();
     }, [])
+
     const loadWishlistIds = async () => {
         try {
             const res = await Service.getWishlistCakeIds();

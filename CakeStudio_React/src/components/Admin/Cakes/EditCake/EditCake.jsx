@@ -29,7 +29,6 @@ export default function EditCake(props) {
             const response = await Service.getCakeById(props.id);
 
             const item = response.data;
-            //console.log(item,"item ed")
 
             setCake({
                 id: item.id,

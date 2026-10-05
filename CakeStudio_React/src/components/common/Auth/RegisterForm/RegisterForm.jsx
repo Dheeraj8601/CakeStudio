@@ -60,7 +60,7 @@ const RegisterForm = () => {
             return;
         }
 
-        console.log(form);
+
         var fullname = splitName(form.fullName)
         const request = {
             FirstName: fullname.firstName,
@@ -72,7 +72,6 @@ const RegisterForm = () => {
         try {
             const res = await Service.register("Auth/register", request);
 
-            console.log(res.data);
 
             if (res.data.success) {
                 toast.success("Registration successful!");
@@ -82,7 +81,6 @@ const RegisterForm = () => {
         catch (err) {
 
             if (err.response) {
-                console.log(err.response, "34")
                 if (err.response.status === 400) {
                     //alert(err.response.data.message);
                     toast.info(err.response.data.message)

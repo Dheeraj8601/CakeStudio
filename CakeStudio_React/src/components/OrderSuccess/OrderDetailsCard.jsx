@@ -25,7 +25,6 @@ export default function OrderDetailsCard({
 
 }) {
 
-    console.log(order,"11")
     return (
 
         <Card className="order-details-card">

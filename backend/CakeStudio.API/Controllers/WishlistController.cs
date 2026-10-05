@@ -58,7 +58,7 @@ namespace CakeStudio.API.Controllers
                 await _service.GetWishlistAsync(request));
         }
 
-        //[Authorize(Roles = "Customer")]
+        [Authorize(Roles = "Customer")]
         [HttpGet("cake-ids")]
         public async Task<IActionResult> GetWishlistCakeIds()
         {

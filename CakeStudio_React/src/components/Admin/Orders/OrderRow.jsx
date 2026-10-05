@@ -24,7 +24,7 @@ export default function OrderRow({
     onReload={onReload}
 
 }) {
-    console.log(order, "order 55")
+
     const navigate = useNavigate();
     const [openStatusDialog, setOpenStatusDialog] =
         useState(false);
