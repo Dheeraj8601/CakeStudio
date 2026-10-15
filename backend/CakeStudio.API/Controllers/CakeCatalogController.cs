@@ -2,11 +2,13 @@
 using CakeStudio.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Stripe;
 
 namespace CakeStudio.API.Controllers
 {
     [ApiController]
+    [EnableRateLimiting("api")]
     [Route("api/cake-catalog")]
     public class CakeCatalogController : ControllerBase
     {
