@@ -1,16 +1,26 @@
+
 using CakeStudio.API.DbContexts.models;
 using CakeStudio.API.Extensions;
 using CakeStudio.Infrastructure;
+using CakeStudio.Infrastructure.BackgroundServices;
+
+using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Text;
+
 using Serilog;
 using Stripe;
-using CakeStudio.Infrastructure.BackgroundServices;
-using Hangfire;
-using Microsoft.AspNetCore.Mvc;
+
+using System.Text;
+using System.Threading.RateLimiting;
+
+// =========================================================
+// SERILOG CONFIGURATION
+// =========================================================
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -19,7 +29,14 @@ Log.Logger = new LoggerConfiguration()
         rollingInterval: RollingInterval.Day)
     .CreateLogger();
 
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog();
+
+// =====================================================
+// STRIPE CONFIGURATION
+// =====================================================
 
 var stripeSecretKey =
     builder.Configuration["StripeSettings:SecretKey"];
@@ -27,30 +44,46 @@ var stripeSecretKey =
 if (string.IsNullOrWhiteSpace(stripeSecretKey))
 {
     throw new InvalidOperationException(
-        "Stripe SecretKey is not configured."
-    );
+        "Stripe SecretKey is not configured.");
 }
 
 StripeConfiguration.ApiKey = stripeSecretKey;
 
-builder.Host.UseSerilog();
+// =====================================================
+// SQL SERVER / ENTITY FRAMEWORK CORE
+// =====================================================
 
-builder.Services.AddDbContext<CakeStudioDbContext>(options =>
-{
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection"));
-});
+builder.Services.AddDbContext<CakeStudioDbContext>(
+    options =>
+    {
+        options.UseSqlServer(
+            builder.Configuration.GetConnectionString(
+                "DefaultConnection"));
+    });
 
-// Hangfire
+// =====================================================
+// HANGFIRE
+// =====================================================
+
 builder.Services.AddHangfire(configuration =>
 {
     configuration.UseSqlServerStorage(
-        builder.Configuration.GetConnectionString("DefaultConnection"));
+        builder.Configuration.GetConnectionString(
+            "DefaultConnection"));
 });
 
 builder.Services.AddHangfireServer();
 
-builder.Services.AddHostedService<RefreshTokenCleanupService>();
+// =====================================================
+// BACKGROUND SERVICES
+// =====================================================
+
+builder.Services.AddHostedService<
+    RefreshTokenCleanupService>();
+
+// =====================================================
+// CORS
+// =====================================================
 
 builder.Services.AddCors(options =>
 {
@@ -64,154 +97,258 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Add services
-// =========================================================
-// CSRF PROTECTION
-// =========================================================
-// Automatically validates antiforgery tokens for unsafe
-// HTTP methods such as POST, PUT, PATCH and DELETE.
-//
-// GET, HEAD, OPTIONS and TRACE are not validated.
-//
-// React already sends X-CSRF-TOKEN from the Axios
-// interceptor created in Step 15C.
-// =========================================================
-
-//builder.Services.AddControllers(options =>
-//{
-//    options.Filters.Add(
-//        new AutoValidateAntiforgeryTokenAttribute()
-//    );
-//});
+// =====================================================
+// CONTROLLERS + GLOBAL CSRF VALIDATION
+// =====================================================
 
 builder.Services.AddControllersWithViews(options =>
 {
     options.Filters.Add(
-        new AutoValidateAntiforgeryTokenAttribute()
-    );
+        new AutoValidateAntiforgeryTokenAttribute());
 });
+
 builder.Services.AddInfrastructure();
+
 builder.Services.AddHttpContextAccessor();
 
-// =========================================================
-// CSRF / ANTIFORGERY PROTECTION
-// =========================================================
+// =====================================================
+// CSRF / ANTIFORGERY CONFIGURATION
+// =====================================================
 
 builder.Services.AddAntiforgery(options =>
 {
-    // React will send the request token using this header.
     options.HeaderName = "X-CSRF-TOKEN";
 
-    // Antiforgery validation cookie.
     options.Cookie.Name = "XSRF-TOKEN-COOKIE";
 
     options.Cookie.HttpOnly = true;
+
     options.Cookie.SecurePolicy =
         CookieSecurePolicy.Always;
 
-    // Required for your current localhost setup:
-    // React  -> http://localhost:5173
-    // API    -> https://localhost:7120
     options.Cookie.SameSite =
         SameSiteMode.None;
 });
 
-// Remove or comment out the following line, as there is no AddInfrastructure method defined or imported:
-// builder.Services.AddInfrastructure();
+// =====================================================
+// SLIDING WINDOW RATE LIMITING
+// =====================================================
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode =
+        StatusCodes.Status429TooManyRequests;
+
+
+    options.AddPolicy("auth", context =>
+    {
+        var clientIp =
+            context.Connection.RemoteIpAddress?
+                .ToString() ?? "unknown";
+
+        return RateLimitPartition.GetSlidingWindowLimiter(
+            partitionKey: clientIp,
+            factory: _ => new SlidingWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+
+                Window = TimeSpan.FromMinutes(1),
+
+                SegmentsPerWindow = 6,
+
+                QueueLimit = 0,
+
+                AutoReplenishment = true
+            });
+    });
+
+
+    options.AddPolicy("api", context =>
+    {
+        var clientIp =
+            context.Connection.RemoteIpAddress?
+                .ToString() ?? "unknown";
+
+        return RateLimitPartition.GetSlidingWindowLimiter(
+            partitionKey: clientIp,
+            factory: _ => new SlidingWindowRateLimiterOptions
+            {
+                PermitLimit = 100,
+
+                Window = TimeSpan.FromMinutes(1),
+
+                SegmentsPerWindow = 6,
+
+                QueueLimit = 0,
+
+                AutoReplenishment = true
+            });
+    });
+
+
+    options.OnRejected = async (
+        context,
+        cancellationToken) =>
+    {
+        var response = context.HttpContext.Response;
+
+        response.StatusCode =
+            StatusCodes.Status429TooManyRequests;
+
+        response.ContentType = "application/json";
+
+        // Use the limiter's retry estimate when available.
+        if (context.Lease.TryGetMetadata(
+            MetadataName.RetryAfter,
+            out TimeSpan retryAfter))
+        {
+            response.Headers.RetryAfter =
+                Math.Max(
+                    1,
+                    (int)Math.Ceiling(
+                        retryAfter.TotalSeconds))
+                .ToString();
+        }
+
+        await response.WriteAsJsonAsync(
+            new
+            {
+                status = 429,
+                message =
+                    "Too many requests. Please try again later."
+            },
+            cancellationToken);
+    };
+});
+
+// =====================================================
+// SWAGGER
+// =====================================================
+
 builder.Services.AddEndpointsApiExplorer();
 
-//Swagger
 builder.Services.AddSwaggerGen(options =>
 {
-    options.AddSecurityDefinition("Bearer",
-        new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    options.AddSecurityDefinition(
+        "Bearer",
+        new OpenApiSecurityScheme
         {
             Name = "Authorization",
-            Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+            Type = SecuritySchemeType.Http,
             Scheme = "bearer",
             BearerFormat = "JWT",
-            In = Microsoft.OpenApi.Models.ParameterLocation.Header
+            In = ParameterLocation.Header
         });
 
     options.AddSecurityRequirement(
-        new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+        new OpenApiSecurityRequirement
         {
-            {
-                new Microsoft.OpenApi.Models.OpenApiSecurityScheme
                 {
-                    Reference =
-                        new Microsoft.OpenApi.Models.OpenApiReference
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
                         {
-                            Type =
-                                Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                            Type = ReferenceType.SecurityScheme,
                             Id = "Bearer"
                         }
-                },
-                Array.Empty<string>()
-            }
+                    },
+                    Array.Empty<string>()
+                }
         });
 });
 
-//JWT
-var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+// =====================================================
+// JWT AUTHENTICATION
+// =====================================================
+
+var jwtSettings =
+    builder.Configuration.GetSection("JwtSettings");
 
 builder.Services
-.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-.AddJwtBearer(options =>
- {
-     options.TokenValidationParameters =
-         new TokenValidationParameters
-         {
-             ValidateIssuer = true,
-             ValidateAudience = true,
-             ValidateLifetime = true,
-             ValidateIssuerSigningKey = true,
+    .AddAuthentication(
+        JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters =
+            new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
 
-             ValidIssuer = jwtSettings["Issuer"],
-             ValidAudience = jwtSettings["Audience"],
+                ValidIssuer = jwtSettings["Issuer"],
+                ValidAudience = jwtSettings["Audience"],
 
-             IssuerSigningKey =
-                new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(jwtSettings["Key"]!))
-         };
+                IssuerSigningKey =
+                    new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(
+                            jwtSettings["Key"]!))
+            };
 
+        // ---------------------------------------------
+        // READ JWT FROM HTTPONLY COOKIE
+        // ---------------------------------------------
 
-     // =============================================
-     // READ JWT FROM HTTPONLY COOKIE
-     // =============================================
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                if (context.Request.Cookies.TryGetValue(
+                    "access_token",
+                    out var accessToken))
+                {
+                    context.Token = accessToken;
+                }
 
-     options.Events =
-         new JwtBearerEvents
-         {
-             OnMessageReceived = context =>
-             {
-                 if (context.Request.Cookies.TryGetValue(
-                         "access_token",
-                         out var accessToken))
-                 {
-                     context.Token = accessToken;
-                 }
+                return Task.CompletedTask;
+            }
+        };
+    });
 
-                 return Task.CompletedTask;
-             }
-         };
- });
+// =====================================================
+// BUILD APPLICATION
+// =====================================================
 
 var app = builder.Build();
 
-// Middleware
+// =====================================================
+// MIDDLEWARE PIPELINE
+// =====================================================
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "CakeStudio API v1"));
+
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint(
+            "/swagger/v1/swagger.json",
+            "CakeStudio API v1");
+    });
 }
+
 app.UseHttpsRedirection();
-app.UseCors("ReactPolicy");
+
 app.UseStaticFiles();
+
+app.UseRouting();
+
+app.UseCors("ReactPolicy");
+
 app.UseGlobalExceptionMiddleware();
+
 app.UseAuthentication();
+
+// Must execute after routing.
+app.UseRateLimiter();
+
 app.UseAuthorization();
+
 app.UseHangfireDashboard("/hangfire");
+
 app.MapControllers();
 
 app.Run();
+
+
